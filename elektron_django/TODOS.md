@@ -8,6 +8,7 @@
 
 ## Tasks:
 	- Cuando una tarea se ejecuta, que hacemos? se pone en terminada y listo?
+	- Que onda el owner??
 	- Terminar el handler de tasks
 		- data task
 		- datetime task

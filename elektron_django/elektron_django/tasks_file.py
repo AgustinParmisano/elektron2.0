@@ -14,6 +14,7 @@ def get_datatasks_from_server(server_ip, server_port):
         ready_datatasks = []
         for dt in datatasks:
             print dt["label"] + " " + dt["taskstate"]["name"]
+            print ""
             if dt["taskstate"]["name"] == "ready":
                 ready_datatasks.append(dt)
 
@@ -28,9 +29,6 @@ def get_datatasks_from_server(server_ip, server_port):
 
 def data_date_is_greater(d,l):
     for i in range(0,len(l)):
-        print l[i]["data_value"]
-        print l[i]["date"]
-        print d
         if l[i]["date"] > d:
             return i
     return -1
@@ -58,12 +56,28 @@ def execute_tasks(task_queue, server_ip, server_port):
                 data_value_correct = data_is_greater(task_data, device_data_list)
 
                 if data_value_correct >= 0:
-                    print "Dato es mayor e fecha y en valor a la tarea"
+                    print ""
+                    print "Dato es mayor a fecha y en valor a la tarea"
                     print "Ejecutar accion y cambiar de estado o ver que hacer"
-                    
+                    execute_task_function(dt, server_ip, server_port)
 
-def execute_task_function(task):
-    pass
+def execute_task_function(task, server_ip, server_port):
+    print str(task["id"]) + " " + task["label"]
+    print task
+    task_function = task["taskfunction"]
+    task_device = task["device"]
+    task_state = task["taskstate"]
+    print task_state
 
+    """
+    if task_function["name"] == "shutdown":
+        print task_function["name"] + " " + task_device["label"]
+        print "Enviar msg al servidor para apagar el dispostivo"
+        data = {'taskstate':'0', 'taskfunction': + task_function["id"], 'label': task["label"], 'description': task["description"], 'data_value': task["data_value"], 'device_mac': task_device["device_mac"], 'owner': 'root' }
+        print data
+        update_task_state = requests.post("http://" + server_ip + ":" + server_port + "/tasks/datatasks/" + str(task["id"]) + "/update", data=data)
+        #update_task_state.text
+        #update_task_state.url
+    """
 data_tasks_q = get_datatasks_from_server("158.69.223.78","8000")
 execute_tasks(data_tasks_q, "158.69.223.78","8000")
