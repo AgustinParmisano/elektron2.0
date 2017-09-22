@@ -34,7 +34,8 @@
       //Web Socket comunication
       //Connect to server
 
-      var ws = new WebSocket("ws://localhost:8888/websocket");
+      //var ws = new WebSocket("ws://localhost:8888/websocket");
+      var ws = new WebSocket("ws://158.69.223.78:8888/websocket");
       ws.onopen = function() {
         console.log("on open");
         ws.send("Hello, world");

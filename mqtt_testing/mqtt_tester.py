@@ -39,6 +39,7 @@ class MqttClient(object):
         self.client.on_connect = on_connect
         self.client.on_message = on_message
         self.client.connect("localhost", 1883, 60)
+        self.client.connect("158.69.223.78", 1883, 60)
 
     def get_client(self):
         return self.client

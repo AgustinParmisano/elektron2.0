@@ -1,18 +1,17 @@
 # TODOS Django Elektron:
 
-### Recent:
-	- Correr websocket.py, mqtt.py, runserver y http-server y ver si anda el chart en tiempo real
+## Escritura:
+	- Escribir sobre el servidor
 
-## Server:
-	- Ver como interactua mqtt con el servidor remoto
-	- Ver como interactua websocket con el servidor remoto
-
-## Inicio / Settings.py:
-	- Cuando se arranca el server debe arrancar mqtt y websocket (una sola instancia de c/u)
-	- Se deben crear TaskStates, TaskFunctions y DeviceState por defecto al iniciar el sistema. Ver cuales.
+## Tasks:
+	- Terminar el handler de tasks
+		- data task
+		- datetime task
+	- Que los levante cron cada 1 minuto
 
 ## Model:
 	- Crear las vistas (Alta, Baja, Modificación y Listar) y las urls de cada modelo.
+		- Modificacion para devices y tasks (por ejemplo ponerle enabled/disabled a un device)
 		- Baja para cada modelo (poner la URL en el archivo de URLS.md).
 	- Ver como hacer las tareas automatizadas:
 		- DataTasks (Celery o Cron)
@@ -57,3 +56,6 @@
 		- Tener cuidado con mqtt
 		- Tener cuidado con websocket
 		- Tener cuidado con encriptacion desde nodemcu
+
+## Server:
+	- Ver si sirve ponerle algo mejor que un simple ssh
