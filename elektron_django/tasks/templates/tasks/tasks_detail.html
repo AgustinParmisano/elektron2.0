@@ -1,0 +1,11 @@
+{% if object.data_value %}
+    { "taskstate" : {{ object.taskstate}}, "taskfunction" : {{ object.taskfunction }}, "label" : {{ object.label }}, "device" : {{ object.device}}, "owner" : {{ object.owner }}, "description" : {{ object.description }}, "data_value" : {{ object.data_value }} }
+{% elif object.date_from %}
+    {% if object.date_to %}
+        { "taskstate" : {{ object.taskstate}}, "taskfunction" : {{ object.taskfunction }}, "label" : {{ object.label }}, "device" : {{ object.device}}, "owner" : {{ object.owner }}, "description" : {{ object.description }}, "date_from" : {{ object.date_from }}, "date_to" : {{ object.date_to }} }
+    {% else %}
+        { "error:" "wrong task data" }
+    {% endif %}
+{% else %}
+    { "error:" "wrong task data" }
+{% endif %}

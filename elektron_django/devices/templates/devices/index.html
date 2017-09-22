@@ -1,0 +1,3 @@
+{% for devices in latest_devices_list %}
+    { "label" : {{ devices.label }}, "ip":  {{ devices.device_ip }} , "mac":  {{ devices.device_mac }} },
+{% endfor %}

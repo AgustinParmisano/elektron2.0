@@ -1,0 +1,3 @@
+{% for data in latest_data_list %}
+    "{ "data_value" : "{{ data.data_value }}", "date":  "{{ data.date }}" , "device":  "{{ data.device }}" }",
+{% endfor %}

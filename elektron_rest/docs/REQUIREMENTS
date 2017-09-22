@@ -1,0 +1,40 @@
+Descripción:
+
+Sistema que permite relevar datos mediante dispositivos de sensado y envío de datos vía wifi por
+Mqtt u Otra tecnoloǵia de comunicación
+
+Requerimientos Funcionales:
+
+-Obtener datos de dispostivos remotos mediante Mqtt.
+-Guardar los datos propios de los dispositivos en una base de datos.
+-Guardar lo datos que los dispositivos envían en una base de datos.
+-Enviar señales a los dispositivos mediante una interface gráfica respetando permsisos.
+-Obtener estadísticias de los datos proveídos por los dispositivos según fecha y hora.
+-Graficar los datos que envía cada dispositivo en timepo real.
+-Graficar las estadísticas mediante datos consultados en la base de datos.
+
+
+Modelo de Clases:
+
+-Dispositivos (Device):
+	-id (PK, autogenerado por django)
+	-ip (String, enviado por dispositivo)
+	-mac (String, enviado por dispositivo, posible identifiacodr único)
+	-label (String, puesto por el usuario, por defecto es Elektron)
+	-data (Data, FK 1-N, enviado por dipositivo)
+	-state (String, enviado por dispositivo)
+
+-Data:
+	-id (PK, autogenerado por django)
+	-device (Device, FK N-1, enviado por dispositivo)
+	-data_value (Sring (JSON), enviado por dispositivo)
+	-date (Datetime, enviado por MQTT al recibir el dato desde la cola Rabbitmq o POST)
+
+-Tarea (Task):
+        -id (PK, autogenerado por django)
+	-device (Device, FK N-N, configurado por el usuario)
+	-date_from (Datetime, puede ser null, configurado por el usuario)
+	-date_to (Datetime, puede ser null, configurado por el usuario)
+	-max (Integer, puede ser null, configurado por el ususrio)
+	-state (String, arranca en null, va pasando de estados, puede ser un state: ready, done, canceled)
+

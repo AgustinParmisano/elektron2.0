@@ -1,0 +1,3 @@
+{% for tasks in latest_tasks_list %}
+    { "label" : {{ tasks.label }}, "device":  {{ tasks.device }} , "description":  {{ tasks.description }}, "function":  {{ tasks.taskfunction }}, "state":  {{ tasks.taskstate }} },
+{% endfor %}
