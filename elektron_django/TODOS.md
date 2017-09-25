@@ -2,6 +2,7 @@
 
 ## Recent:
 	- Probar bien el Handler de datatask: ejecutar task function parece que ya está (probar el TURNON)
+	- Probar correrlo como daemon y ver que pasa
 
 ## Escritura:
 	- Escribir sobre el servidor y las tareas automatizadas
