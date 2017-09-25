@@ -1,13 +1,12 @@
 # TODOS Django Elektron:
 
 ## Recent:
-	- Handler de datatask: ejecutar task function y cambiar la task de estado a done
+	- Handler de datatask: ejecutar task function
 
 ## Escritura:
 	- Escribir sobre el servidor
 
 ## Tasks:
-	- Cuando una tarea se ejecuta, que hacemos? se pone en terminada y listo?
 	- Que onda el owner??
 	- Terminar el handler de tasks
 		- data task
