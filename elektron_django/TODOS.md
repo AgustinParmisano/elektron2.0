@@ -1,10 +1,10 @@
 # TODOS Django Elektron:
 
 ## Recent:
-	- Handler de datatask: ejecutar task function
+	- Probar bien el Handler de datatask: ejecutar task function parece que ya está (probar el TURNON)
 
 ## Escritura:
-	- Escribir sobre el servidor
+	- Escribir sobre el servidor y las tareas automatizadas
 
 ## Tasks:
 	- Que onda el owner??

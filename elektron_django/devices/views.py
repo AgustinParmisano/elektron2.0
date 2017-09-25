@@ -14,6 +14,9 @@ from data.models import Data
 from django.views import generic
 from django.contrib.auth.models import User
 from django.conf import settings
+import paho.mqtt.client as mqtt
+import paho.mqtt.publish as publish
+import Queue
 
 def to_UTC(date):
     utc = settings.UTC
@@ -477,6 +480,100 @@ class UpdateView(generic.View):
 
             except Device.DoesNotExist:
                 device = Device(**result)
+
+            device.save()
+
+        return JsonResponse({'status':True})
+
+q = Queue.Queue()
+
+def on_connect(client, userdata, flags, rc):
+   print("Connected with result code "+str(rc))
+   client.subscribe("data_to_web")
+
+def on_message(client, userdata, msg):
+   print "Sending data from MQTT(Device) to WebSocket(Web Interface)"
+   data_json = ast.literal_eval(msg.payload)
+   print data_json
+
+   q.put(data_json)
+
+class MqttClient(object):
+    """docstring for MqttClient."""
+    def __init__(self, client=mqtt.Client()):
+        super(MqttClient, self).__init__()
+        self.client = client
+        self.client.on_connect = on_connect
+        self.client.on_message = on_message
+        self.client.connect("localhost", 1883, 60)
+        #self.client.connect("158.69.223.78", 1883, 60)
+
+    def get_client(self):
+        return self.client
+
+    def set_on_connect(self, func):
+        self.on_connect = func
+
+    def publish(self, message, topic):
+         print("Sending %s " % (message))
+         self.client.publish(str(topic), message)
+         return "Sending msg: %s " % (message)
+
+class ShutdownView(generic.View):
+
+    def post(self, request, *args, **kwargs):
+        print "AAAAAAAA"
+        print request.POST
+        result = check_device(**request.POST)
+
+        if result:
+            try:
+                device = Device.objects.get(device_mac=result["device_mac"])
+                device.device_ip = result["device_ip"]
+                device.label = result["label"]
+
+                if str(device.devicestate) == "on":
+                    topic = "sensors/new_order"
+                    order = "0"
+                    device.devicestate = DeviceState.objects.get(name="off")
+                    mqtt = MqttClient()
+                    mqtt.publish(order, topic)
+
+            except Device.DoesNotExist:
+                print "Some error ocurred shutting downd Single Device with id: " + str(kwargs["pk"])
+                print "No such device"
+                print "Exception: " + str(e)
+                return HttpResponse(status=500)
+
+            device.save()
+
+        return JsonResponse({'status':True})
+
+
+class TurnonView(generic.View):
+
+    def post(self, request, *args, **kwargs):
+
+        result = check_device(**request.POST)
+
+        if result:
+            try:
+                device = Device.objects.get(device_mac=result["device_mac"])
+                device.device_ip = result["device_ip"]
+                device.label = result["label"]
+
+                if str(device.devicestate) == "off":
+                    topic = "sensors/new_order"
+                    order = "1"
+                    device.devicestate = DeviceState.objects.get(name="on")
+                    mqtt = MqttClient()
+                    mqtt.publish(order, topic)
+
+            except Device.DoesNotExist:
+                print "Some error ocurred shutting downd Single Device with id: " + str(kwargs["pk"])
+                print "No such device"
+                print "Exception: " + str(e)
+                return HttpResponse(status=500)
 
             device.save()
 

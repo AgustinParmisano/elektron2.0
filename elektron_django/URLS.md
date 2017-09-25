@@ -78,6 +78,14 @@ import requests
   r.url
   ```
 
+  - Device devices/<device_id>/shutdown enviar mensaje de apagado al dispositivo:
+  ```
+  r = requests.get("http://localhost:8000/devices/<device_id>/shutdown")
+  r.text
+  r.url
+  ```
+
+
 ### Data:
 
   - Create Data:
