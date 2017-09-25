@@ -8,7 +8,7 @@ import requests
 import Queue
 
 qmsg = Queue.Queue()
-
+"""
 def remove_duplicated_msg(mqtt_data):
     print  "mqtt_data"
     print  mqtt_data
@@ -22,24 +22,26 @@ def remove_duplicated_msg(mqtt_data):
         del mqtt_data["data_id"]
 
         return mqtt_data
+"""
 
 def msg_ws(msg):
    resp = publish.single("data_to_web", msg, hostname="localhost")
    return resp
 
+"""
 def create_new_device(device_mqtt):
     print("Creating new device in server")
-
-    #print device_mqtt
-
+    print device_mqtt
     device_data = device_mqtt #{'device_ip': '10.0.0.3', 'device_mac': '22:22:22:22', 'devicestate': 1, 'label': 'horno'}
-
+    print "device_data.text"
+    print device_data.text
     r = requests.post("http://localhost:8000/devices/", data=device_data)
+"""
 
 def check_data(mqtt_data):
-    print mqtt_data
+    #print mqtt_data
     result = requests.post("http://localhost:8000/data/create", data=mqtt_data)
-    print result
+    #print result
     return result
 
 def check_device(device_mqtt):

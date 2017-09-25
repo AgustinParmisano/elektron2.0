@@ -39,7 +39,7 @@ class MqttClient(object):
         self.client.on_connect = on_connect
         self.client.on_message = on_message
         self.client.connect("localhost", 1883, 60)
-        self.client.connect("158.69.223.78", 1883, 60)
+        #self.client.connect("158.69.223.78", 1883, 60)
 
     def get_client(self):
         return self.client
@@ -85,6 +85,11 @@ class Device(object):
     def set_data_value(self, data_value):
         self.data_value = data_value
 
+
+    def get_data_range(self):
+        return self.data_range
+
+
 def device_constructor():
     ip = raw_input("Device ip (f.e: 10.0.0.2): ") or "10.0.0.99"
     mac = raw_input("Device mac (f.e: 12:34:56:78): ") or "99:99:99:99"
@@ -110,43 +115,48 @@ def data_generator(datarange):
 
 time.sleep(1)
 
-"""
-device = device_constructor()
-drange = device["data_range"]
-del device["data_range"]
+def uniq_device_test():
+    device = device_constructor()
+    drange = device.get_data_range()
 
-for i in range(0,30):
-        time.sleep(5)
-        print i
-        data = data_generator(drange)
-        device["data_value"] = data
+    for i in range(0,30):
+            time.sleep(5)
+            print i
+            data = data_generator(drange)
+            device.set_data_value(data)
+            topic = "sensors/new_data"
+            data = str(device)
+            print data
+            mqtt.publish(data, topic)
+
+def multiple_devices_test():
+    ok = True
+
+    lampara_led = Device("192.168.0.50", "00:04:f4:f2:f1:d0", "lampara led", "1",  0, 50)
+    pc_server = Device("192.168.0.51", "00:04:f2:f5:7f:57", "pc server", "1",  30, 70)
+    printer3d = Device("192.168.0.52", "00:04:8f:0f:1f:b9", "printer3d", "1",  50, 100)
+    bc_miner = Device("192.168.0.53", "60:be:fe:45:af:e0", "bc miner", "1",  80, 100)
+    devices = [lampara_led, pc_server, printer3d, bc_miner]
+
+    ranges = [devices[0].data_range, devices[1].data_range, devices[2].data_range, devices[3].data_range]
+
+    i = 0
+
+    while ok:
+        if i >= 4:
+            time.sleep(5)
+            i = 0
+        time.sleep(1)
+        data = data_generator(ranges[i])
+        devices[i].set_data_value(data)
         topic = "sensors/new_data"
-        data = str(device)
-        print data
+        print "Sending data %s for device %s ..." % (devices[i].data_value, devices[i].label)
+        data = str(devices[i])
         mqtt.publish(data, topic)
-"""
+        i+=1
 
-ok = True
-
-lampara_led = Device("192.168.0.50", "00:04:f4:f2:f1:d0", "lampara led", "1",  0, 50)
-pc_server = Device("192.168.0.51", "00:04:f2:f5:7f:57", "pc server", "1",  30, 70)
-printer3d = Device("192.168.0.52", "00:04:8f:0f:1f:b9", "printer3d", "1",  50, 100)
-bc_miner = Device("192.168.0.53", " 60:be:fe:45:af:e0", "bc miner", "1",  80, 100)
-devices = [lampara_led, pc_server, printer3d, bc_miner]
-
-ranges = [devices[0].data_range, devices[1].data_range, devices[2].data_range, devices[3].data_range]
-
-i = 0
-
-while ok:
-    if i >= 4:
-        time.sleep(5)
-        i = 0
-    time.sleep(1)
-    data = data_generator(ranges[i])
-    devices[i].set_data_value(data)
-    topic = "sensors/new_data"
-    print "Sending data %s for device %s ..." % (devices[i].data_value, devices[i].label)
-    data = str(devices[i])
-    mqtt.publish(data, topic)
-    i+=1
+opt = input("0 para single device test, 1 para multiple device test: ")
+if opt == 0:
+    uniq_device_test()
+else:
+    multiple_devices_test()

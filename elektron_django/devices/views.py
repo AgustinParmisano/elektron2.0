@@ -134,7 +134,8 @@ class DeviceMacDataView(generic.DetailView):
 
         if result:
             try:
-                device = Device.objects.get(device_mac=result["device_mac"])
+                device_mac = result["device_mac"].replace(" ", "")
+                device = Device.objects.get(device_mac=device_mac)
 
             except Exception as e:
                 print  "Device you ask does not exist"
@@ -202,10 +203,8 @@ class DeviceTaskView(generic.DetailView):
             task_query = list(task_query)
 
             for task in task_query:
-                #print task
                 task_list.insert(0,task.label)
 
-            #print task_list
             return JsonResponse({'task': task_list})
 
         except Exception as e:
@@ -448,7 +447,7 @@ class CreateView(generic.View):
 
         if result:
             try:
-                device = Device.objects.get(device_mac=result["device_mac"])
+                device = Device.objects.get(device_mac=str(result["device_mac"]))
                 device.device_ip = result["device_ip"]
                 device.label = result["label"]
                 device.devicestate = result["devicestate"]
@@ -457,8 +456,8 @@ class CreateView(generic.View):
                 if result["data_value"]:
                     del result["data_value"]
                 device = Device(**result)
-
             device.save()
+
 
         return JsonResponse({'status':True})
 

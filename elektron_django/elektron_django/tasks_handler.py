@@ -3,6 +3,7 @@ import ast
 import json
 from Queue import Queue
 import paho.mqtt.client as mqtt
+from datetime import datetime
 
 datetime_tasks_q = Queue()
 
@@ -29,13 +30,14 @@ def get_datatasks_from_server(server_ip, server_port):
 
 def data_date_is_greater(d,l):
     for i in range(0,len(l)):
-        if l[i]["date"] > d:
+        td = datetime.strptime(l[i]["date"], '%Y-%m-%dT%H:%M:%S.%f')
+        if td < d:
             return i
     return -1
 
 def data_is_greater(d,l):
     for i in range(0,len(l)):
-        if l[i]["data_value"] > d:
+        if int(l[i]["data_value"]) > int(d):
             return i
     return -1
 
@@ -49,13 +51,14 @@ def execute_tasks(task_queue, server_ip, server_port):
         if device_data_get.status_code == 200:
             device_data = json.loads(device_data_get.text)
             device_data_list = device_data["data"]
-            data_date_correct = data_date_is_greater(task_date, device_data_list)
+            task_data = dt['data_value']
+            data_value_correct = data_is_greater(task_data, device_data_list)
 
-            if data_date_correct >= 0:
-                task_data = dt['data_value']
-                data_value_correct = data_is_greater(task_data, device_data_list)
+            if data_value_correct >= 0:
+                task_date = datetime.strptime(task_date, '%Y-%m-%dT%H:%M:%S.%f')
+                data_date_correct = data_date_is_greater(task_date, device_data_list)
 
-                if data_value_correct >= 0:
+                if data_date_correct >= 0:
                     print ""
                     print "Dato es mayor a fecha y en valor a la tarea"
                     print "Ejecutar accion y cambiar de estado o ver que hacer"
@@ -67,17 +70,19 @@ def execute_task_function(task, server_ip, server_port):
     task_function = task["taskfunction"]
     task_device = task["device"]
     task_state = task["taskstate"]
-    print task_state
+    print "task_function"
+    print task_function
 
-    """
     if task_function["name"] == "shutdown":
         print task_function["name"] + " " + task_device["label"]
         print "Enviar msg al servidor para apagar el dispostivo"
-        data = {'taskstate':'0', 'taskfunction': + task_function["id"], 'label': task["label"], 'description': task["description"], 'data_value': task["data_value"], 'device_mac': task_device["device_mac"], 'owner': 'root' }
-        print data
+        data = {'taskstate':'2', 'taskfunction': + task_function["id"], 'label': task["label"], 'description': task["description"], 'data_value': task["data_value"], 'device_mac': task_device["device_mac"], 'owner': 'root' }
+        #print data
         update_task_state = requests.post("http://" + server_ip + ":" + server_port + "/tasks/datatasks/" + str(task["id"]) + "/update", data=data)
-        #update_task_state.text
-        #update_task_state.url
-    """
-data_tasks_q = get_datatasks_from_server("158.69.223.78","8000")
-execute_tasks(data_tasks_q, "158.69.223.78","8000")
+        update_task_state.text
+        update_task_state.url
+
+#remote_ip = "158.69.223.78"
+remote_ip = "localhost"
+data_tasks_q = get_datatasks_from_server(remote_ip,"8000")
+execute_tasks(data_tasks_q, remote_ip,"8000")

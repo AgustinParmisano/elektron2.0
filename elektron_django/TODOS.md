@@ -34,7 +34,6 @@
 	- Ver seguridad MD5 salt en nodemcu y en el server.
 
 ## Websocket:
-	- Ver como integrar websocket para enviar los datos de un device en tiempo real.
 	- Lo mismo pero con muchos devices.
 	- Ver seguridad.
 
@@ -63,4 +62,4 @@
 		- Tener cuidado con encriptacion desde nodemcu
 
 ## Server:
-	- Ver si sirve ponerle algo mejor que un simple ssh
+	- Ver si sirve ponerle algo mejor que un simple bash
