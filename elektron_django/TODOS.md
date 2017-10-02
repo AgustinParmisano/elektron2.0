@@ -14,14 +14,15 @@
 		- datetime task
 	- Que los levante cron cada 1 minuto
 
-## Model:
+## Controlador (views):
 	- Crear las vistas (Alta, Baja, Modificación y Listar) y las urls de cada modelo.
 		- Modificacion para devices y tasks (por ejemplo ponerle enabled/disabled a un device)
 		- Baja para cada modelo (poner la URL en el archivo de URLS.md).
+	- Alta, Baja y Modificacion con authenticación.
+	- Hacer que todas las busquedas de datos por fecha sean por post.
 	- Ver como hacer las tareas automatizadas:
 		- DataTasks (Celery o Cron)
 		- DateTimeTasks (Celery o Cron)
-	- Alta, Baja y Modificacion con authenticación.
 	- Ver si las tareas son con repeticion por dia o mes, tipo calendar
 	- Ver que devolver en cada caso  (error o hit)
 	- Ver como enviar las date_to y la date_from de los datetimestasks

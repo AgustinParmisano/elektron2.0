@@ -17,6 +17,8 @@ from django.conf import settings
 import paho.mqtt.client as mqtt
 import paho.mqtt.publish as publish
 import Queue
+from django.views.generic.edit import DeleteView
+from django.urls import reverse_lazy
 
 def to_UTC(date):
     utc = settings.UTC
@@ -35,7 +37,6 @@ def to_localtime(date):
     return date
 
 def check_device(**kwargs):
-
     if not 'device_ip' in kwargs:
         return False
     else:
@@ -82,6 +83,16 @@ def check_device_mac(**kwargs):
             kwargs['device_mac'] = kwargs['device_mac'][0]
 
     return kwargs
+
+def to_json(**kwargs):
+    print "kwargs to json"
+    print kwargs
+
+    if len(kwargs) == 2:
+        print "hay que convertir a dict"
+    else:
+        print "hay que dejarlo igual"
+        return kwargs
 
 
 class IndexView(generic.ListView):
@@ -442,10 +453,14 @@ class RecognitionView(generic.View):
     def post(self, request):
         return JsonResponse({'status':True})
 
+class DeviceDelete(DeleteView):
+    pass
+    #model = Author
+    #success_url = reverse_lazy('author-list')
+
 class CreateView(generic.View):
 
     def post(self, request, *args, **kwargs):
-
         result = check_device(**request.POST)
 
         if result:
@@ -456,8 +471,11 @@ class CreateView(generic.View):
                 device.devicestate = result["devicestate"]
 
             except Device.DoesNotExist:
-                if result["data_value"]:
-                    del result["data_value"]
+                try:
+                    if result["data_value"]:
+                        del result["data_value"]
+                except Exception as e:
+                    pass
                 device = Device(**result)
             device.save()
 
@@ -522,8 +540,6 @@ class MqttClient(object):
 class ShutdownView(generic.View):
 
     def post(self, request, *args, **kwargs):
-        print "AAAAAAAA"
-        print request.POST
         result = check_device(**request.POST)
 
         if result:
