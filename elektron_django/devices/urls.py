@@ -9,6 +9,7 @@ urlpatterns = [
     url(r'^(?P<pk>[0-9]+)/$', csrf_exempt(views.DetailView.as_view()), name='detail'),
     url(r'^recognition$', csrf_exempt(views.RecognitionView.as_view()), name='recognition'),
     url(r'^create$', csrf_exempt(views.CreateView.as_view()), name='create'),
+    url(r'^delete$', csrf_exempt(views.DeleteView.as_view()), name='delete'),
     url(r'^update$', csrf_exempt(views.UpdateView.as_view()), name='update'),
     url(r'^data$', csrf_exempt(views.DeviceMacDataView.as_view()), name='data_device_mac'),
     url(r'^task$', csrf_exempt(views.DeviceMacTaskView.as_view()), name='task_device_mac'),

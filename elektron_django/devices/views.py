@@ -454,9 +454,22 @@ class RecognitionView(generic.View):
         return JsonResponse({'status':True})
 
 class DeviceDelete(DeleteView):
-    pass
-    #model = Author
-    #success_url = reverse_lazy('author-list')
+
+    def post(self, request, *args, **kwargs):
+        result = check_device(**request.POST)
+
+        if result:
+            try:
+                device = Device.objects.get(device_mac=str(result["device_mac"]))
+
+            except Device.DoesNotExist:
+                message = "Device does not exists!"
+                response = JsonResponse({'status':'false','message':message}, status=500)
+                return JsonResponse(response)
+
+            device.delete()
+
+        return JsonResponse({'status':True})
 
 class CreateView(generic.View):
 
