@@ -39,21 +39,19 @@ def data_date_is_greater(d,l):
     return -1
 
 def data_is_greater(d,l):
-    print "d: " + str(d)
-    print len(l)
     for i in range(0,len(l)):
         if int(l[i]["data_value"]) > int(d):
             print l[i]
             return i
     return -1
 
-def data_correct(td,l):
-    d = data_date_is_greater(td,l)
-    data_ok = data_is_greater(d,l)
-    if data_ok >= 0:
-        return l
-    else:
-        return -1
+def data_correct(tdate,tdata,l):
+    l = data_date_is_greater(tdate,l)
+    if l >= 0:
+        data_ok = data_is_greater(tdata,l)
+        if data_ok >= 0:
+            return l
+    return -1
 
 def execute_tasks(task_queue, server_ip, server_port):
     while not task_queue.empty():
@@ -67,7 +65,7 @@ def execute_tasks(task_queue, server_ip, server_port):
             device_data_list = device_data["data"]
             task_data = dt['data_value']
             task_date = datetime.strptime(task_date, '%Y-%m-%dT%H:%M:%S.%f')
-            data_ok = data_correct(task_date, device_data_list)
+            data_ok = data_correct(task_date, task_data, device_data_list)
 
             if data_ok >= 0:
                 execute_task_function(dt, server_ip, server_port)
@@ -103,10 +101,10 @@ def execute_task_function(task, server_ip, server_port):
         else:
             print("Cannot apply function %s to device %s " % (str(task_function["name"]), str(task_device["label"])))
 
-    if update_task_state == 200:
+    if update_task_state.status_code == 200:
         print task_function["name"] + " State Update!"
     else:
-        print "Some error updating state of task" + task_function["name"] 
+        print "Some error updating state of task" + task_function["name"]
 
 #remote_ip = "158.69.223.78"
 remote_ip = "localhost"
