@@ -29,10 +29,13 @@ def get_datatasks_from_server(server_ip, server_port):
         return False
 
 def data_date_is_greater(d,l):
+    data_date_greater_list = []
     for i in range(0,len(l)):
-        td = datetime.strptime(l[i]["date"], '%Y-%m-%dT%H:%M:%S.%f')
+        data = l[i]
+        td = datetime.strptime(data["date"], '%Y-%m-%dT%H:%M:%S.%f')
         if td > d:
-            return i
+            data_date_greater_list.append(data)
+            return data_date_greater_list
     return -1
 
 def data_is_greater(d,l):
@@ -40,13 +43,17 @@ def data_is_greater(d,l):
     print len(l)
     for i in range(0,len(l)):
         if int(l[i]["data_value"]) > int(d):
-            print "AAAAA"
             print l[i]
             return i
     return -1
 
-def data_correct():
-    
+def data_correct(td,l):
+    d = data_date_is_greater(td,l)
+    data_ok = data_is_greater(d,l)
+    if data_ok >= 0:
+        return l
+    else:
+        return -1
 
 def execute_tasks(task_queue, server_ip, server_port):
     while not task_queue.empty():
@@ -60,15 +67,10 @@ def execute_tasks(task_queue, server_ip, server_port):
             device_data_list = device_data["data"]
             task_data = dt['data_value']
             task_date = datetime.strptime(task_date, '%Y-%m-%dT%H:%M:%S.%f')
-                data_date_correct = data_date_is_greater(task_date, device_data_list)
+            data_ok = data_correct(task_date, device_data_list)
 
-            if data_date_correct >= 0:
-                data_value_correct = data_is_greater(task_data, device_data_list)
-                print "BBBB"
-
-                if data_value_correct >= 0:
-                    print "CCCC"
-                    execute_task_function(dt, server_ip, server_port)
+            if data_ok >= 0:
+                execute_task_function(dt, server_ip, server_port)
 
 
 def execute_task_function(task, server_ip, server_port):
@@ -92,15 +94,24 @@ def execute_task_function(task, server_ip, server_port):
     if task_function["name"] == "turnon":
         print task_function["name"] + " " + task_device["label"]
         print "Enviar msg al servidor para prender el dispostivo"
-        task_data = {'taskstate':'1', 'taskfunction': + task_function["id"], 'label': task["label"], 'description': task["description"], 'data_value': task["data_value"], 'device_mac': task_device["device_mac"], 'owner': 'root' }
+        task_data = {'taskstate':'2', 'taskfunction': + task_function["id"], 'label': task["label"], 'description': task["description"], 'data_value': task["data_value"], 'device_mac': task_device["device_mac"], 'owner': 'root' }
         device_data = {'device_ip': task_device["device_ip"], 'device_mac': task_device["device_mac"], 'devicestate': task_device["devicestate"]['id'], 'label': task_device["label"], 'owner': 'root'}
         function_exec_res = requests.post("http://" + server_ip + ":" + server_port + "/devices/" + str(task["id"]) + "/turnon", data=device_data)
+
         if function_exec_res.status_code == 200:
             update_task_state = requests.post("http://" + server_ip + ":" + server_port + "/tasks/datatasks/" + str(task["id"]) + "/update", data=task_data)
         else:
             print("Cannot apply function %s to device %s " % (str(task_function["name"]), str(task_device["label"])))
 
+    if update_task_state == 200:
+        print task_function["name"] + " State Update!"
+    else:
+        print "Some error updating state of task" + task_function["name"] 
+
 #remote_ip = "158.69.223.78"
 remote_ip = "localhost"
-data_tasks_q = get_datatasks_from_server(remote_ip,"8000")
-execute_tasks(data_tasks_q, remote_ip,"8000")
+port = "8000"
+
+data_tasks_q = get_datatasks_from_server(remote_ip,port)
+#datetime_task_q = get_datatasks_from_server(remote_ip,port)
+execute_tasks(data_tasks_q, remote_ip,port)
