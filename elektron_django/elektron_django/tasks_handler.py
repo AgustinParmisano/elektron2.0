@@ -31,15 +31,22 @@ def get_datatasks_from_server(server_ip, server_port):
 def data_date_is_greater(d,l):
     for i in range(0,len(l)):
         td = datetime.strptime(l[i]["date"], '%Y-%m-%dT%H:%M:%S.%f')
-        if td < d:
+        if td > d:
             return i
     return -1
 
 def data_is_greater(d,l):
+    print "d: " + str(d)
+    print len(l)
     for i in range(0,len(l)):
         if int(l[i]["data_value"]) > int(d):
+            print "AAAAA"
+            print l[i]
             return i
     return -1
+
+def data_correct():
+    
 
 def execute_tasks(task_queue, server_ip, server_port):
     while not task_queue.empty():
@@ -52,14 +59,17 @@ def execute_tasks(task_queue, server_ip, server_port):
             device_data = json.loads(device_data_get.text)
             device_data_list = device_data["data"]
             task_data = dt['data_value']
-            data_value_correct = data_is_greater(task_data, device_data_list)
-
-            if data_value_correct >= 0:
-                task_date = datetime.strptime(task_date, '%Y-%m-%dT%H:%M:%S.%f')
+            task_date = datetime.strptime(task_date, '%Y-%m-%dT%H:%M:%S.%f')
                 data_date_correct = data_date_is_greater(task_date, device_data_list)
 
-                if data_date_correct >= 0:
+            if data_date_correct >= 0:
+                data_value_correct = data_is_greater(task_data, device_data_list)
+                print "BBBB"
+
+                if data_value_correct >= 0:
+                    print "CCCC"
                     execute_task_function(dt, server_ip, server_port)
+
 
 def execute_task_function(task, server_ip, server_port):
     print str(task["id"]) + " " + task["label"]
@@ -84,8 +94,7 @@ def execute_task_function(task, server_ip, server_port):
         print "Enviar msg al servidor para prender el dispostivo"
         task_data = {'taskstate':'1', 'taskfunction': + task_function["id"], 'label': task["label"], 'description': task["description"], 'data_value': task["data_value"], 'device_mac': task_device["device_mac"], 'owner': 'root' }
         device_data = {'device_ip': task_device["device_ip"], 'device_mac': task_device["device_mac"], 'devicestate': task_device["devicestate"]['id'], 'label': task_device["label"], 'owner': 'root'}
-        function_exec_res = requests.post("http://" + server_ip + ":" + server_port + "/devices/" + str(task["id"]) + "/turnon", data=data)
-        print function_exec_res
+        function_exec_res = requests.post("http://" + server_ip + ":" + server_port + "/devices/" + str(task["id"]) + "/turnon", data=device_data)
         if function_exec_res.status_code == 200:
             update_task_state = requests.post("http://" + server_ip + ":" + server_port + "/tasks/datatasks/" + str(task["id"]) + "/update", data=task_data)
         else:

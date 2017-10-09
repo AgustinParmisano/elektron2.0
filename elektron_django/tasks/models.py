@@ -61,10 +61,10 @@ class TaskState(models.Model):
 #Abstract Task
 class Task(models.Model):
     created = models.DateTimeField(auto_now_add=True)
-    taskstate = models.ForeignKey(TaskState)
-    taskfunction = models.ForeignKey(TaskFunction)
     label = models.CharField(max_length=100, blank=True, default='tarea')
     description = models.CharField(max_length=255, blank=True, default='')
+    taskstate = models.ForeignKey(TaskState)
+    taskfunction = models.ForeignKey(TaskFunction)
     device = models.ForeignKey(Device)
     owner = models.ForeignKey('auth.User', related_name='tasks', on_delete=models.CASCADE)
 
