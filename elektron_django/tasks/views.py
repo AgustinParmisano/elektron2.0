@@ -33,15 +33,13 @@ def check_task(**kwargs):
         if type(kwargs['label']) is list:
             kwargs['label'] = kwargs['label'][0]
 
-    if not 'data_value' in kwargs and not 'date_from' in kwargs and not 'date_to' in kwargs:
+    if not 'data_value' in kwargs and not 'datetime' in kwargs:
         return False
     else:
         if 'data_value' in kwargs and type(kwargs['data_value']) is list:
             kwargs['data_value'] = kwargs['data_value'][0]
-        elif 'date_from' in kwargs and type(kwargs['date_from']) is list:
-            kwargs['date_from'] = kwargs['date_from'][0]
-        elif 'date_to' in kwargs and type(kwargs['date_to']) is list:
-            kwargs['date_to'] = kwargs['date_to'][0]
+        elif 'datetime' in kwargs and type(kwargs['datetime']) is list:
+            kwargs['datetime'] = kwargs['datetime'][0]
 
     if not 'description' in kwargs:
         return False
@@ -326,8 +324,7 @@ class DateTimeTaskCreateView(generic.View):
                     datetimetask.label = task["label"]
                     datetimetask.taskstate = task["taskstate"]
                     datetimetask.taskfunction = task["taskfunction"]
-                    datetimetask.date_to = task["date_to"]
-                    datetimetask.date_from = task["date_from"]
+                    datetimetask.datetime = task["datetime"]
                     datetimetask.owner = task["owner"]
                     datetimetask.device = device
 
@@ -351,15 +348,15 @@ class DateTimeTaskUpdateView(generic.View):
 
             if task:
                 try:
-                    datetimetask = DateTimeTask()
+                    datetimetask = DateTimeTask(pk=kwargs['pk'])
                     datetimetask.description = task["description"]
                     datetimetask.label = task["label"]
                     datetimetask.taskstate = task["taskstate"]
                     datetimetask.taskfunction = task["taskfunction"]
-                    datetimetask.date_to = task["date_to"]
-                    datetimetask.date_from = task["date_from"]
+                    datetimetask.datetime = task["datetime"]
                     datetimetask.owner = task["owner"]
                     datetimetask.device = device
+                    datetimetask.created = datetime.datetime.now()
 
                 except DateTimeTask.DoesNotExist:
                     datetimetask = DateTimeTask(**task)

@@ -78,8 +78,7 @@ class Task(models.Model):
         super(Task, self).save(*args, **kwargs)
 
 class DateTimeTask(Task):
-    date_from = models.DateTimeField(default=timezone.now)
-    date_to = models.DateTimeField(default=timezone.now)
+    datetime = models.DateTimeField(default=timezone.now)
 
     def serialize(self):
         return {
@@ -89,8 +88,7 @@ class DateTimeTask(Task):
             'taskstate': self.taskstate.serialize(),
             'taskfunction': self.taskfunction.serialize(),
             'device': self.device.serialize(),
-            'date_from': to_UTC(self.date_from),
-            'date_to': to_UTC(self.date_to),
+            'datetime': to_UTC(self.datetime),
             'created': to_UTC(self.created),
         }
 
