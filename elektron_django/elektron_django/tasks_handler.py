@@ -1,6 +1,7 @@
 import requests
 import ast
 import json
+import time
 from Queue import Queue
 import paho.mqtt.client as mqtt
 from datetime import datetime
@@ -25,7 +26,7 @@ def get_tasks_from_server(server_ip, server_port):
         sorted_ready_tasks = sorted(ready_tasks, key=lambda k: k['created'])
 
         for srt in sorted_ready_tasks:
-            print srt["label"]
+            print "Proccesing task: " + srt["label"]
             print " "
             tasks_q.put(srt)
         return tasks_q
@@ -182,6 +183,7 @@ remote_ip = "localhost"
 port = "8000"
 print "Starting Task Handler Daemon . . ."
 while True:
+    time.sleep(1)
     tasksq = get_tasks_from_server(remote_ip,port)
     if tasksq:
         execute_tasks(tasksq, remote_ip,port)
