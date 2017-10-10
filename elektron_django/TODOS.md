@@ -1,18 +1,15 @@
 # TODOS Django Elektron:
 
 ## Recent:
-	- Probar bien el Handler de datatask: ejecutar task function parece que ya está (probar el TURNON)
 	- Probar correrlo como daemon y ver que pasa
 
 ## Escritura:
 	- Escribir sobre el servidor y las tareas automatizadas
 
 ## Tasks:
+	- 
 	- Que onda el owner??
-	- Terminar el handler de tasks
-		- data task
-		- datetime task
-	- Que los levante cron cada 1 minuto
+	- Bash Script cada 1 segundo
 
 ## Controlador (views):
 	- Crear las vistas (Alta, Baja, Modificación y Listar) y las urls de cada modelo.

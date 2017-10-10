@@ -5,52 +5,34 @@ from Queue import Queue
 import paho.mqtt.client as mqtt
 from datetime import datetime
 
-
-def get_tasks_from_server(server_ip, server_port, task_type):
+def get_tasks_from_server(server_ip, server_port):
     tasks_q = Queue()
-    print str(task_type)
-    tasks_get = requests.get("http://" + server_ip + ":" + server_port + "/tasks/" + str(task_type))
+    tasks_get = requests.get("http://" + server_ip + ":" + server_port + "/tasks/readytasks")
 
     if tasks_get.status_code == 200:
-        tasks = json.loads(tasks_get.text)[str(task_type)]
+        tasks = json.loads(tasks_get.text)["readytasks"]
         ready_tasks = []
+        ready_tasks = ready_tasks + tasks[0]['datatask']
+        ready_tasks = ready_tasks + tasks[1]['datetimetask']
 
-        for dt in tasks:
+        """
+        for dt in ready_tasks:
             print dt["label"] + " " + dt["taskstate"]["name"]
             print ""
             if dt["taskstate"]["name"] == "ready":
                 ready_tasks.append(dt)
-
+        """
         sorted_ready_tasks = sorted(ready_tasks, key=lambda k: k['created'])
 
         for srt in sorted_ready_tasks:
+            print srt["label"]
+            print " "
             tasks_q.put(srt)
         return tasks_q
     else:
         print "Error in Django Server: " + str(tasks_get.status_code)
         return False
-"""
-def get_datatasks_from_server(server_ip, server_port):
-    data_tasks_q = Queue()
-    datatasks_get = requests.get("http://" + server_ip + ":" + server_port + "/tasks/datatasks")
-    if datatasks_get.status_code == 200:
-        datatasks = json.loads(datatasks_get.text)['datatasks']
-        ready_datatasks = []
-        for dt in datatasks:
-            print dt["label"] + " " + dt["taskstate"]["name"]
-            print ""
-                ready_datatasks.append(dt)
-                if dt["taskstate"]["name"] == "ready":
 
-        sorted_ready_datatasks = sorted(ready_datatasks, key=lambda k: k['created'])
-
-        for srdt in sorted_ready_datatasks:
-            data_tasks_q.put(srdt)
-        return data_tasks_q
-    else:
-        print "Error in Django Server: " + str(datatasks.status_code)
-        return False
-"""
 def data_date_is_greater(d,l):
     data_date_greater_list = []
     for i in range(0,len(l)):
@@ -74,20 +56,7 @@ def datatask_correct(tdate,tdata,l):
         if data_ok >= 0:
             return l
     return -1
-"""
-def datetime_correct(d, l):
-    data_date_greater_list = []
-    for i in range(0,len(l)):
-        data = l[i]
-        td = datetime.strptime(data["date"], '%Y-%m-%dT%H:%M:%S.%f')
-        print td
-        print d
-        if td > d:
-            print "AAAA"
-            data_date_greater_list.append(data)
-            return data_date_greater_list
-    return -1
-"""
+
 def datetimetask_correct(tdate, task_datetime, device_data_list):
     task_datetime_list_ok = []
     datetimenow = datetime.now()
@@ -208,16 +177,13 @@ def execute_datetimetask_function(task, server_ip, server_port):
     else:
         print "Some error updating state of task" + task_function["name"]
 
-
 #remote_ip = "158.69.223.78"
 remote_ip = "localhost"
 port = "8000"
-
-#2data_tasks_q = get_datatasks_from_server(remote_ip,port)
-tasksq = get_tasks_from_server(remote_ip,port,"datetimetasks")
-#tasksq = get_tasks_from_server(remote_ip,port,"datetime")
-#datetime_task_q = get_datetimetasks_from_server(remote_ip,port)
-if tasksq:
-    execute_tasks(tasksq, remote_ip,port)
-else:
-    print "Error in get task from server"
+print "Starting Task Handler Daemon . . ."
+while True:
+    tasksq = get_tasks_from_server(remote_ip,port)
+    if tasksq:
+        execute_tasks(tasksq, remote_ip,port)
+    else:
+        print "Error in get task from server"

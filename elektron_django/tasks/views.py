@@ -364,3 +364,43 @@ class DateTimeTaskUpdateView(generic.View):
                 datetimetask.save()
 
             return JsonResponse({'status':True})
+
+class ReadyTasksView(generic.View):
+
+    def get(self, request, *args, **kwargs):
+
+        try:
+
+            task_list = []
+            datetimetasks = DateTimeTask.objects.all().filter(taskstate=1)
+            datatasks = DataTask.objects.all().filter(taskstate=1)
+            datatask_list = ({'datatask': list(map(lambda x: x.serialize(), datatasks))})
+            datetimetask_list = ({'datetimetask': list(map(lambda x: x.serialize(), datetimetasks))})
+            task_list.append(datatask_list)
+            task_list.append(datetimetask_list)
+
+            return JsonResponse({'readytasks': task_list})
+
+        except Exception as e:
+            print "Error en ReadyTasksView: " + str(e)
+            return HttpResponse(status=500)
+
+class DoneTasksView(generic.View):
+
+    def get(self, request, *args, **kwargs):
+
+        try:
+
+            task_list = []
+            datetimetasks = DateTimeTask.objects.all().filter(taskstate=2)
+            datatasks = DataTask.objects.all().filter(taskstate=2)
+            datatask_list = ({'datatask': list(map(lambda x: x.serialize(), datatasks))})
+            datetimetask_list = ({'datetimetask': list(map(lambda x: x.serialize(), datetimetasks))})
+            task_list.append(datatask_list)
+            task_list.append(datetimetask_list)
+
+            return JsonResponse({'readytasks': task_list})
+
+        except Exception as e:
+            print "Error en DoneTasksView: " + str(e)
+            return HttpResponse(status=500)
