@@ -22,4 +22,6 @@ urlpatterns = [
     url(r'^datetimetasks/create$', csrf_exempt(views.DateTimeTaskCreateView.as_view()), name='datetimetask_create'),
     url(r'^datetimetasks/(?P<pk>[0-9]+)/update$', csrf_exempt(views.DateTimeTaskUpdateView.as_view()), name='datetimetask_update'),
     url(r'^devices/(?P<pk>[0-9]+)/datatasks$', csrf_exempt(views.DataTaskDeviceView.as_view()), name='device_datatask'),
+    url(r'^datetimetasks/(?P<pk>[0-9]+)/remove$', csrf_exempt(views.DateTimeTaskRemoveView.as_view()), name='remove_datetimetask'),
+    url(r'^datatasks/(?P<pk>[0-9]+)/remove$', csrf_exempt(views.DataTaskRemoveView.as_view()), name='remove_datatask'),
 ]

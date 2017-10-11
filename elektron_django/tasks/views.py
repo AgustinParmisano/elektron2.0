@@ -188,6 +188,36 @@ class DatetimeTaskDeviceView(generic.ListView):
                     print "Exception: " + str(e)
                     return HttpResponse(status=500)
 
+
+    def post(self, request, *args, **kwargs):
+
+        result = check_device_mac(**request.POST)
+
+        if result:
+            device = Device.objects.get(device_mac=result["device_mac"])
+
+            task = check_task(**request.POST)
+
+            if task:
+                try:
+                    datatask = DataTask(pk=kwargs['pk'])
+                    datatask.description = task["description"]
+                    datatask.label = task["label"]
+                    datatask.data_value = task["data_value"]
+                    datatask.taskstate = task["taskstate"]
+                    datatask.taskfunction = task["taskfunction"]
+                    datatask.owner = task["owner"]
+                    datatask.device = device
+                    datatask.created = datetime.datetime.now()
+
+                except Task.DoesNotExist:
+                    datatask = DataTask(**task)
+
+                datatask.save()
+
+            return JsonResponse({'status':True})
+
+
 class DataTaskDeviceView(generic.ListView):
 
     def get(self, request, *args, **kwargs):
@@ -335,6 +365,39 @@ class DateTimeTaskCreateView(generic.View):
 
             return JsonResponse({'status':True})
 
+class DateTimeTaskRemoveView(generic.View):
+
+    def get(self, request, *args, **kwargs):
+
+        task = kwargs["pk"]
+
+        if task:
+            try:
+                datetimetask = DateTimeTask.objects.get(pk=task)
+            except DateTimeTask.DoesNotExist:
+                return HttpResponse(status=500)
+
+            datetimetask.delete()
+
+        return JsonResponse({'status':True})
+
+class DataTaskRemoveView(generic.View):
+
+    def get(self, request, *args, **kwargs):
+
+        task = kwargs["pk"]
+
+        if task:
+            try:
+                datatask = DataTask.objects.get(pk=task)
+            except DataTask.DoesNotExist:
+                return HttpResponse(status=500)
+
+            datatask.delete()
+
+        return JsonResponse({'status':True})
+
+
 class DateTimeTaskUpdateView(generic.View):
 
     def post(self, request, *args, **kwargs):
@@ -395,7 +458,6 @@ class ReadyDateTimeTasksView(generic.View):
             datetimetasks = DateTimeTask.objects.all().filter(taskstate=1)
             datetimetask_list = ({'datetimetask': list(map(lambda x: x.serialize(), datetimetasks))})
             task_list = datetimetask_list
-
             return JsonResponse({'readydatetimetasks': task_list})
 
         except Exception as e:
@@ -417,6 +479,7 @@ class ReadyDataTasksView(generic.View):
 
         except Exception as e:
             print "Error en ReadyDataTasksView: " + str(e)
+
             return HttpResponse(status=500)
 
 

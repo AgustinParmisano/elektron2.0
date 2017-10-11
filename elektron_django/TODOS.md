@@ -13,7 +13,6 @@
 
 ## Controlador (views):
 	- Crear las views (Alta, Baja, Modificación y Listar) y las urls de cada modelo.
-		- Baja para cada modelo sobre todo TASKS!!! (poner la URL en el archivo de URLS.md).
 	- Hacer que todas las búsquedas de datos por fecha sean por post.
 	- Ver que devolver en cada caso  (error con http response 505 o en la alta)
 	- Alta, Baja y Modificación con authenticación.

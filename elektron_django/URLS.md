@@ -229,6 +229,21 @@ import requests
     r.url
     ```
 
+    - RemoveDataTasks:
+    ```
+    r = requests.get("http://localhost:8000/tasks/datatasks/<datatask_id>/remove")
+    r.text
+    r.url
+    ```
+
+    - RemoveDateTimeTasks:
+    ```
+    r = requests.get("http://localhost:8000/tasks/datetimetasks/<datetimetask_id>/remove")
+    r.text
+    r.url
+
+    ```
+
     - ReadyTasks:
     ```
     r = requests.get("http://localhost:8000/tasks/readytasks")
@@ -260,6 +275,13 @@ import requests
     - ReadyDataTasks:
     ```
     r = requests.get("http://localhost:8000/tasks/readydatatasks")
+    r.text
+    r.url
+    ```
+
+    - DoneDataTasks:
+    ```
+    r = requests.get("http://localhost:8000/tasks/donedatatasks")
     r.text
     r.url
     ```
