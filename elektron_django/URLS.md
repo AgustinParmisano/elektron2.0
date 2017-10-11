@@ -228,3 +228,45 @@ import requests
     r.text
     r.url
     ```
+
+    - ReadyTasks:
+    ```
+    r = requests.get("http://localhost:8000/tasks/readytasks")
+    r.text
+    r.url
+    ```
+
+    - DoneTasks:
+    ```
+    r = requests.get("http://localhost:8000/tasks/donetasks")
+    r.text
+    r.url
+    ```
+
+    - ReadyDateTimeTasks:
+    ```
+    r = requests.get("http://localhost:8000/tasks/readydatetimetasks")
+    r.text
+    r.url
+    ```
+
+    - DoneDateTimeTasks:
+    ```
+    r = requests.get("http://localhost:8000/tasks/donedatetimetasks")
+    r.text
+    r.url
+    ```
+
+    - ReadyDataTasks:
+    ```
+    r = requests.get("http://localhost:8000/tasks/readydatatasks")
+    r.text
+    r.url
+    ```
+
+    - DoneDataTasks:
+    ```
+    r = requests.get("http://localhost:8000/tasks/donedatatasks")
+    r.text
+    r.url
+    ```

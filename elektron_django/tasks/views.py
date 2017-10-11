@@ -385,6 +385,76 @@ class ReadyTasksView(generic.View):
             print "Error en ReadyTasksView: " + str(e)
             return HttpResponse(status=500)
 
+class ReadyDateTimeTasksView(generic.View):
+
+    def get(self, request, *args, **kwargs):
+
+        try:
+
+            task_list = []
+            datetimetasks = DateTimeTask.objects.all().filter(taskstate=1)
+            datetimetask_list = ({'datetimetask': list(map(lambda x: x.serialize(), datetimetasks))})
+            task_list = datetimetask_list
+
+            return JsonResponse({'readydatetimetasks': task_list})
+
+        except Exception as e:
+            print "Error en ReadyDateTimeTasksView: " + str(e)
+            return HttpResponse(status=500)
+
+class ReadyDataTasksView(generic.View):
+
+    def get(self, request, *args, **kwargs):
+
+        try:
+
+            task_list = []
+            datatasks = DataTask.objects.all().filter(taskstate=1)
+            datatask_list = ({'datatask': list(map(lambda x: x.serialize(), datatasks))})
+            task_list = datatask_list
+
+            return JsonResponse({'readydatatasks': task_list})
+
+        except Exception as e:
+            print "Error en ReadyDataTasksView: " + str(e)
+            return HttpResponse(status=500)
+
+
+class DoneDateTimeTasksView(generic.View):
+
+    def get(self, request, *args, **kwargs):
+
+        try:
+
+            task_list = []
+            datetimetasks = DateTimeTask.objects.all().filter(taskstate=2)
+            datetimetask_list = ({'datetimetask': list(map(lambda x: x.serialize(), datetimetasks))})
+            task_list = datetimetask_list
+
+            return JsonResponse({'donedatetimetasks': task_list})
+
+        except Exception as e:
+            print "Error en DoneDateTimeTasksView: " + str(e)
+            return HttpResponse(status=500)
+
+class DoneDataTasksView(generic.View):
+
+    def get(self, request, *args, **kwargs):
+
+        try:
+
+            task_list = []
+            datatasks = DataTask.objects.all().filter(taskstate=2)
+            datatask_list = ({'datatask': list(map(lambda x: x.serialize(), datatasks))})
+            task_list = datatask_list
+
+            return JsonResponse({'donedatatasks': task_list})
+
+        except Exception as e:
+            print "Error en DoneDataTasksView: " + str(e)
+            return HttpResponse(status=500)
+
+
 class DoneTasksView(generic.View):
 
     def get(self, request, *args, **kwargs):

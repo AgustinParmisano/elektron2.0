@@ -1,34 +1,28 @@
 # TODOS Django Elektron:
 
 ## Recent:
-	- Probar correrlo como daemon y ver que pasa
+	- Crear la url y la vista de borrado de tasks (para cada una)
 
 ## Escritura:
 	- Escribir sobre el servidor y las tareas automatizadas
 
 ## Tasks:
-	- 
+	- Ver si las tareas son con repetición por día o mes, tipo calendar
 	- Que onda el owner??
 	- Bash Script cada 1 segundo
 
 ## Controlador (views):
-	- Crear las vistas (Alta, Baja, Modificación y Listar) y las urls de cada modelo.
-		- Modificacion para devices y tasks (por ejemplo ponerle enabled/disabled a un device)
-		- Baja para cada modelo (poner la URL en el archivo de URLS.md).
-	- Alta, Baja y Modificacion con authenticación.
-	- Hacer que todas las busquedas de datos por fecha sean por post.
-	- Ver como hacer las tareas automatizadas:
-		- DataTasks (Celery o Cron)
-		- DateTimeTasks (Celery o Cron)
-	- Ver si las tareas son con repeticion por dia o mes, tipo calendar
-	- Ver que devolver en cada caso  (error o hit)
-	- Ver como enviar las date_to y la date_from de los datetimestasks
+	- Crear las views (Alta, Baja, Modificación y Listar) y las urls de cada modelo.
+		- Baja para cada modelo sobre todo TASKS!!! (poner la URL en el archivo de URLS.md).
+	- Hacer que todas las búsquedas de datos por fecha sean por post.
+	- Ver que devolver en cada caso  (error con http response 505 o en la alta)
+	- Alta, Baja y Modificación con authenticación.
 
 ## Login:
 	- Hacer el login y authenticación.
 
 ## MQTT:
-	- Falta la vuelta desde el server a mqtt
+	- Falta la vuelta desde el server a mqtt (que mqtt consulte os dispositivos apagados o prendidos)
 	- Ver seguridad MD5 salt en nodemcu y en el server.
 
 ## Websocket:
@@ -61,3 +55,6 @@
 
 ## Server:
 	- Ver si sirve ponerle algo mejor que un simple bash
+
+## Costos:
+	- Crear un modelo con vistas ABM para configurar los costos y CO2 por consumo
