@@ -85,6 +85,13 @@ import requests
   r.url
   ```
 
+  - Device devices/<device_id>/turon enviar mensaje de apagado al dispositivo:
+  ```
+  r = requests.get("http://localhost:8000/devices/<device_id>/turnon")
+  r.text
+  r.url
+  ```
+
 
 ### Data:
 
@@ -114,12 +121,20 @@ import requests
   r.url
   ```
 
-  - Data en un Dia especifico:
-  ```
-  r = requests.get("http://localhost:8000/data/dd/mm/yyyy")
-  r.text
-  r.url
-  ```
+  - Data en un Dia especifico [corchetes = opcional]:
+    - get:
+    ```
+    r = requests.get("http://localhost:8000/data/dd/mm/yyyy")
+    r.text
+    r.url
+    ```
+    - post:
+    ```
+    data = {'day: <dia>, device_id: [pk], device_mac: [mac]'}
+    r = requests.get("http://localhost:8000/data/day, data")
+    r.text
+    r.url
+    ```
 
   - Data en una Fecha y hora especificas (dd/mm/yyyy/hh):
   ```

@@ -118,6 +118,42 @@ class DataDayView(generic.DetailView):
             print "Exception: " + str(e)
             return HttpResponse(status=500)
 
+class DataDayPostView(generic.DetailView):
+    model = Data
+
+    def post(self, request, *args, **kwargs):
+
+        postdata = request.POST
+        print postdata
+
+        try:
+            data_list = []
+
+            day = postdata["day"]
+            month = postdata["month"]
+            year = postdata["year"]
+
+            date_string = day + "-" + month + "-" + year
+
+            date_from = datetime.datetime.strptime(date_string, "%d-%m-%Y").date()
+
+            date_from = to_localtime(date_from) #TODO: Get timezone from country configured by user
+            date_to = date_from + timedelta(hours=24)
+
+            data_query = Data.objects.all().filter(date__gte=date_from, date__lte=date_to)
+            data_query = list(data_query)
+
+            for data in data_query:
+                data_list.insert(0,data.serialize())
+
+            return JsonResponse({'data': data_list})
+
+        except Exception as e:
+            print "Some error ocurred getting Day Data"
+            print "Exception: " + str(e)
+            return HttpResponse(status=500)
+
+
 class DataMonthView(generic.DetailView):
     model = Data
 

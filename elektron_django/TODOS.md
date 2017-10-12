@@ -1,21 +1,16 @@
 # TODOS Django Elektron:
 
 ## Recent:
-	- Crear la url y la vista de borrado de tasks (para cada una)
+	- Hacer que todas las búsquedas de datos por fecha sean por post (dia, mes, hora y entre fechas con device pk y mac opcional).
 
 ## Escritura:
 	- Escribir sobre el servidor y las tareas automatizadas
 
-## Tasks:
-	- Ver si las tareas son con repetición por día o mes, tipo calendar
-	- Que onda el owner??
-	- Bash Script cada 1 segundo
-
 ## Controlador (views):
-	- Crear las views (Alta, Baja, Modificación y Listar) y las urls de cada modelo.
 	- Hacer que todas las búsquedas de datos por fecha sean por post.
 	- Ver que devolver en cada caso  (error con http response 505 o en la alta)
 	- Alta, Baja y Modificación con authenticación.
+	- Crear las views (Alta, Baja, Modificación y Listar) y las urls de cada modelo.
 
 ## Login:
 	- Hacer el login y authenticación.
@@ -27,6 +22,7 @@
 ## Websocket:
 	- Lo mismo pero con muchos devices.
 	- Ver seguridad.
+	- Ver si se reemplaza con mqtt
 
 ## Integración:
 	- Integrar Server con Ionic
@@ -44,6 +40,8 @@
 		- Paso a estado de conección
 		- Posibilidad de reconfiguración de SSID, PASS e IP del server
 		- Web del server AP con css bien hecha
+	### Infraestructura:
+		- Hacer un diseño para imprimir 3D o algo así para el circuito
 
 ## Seguridad:
 	### Server:
@@ -52,8 +50,12 @@
 		- Tener cuidado con websocket
 		- Tener cuidado con encriptacion desde nodemcu
 
-## Server:
-	- Ver si sirve ponerle algo mejor que un simple bash
+## Tasks:
+	- Ver si las tareas son con repetición por día o mes, tipo calendar
+	- Que onda el owner??
 
-## Costos:
+## Costos $$ y co2:
 	- Crear un modelo con vistas ABM para configurar los costos y CO2 por consumo
+
+## Detalles:
+	- Logo Elektron e íconos

@@ -552,6 +552,31 @@ class MqttClient(object):
 
 class ShutdownView(generic.View):
 
+    def get(self, request, *args, **kwargs):
+        device_pk = kwargs["pk"]
+
+        if device_pk:
+            try:
+                device = Device.objects.get(pk=device_pk)
+
+                if str(device.devicestate) == "on":
+                    topic = "sensors/new_order"
+                    order = "0"
+                    device.devicestate = DeviceState.objects.get(name="off")
+                    mqtt = MqttClient()
+                    mqtt.publish(order, topic)
+
+            except Device.DoesNotExist:
+                print "Some error ocurred shutting downd Single Device with id: " + str(kwargs["pk"])
+                print "No such device"
+                print "Exception: " + str(e)
+                return HttpResponse(status=500)
+
+            device.save()
+
+        return JsonResponse({'status':True})
+
+
     def post(self, request, *args, **kwargs):
         result = check_device(**request.POST)
 
@@ -580,6 +605,30 @@ class ShutdownView(generic.View):
 
 
 class TurnonView(generic.View):
+
+    def get(self, request, *args, **kwargs):
+        device_pk = kwargs["pk"]
+
+        if device_pk:
+            try:
+                device = Device.objects.get(pk=device_pk)
+
+                if str(device.devicestate) == "off":
+                    topic = "sensors/new_order"
+                    order = "1"
+                    device.devicestate = DeviceState.objects.get(name="on")
+                    mqtt = MqttClient()
+                    mqtt.publish(order, topic)
+
+            except Device.DoesNotExist:
+                print "Some error ocurred shutting downd Single Device with id: " + str(kwargs["pk"])
+                print "No such device"
+                print "Exception: " + str(e)
+                return HttpResponse(status=500)
+
+            device.save()
+
+        return JsonResponse({'status':True})
 
     def post(self, request, *args, **kwargs):
 
