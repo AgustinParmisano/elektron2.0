@@ -160,12 +160,11 @@ import requests
   - Data en un rango de fechas especificas y horas segun Device por POST en el cuerpo opcional [corchetes = opcional]
     - post:
     ```
-    data = {'day: [dia], month: [mes], year: [year], device_id: [pk]'}
-    r = requests.post("http://localhost:8000/data/date, data")
+    data = {'hour': [hour],'day': [dia], 'month': [mes], 'year': [year], 'device_id': [pk]'}
+    r = requests.post("http://localhost:8000/data/date", data)
     r.text
     r.url
     ```
-
 
 ### Tasks:
 

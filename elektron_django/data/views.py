@@ -118,7 +118,7 @@ class DataDayView(generic.DetailView):
             print "Exception: " + str(e)
             return HttpResponse(status=500)
 
-class DataDayPostView(generic.DetailView):
+class DataDatePostView(generic.DetailView):
     model = Data
 
     def post(self, request, *args, **kwargs):
@@ -127,6 +127,11 @@ class DataDayPostView(generic.DetailView):
 
         try:
             data_list = []
+
+            if "hour" in postdata:
+                hour = postdata["hour"]
+            else:
+                hour = "1"
 
             if "day" in postdata:
                 day = postdata["day"]
@@ -149,11 +154,17 @@ class DataDayPostView(generic.DetailView):
                 device_id = ""
 
             if (day != "1"):
-                date_string = day + "-" + month + "-" + year
-                date_from = datetime.datetime.strptime(date_string, "%d-%m-%Y").date()
-
-                date_from = to_localtime(date_from) #TODO: Get timezone from country configured by user
-                date_to = date_from + timedelta(hours=24)
+                if (hour != "1"):
+                    datetime_string = day + "-" + month + "-" + year + " " + hour + ":" + "00"
+                    #date = dp.parse(date_string, timezone.now())
+                    date_from = datetime.datetime.strptime(datetime_string, "%d-%m-%Y %H:%M")
+                    date_from = to_localtime(date_from) #TODO: Get timezone from country configured by user
+                    date_to = date_from + timedelta(minutes=59)
+                else:
+                    date_string = day + "-" + month + "-" + year
+                    date_from = datetime.datetime.strptime(date_string, "%d-%m-%Y").date()
+                    date_from = to_localtime(date_from) #TODO: Get timezone from country configured by user
+                    date_to = date_from + timedelta(hours=24)
             elif (month != "1"):
                 day = "1"
                 cant_days_month = monthrange(int(year), int(month))[1]
@@ -179,6 +190,7 @@ class DataDayPostView(generic.DetailView):
                     data_query = Data.objects.all().filter(date__gte=date_from, date__lte=date_to)
 
             data_query = list(data_query)
+            print len(data_query)
             for data in data_query:
                 data_list.insert(0,data.serialize())
 
