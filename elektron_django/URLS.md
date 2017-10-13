@@ -122,19 +122,12 @@ import requests
   ```
 
   - Data en un Dia especifico [corchetes = opcional]:
-    - get:
     ```
     r = requests.get("http://localhost:8000/data/dd/mm/yyyy")
     r.text
     r.url
     ```
-    - post:
-    ```
-    data = {'day: <dia>, device_id: [pk], device_mac: [mac]'}
-    r = requests.get("http://localhost:8000/data/day, data")
-    r.text
-    r.url
-    ```
+
 
   - Data en una Fecha y hora especificas (dd/mm/yyyy/hh):
   ```
@@ -163,6 +156,16 @@ import requests
   r.text
   r.url
   ```
+
+  - Data en un rango de fechas especificas y horas segun Device por POST en el cuerpo opcional [corchetes = opcional]
+    - post:
+    ```
+    data = {'day: [dia], month: [mes], year: [year], device_id: [pk]'}
+    r = requests.post("http://localhost:8000/data/date, data")
+    r.text
+    r.url
+    ```
+
 
 ### Tasks:
 

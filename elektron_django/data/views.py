@@ -124,25 +124,61 @@ class DataDayPostView(generic.DetailView):
     def post(self, request, *args, **kwargs):
 
         postdata = request.POST
-        print postdata
 
         try:
             data_list = []
 
-            day = postdata["day"]
-            month = postdata["month"]
-            year = postdata["year"]
+            if "day" in postdata:
+                day = postdata["day"]
+            else:
+                day = "1"
 
-            date_string = day + "-" + month + "-" + year
+            if "month" in postdata:
+                month = postdata["month"]
+            else:
+                month = "1"
 
-            date_from = datetime.datetime.strptime(date_string, "%d-%m-%Y").date()
+            if "year" in postdata:
+                year = postdata["year"]
+            else:
+                year = "1"
 
-            date_from = to_localtime(date_from) #TODO: Get timezone from country configured by user
-            date_to = date_from + timedelta(hours=24)
+            if "device_id" in postdata:
+                device_id = postdata["device_id"]
+            else:
+                device_id = ""
 
-            data_query = Data.objects.all().filter(date__gte=date_from, date__lte=date_to)
+            if (day != "1"):
+                date_string = day + "-" + month + "-" + year
+                date_from = datetime.datetime.strptime(date_string, "%d-%m-%Y").date()
+
+                date_from = to_localtime(date_from) #TODO: Get timezone from country configured by user
+                date_to = date_from + timedelta(hours=24)
+            elif (month != "1"):
+                day = "1"
+                cant_days_month = monthrange(int(year), int(month))[1]
+
+                date_string = day + "-" + month + "-" + year
+                #date = dp.parse(date_string, timezone.now())
+                date_from = datetime.datetime.strptime(date_string, "%d-%m-%Y").date()
+                date_to = date_from + timedelta(days=cant_days_month)
+            else:
+                day = "1"
+                month = "1"
+                year = "1" #TODO: timedelta de todo el año
+
+            if (device_id):
+                if (year == "1") and (month == "1") and (day == "1"):
+                    data_query = Data.objects.all().filter(device=device_id)
+                else:
+                    data_query = Data.objects.all().filter(date__gte=date_from, date__lte=date_to, device=device_id)
+            else:
+                if (year == "1") and (month == "1") and (day == "1"):
+                    data_query = Data.objects.all()
+                else:
+                    data_query = Data.objects.all().filter(date__gte=date_from, date__lte=date_to)
+
             data_query = list(data_query)
-
             for data in data_query:
                 data_list.insert(0,data.serialize())
 

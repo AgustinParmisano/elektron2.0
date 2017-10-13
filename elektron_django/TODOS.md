@@ -1,21 +1,20 @@
 # TODOS Django Elektron:
 
 ## Recent:
-	- Hacer que todas las búsquedas de datos por fecha sean por post (dia, mes, hora y entre fechas con device pk y mac opcional).
+	- Ver que devolver en cada caso  (error con http response 505 o en la alta)
 
 ## Escritura:
 	- Escribir sobre el servidor y las tareas automatizadas
 
 ## Controlador (views):
-	- Hacer que todas las búsquedas de datos por fecha sean por post.
 	- Ver que devolver en cada caso  (error con http response 505 o en la alta)
 	- Alta, Baja y Modificación con authenticación.
-	- Crear las views (Alta, Baja, Modificación y Listar) y las urls de cada modelo.
 
 ## Login:
 	- Hacer el login y authenticación.
 
 ## MQTT:
+	- Ver como reemplazar websocket por mqtt
 	- Falta la vuelta desde el server a mqtt (que mqtt consulte os dispositivos apagados o prendidos)
 	- Ver seguridad MD5 salt en nodemcu y en el server.
 
@@ -46,7 +45,7 @@
 ## Seguridad:
 	### Server:
 		- Tener cuidado con CORS
-		- Tener cuidado con mqtt
+		- Tener cuidado con mqtt (SSL)
 		- Tener cuidado con websocket
 		- Tener cuidado con encriptacion desde nodemcu
 
