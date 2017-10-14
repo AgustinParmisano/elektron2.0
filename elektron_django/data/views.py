@@ -118,6 +118,275 @@ class DataDayView(generic.DetailView):
             print "Exception: " + str(e)
             return HttpResponse(status=500)
 
+class DataMonthView(generic.DetailView):
+    model = Data
+
+    def get(self, request, *args, **kwargs):
+
+        try:
+            data_list = []
+
+            day = "1"
+            month = kwargs["month"]
+            year = kwargs["year"]
+            cant_days_month = monthrange(int(year), int(month))[1]
+
+            date_string = day + "-" + month + "-" + year
+            #date = dp.parse(date_string, timezone.now())
+            date_from = datetime.datetime.strptime(date_string, "%d-%m-%Y").date()
+            date_to = date_from + timedelta(days=cant_days_month)
+            data_query = Data.objects.all().filter(date__gte=date_from, date__lte=date_to)
+            data_query = list(data_query)
+
+            for data in data_query:
+                data_list.insert(0,data.serialize())
+
+            #print data_list
+            return JsonResponse({'data': data_list})
+
+        except Exception as e:
+            print "Some error ocurred getting Month Data"
+            print "Exception: " + str(e)
+            return HttpResponse(status=500)
+
+class DataBetweenDaysView(generic.DetailView):
+    model = Data
+
+    def get(self, request, *args, **kwargs):
+
+        try:
+            data_list = []
+
+            day1 = kwargs["day1"]
+            month1 = kwargs["month1"]
+            year1 = kwargs["year1"]
+
+            day2 = kwargs["day2"]
+            month2 = kwargs["month2"]
+            year2 = kwargs["year2"]
+
+            date_string1 = day1 + "-" + month1 + "-" + year1
+            date_string2 = day2 + "-" + month2 + "-" + year2
+
+            #date = dp.parse(date_string, timezone.now())
+            date_from = datetime.datetime.strptime(date_string1, "%d-%m-%Y").date()
+            date_to = datetime.datetime.strptime(date_string2, "%d-%m-%Y").date()
+
+            data_query = Data.objects.all().filter(date__gte=date_from, date__lte=date_to)
+            data_query = list(data_query)
+
+            for data in data_query:
+                data_list.insert(0,data.serialize())
+
+            #print data_list
+            return JsonResponse({'data': data_list})
+
+        except Exception as e:
+            print "Some error ocurred getting Between Days Data"
+            print "Exception: " + str(e)
+            return HttpResponse(status=500)
+
+
+class DataBetweenDaysPostView(generic.DetailView):
+    model = Data
+
+    def post(self, request, *args, **kwargs):
+
+        try:
+            postdata = request.POST
+            data_list = []
+
+            day1 = postdata["day1"]
+            month1 = postdata["month1"]
+            year1 = postdata["year1"]
+
+            day2 = postdata["day2"]
+            month2 = postdata["month2"]
+            year2 = postdata["year2"]
+
+            if "device_id" in postdata:
+                device_id = postdata["device_id"]
+            else:
+                device_id = ""
+
+            date_string1 = day1 + "-" + month1 + "-" + year1
+            date_string2 = day2 + "-" + month2 + "-" + year2
+
+            #date = dp.parse(date_string, timezone.now())
+            date_from = datetime.datetime.strptime(date_string1, "%d-%m-%Y").date()
+            date_to = datetime.datetime.strptime(date_string2, "%d-%m-%Y").date()
+
+            if device_id:
+                data_query = Data.objects.all().filter(date__gte=date_from, date__lte=date_to, device=device_id)
+            else:
+                data_query = Data.objects.all().filter(date__gte=date_from, date__lte=date_to)
+
+            data_query = list(data_query)
+
+            for data in data_query:
+                data_list.insert(0,data.serialize())
+
+            #print data_list
+            return JsonResponse({'data': data_list})
+
+        except Exception as e:
+            print "Some error ocurred getting Between Days Data"
+            print "Exception: " + str(e)
+            return HttpResponse(status=500)
+
+
+class DataHourView(generic.DetailView):
+    model = Data
+
+    def get(self, request, *args, **kwargs):
+
+        try:
+            data_list = []
+
+            day = kwargs["day"]
+            month = kwargs["month"]
+            year = kwargs["year"]
+            hour = kwargs["hour"]
+
+            datetime_string = day + "-" + month + "-" + year + " " + hour + ":" + "00"
+            #date = dp.parse(date_string, timezone.now())
+            date_from = datetime.datetime.strptime(datetime_string, "%d-%m-%Y %H:%M")
+            date_from = to_localtime(date_from) #TODO: Get timezone from country configured by user
+            date_to = date_from + timedelta(minutes=59)
+
+            data_query = Data.objects.all().filter(date__gte=date_from, date__lte=date_to)
+            data_query = list(data_query)
+
+            for data in data_query:
+                data_list.insert(0,data.serialize())
+
+            #print data_list
+            return JsonResponse({'data': data_list})
+
+        except Exception as e:
+            print "Some error ocurred getting Hour Data"
+            print "Exception: " + str(e)
+            return HttpResponse(status=500)
+
+class DataBetweenHoursView(generic.DetailView):
+    model = Data
+
+    def get(self, request, *args, **kwargs):
+
+        try:
+            data_list = []
+
+            day1 = kwargs["day1"]
+            month1 = kwargs["month1"]
+            year1 = kwargs["year1"]
+            hour1 = kwargs["hour1"]
+
+            day2 = kwargs["day2"]
+            month2 = kwargs["month2"]
+            year2 = kwargs["year2"]
+            hour2 = kwargs["hour2"]
+
+            datetime_string1 = day1 + "-" + month1 + "-" + year1 + " " + hour1 + ":" + "00"
+            datetime_string2 = day2 + "-" + month2 + "-" + year2 + " " + hour2 + ":" + "00"
+
+            date_from = datetime.datetime.strptime(datetime_string1, "%d-%m-%Y %H:%M")
+            date_to = datetime.datetime.strptime(datetime_string2, "%d-%m-%Y %H:%M")
+            date_from = to_localtime(date_from)
+            date_to = to_localtime(date_to)
+
+            data_query = Data.objects.all().filter(date__gte=date_from, date__lte=date_to)
+            data_query = list(data_query)
+
+            for data in data_query:
+                data_list.insert(0,data.serialize())
+
+            #print data_list
+            return JsonResponse({'data': data_list})
+
+        except Exception as e:
+            print "Some error ocurred getting Between Hour Data"
+            print "Exception: " + str(e)
+            return HttpResponse(status=500)
+
+
+class DataBetweenHoursPostView(generic.DetailView):
+    model = Data
+
+    def post(self, request, *args, **kwargs):
+
+        try:
+            postdata = request.POST
+            data_list = []
+
+
+            day1 = kwargs["day1"]
+            month1 = kwargs["month1"]
+            year1 = kwargs["year1"]
+            hour1 = kwargs["hour1"]
+
+            day2 = kwargs["day2"]
+            month2 = kwargs["month2"]
+            year2 = kwargs["year2"]
+            hour2 = kwargs["hour2"]
+
+            if "device_id" in postdata:
+                device_id = postdata["device_id"]
+            else:
+                device_id = ""
+
+            datetime_string1 = day1 + "-" + month1 + "-" + year1 + " " + hour1 + ":" + "00"
+            datetime_string2 = day2 + "-" + month2 + "-" + year2 + " " + hour2 + ":" + "00"
+
+            date_from = datetime.datetime.strptime(datetime_string1, "%d-%m-%Y %H:%M")
+            date_to = datetime.datetime.strptime(datetime_string2, "%d-%m-%Y %H:%M")
+            date_from = to_localtime(date_from)
+            date_to = to_localtime(date_to)
+
+            if device_id:
+                data_query = Data.objects.all().filter(date__gte=date_from, date__lte=date_to, device=device_id)
+            else:
+                data_query = Data.objects.all().filter(date__gte=date_from, date__lte=date_to)
+
+            data_query = list(data_query)
+
+            for data in data_query:
+                data_list.insert(0,data.serialize())
+
+            #print data_list
+            return JsonResponse({'data': data_list})
+
+        except Exception as e:
+            print "Some error ocurred getting Between Hour Data"
+            print "Exception: " + str(e)
+            return HttpResponse(status=500)
+
+
+class CreateView(generic.View):
+
+    def post(self, request, *args, **kwargs):
+        data = Data()
+
+        result = check_device(**request.POST)
+
+        if result:
+            try:
+                device = Device.objects.get(device_mac=result["device_mac"])
+            except Device.DoesNotExist:
+                device = Device(**result)
+                device.save()
+
+            device_enabled = device.enabled
+            if device_enabled:
+                result = check_data(**request.POST)
+                if result:
+                    data.data_value = result["data_value"]
+                    data.device = device
+                    data.date = datetime.datetime.now() #TODO: Device sends real datetime
+                    data.save()
+
+        return JsonResponse({'status':True})
+
+
 class DataDatePostView(generic.DetailView):
     model = Data
 
@@ -200,170 +469,3 @@ class DataDatePostView(generic.DetailView):
             print "Some error ocurred getting Day Data"
             print "Exception: " + str(e)
             return HttpResponse(status=500)
-
-
-class DataMonthView(generic.DetailView):
-    model = Data
-
-    def get(self, request, *args, **kwargs):
-
-        try:
-            data_list = []
-
-            day = "1"
-            month = kwargs["month"]
-            year = kwargs["year"]
-            cant_days_month = monthrange(int(year), int(month))[1]
-
-            date_string = day + "-" + month + "-" + year
-            #date = dp.parse(date_string, timezone.now())
-            date_from = datetime.datetime.strptime(date_string, "%d-%m-%Y").date()
-            date_to = date_from + timedelta(days=cant_days_month)
-            data_query = Data.objects.all().filter(date__gte=date_from, date__lte=date_to)
-            data_query = list(data_query)
-
-            for data in data_query:
-                data_list.insert(0,data.serialize())
-
-            #print data_list
-            return JsonResponse({'data': data_list})
-
-        except Exception as e:
-            print "Some error ocurred getting Month Data"
-            print "Exception: " + str(e)
-            return HttpResponse(status=500)
-
-class DataBetweenDaysView(generic.DetailView):
-    model = Data
-
-    def get(self, request, *args, **kwargs):
-
-        try:
-            data_list = []
-
-            day1 = kwargs["day1"]
-            month1 = kwargs["month1"]
-            year1 = kwargs["year1"]
-
-            day2 = kwargs["day2"]
-            month2 = kwargs["month2"]
-            year2 = kwargs["year2"]
-
-            date_string1 = day1 + "-" + month1 + "-" + year1
-            date_string2 = day2 + "-" + month2 + "-" + year2
-
-            #date = dp.parse(date_string, timezone.now())
-            date_from = datetime.datetime.strptime(date_string1, "%d-%m-%Y").date()
-            date_to = datetime.datetime.strptime(date_string2, "%d-%m-%Y").date()
-
-            data_query = Data.objects.all().filter(date__gte=date_from, date__lte=date_to)
-            data_query = list(data_query)
-
-            for data in data_query:
-                data_list.insert(0,data.serialize())
-
-            #print data_list
-            return JsonResponse({'data': data_list})
-
-        except Exception as e:
-            print "Some error ocurred getting Between Days Data"
-            print "Exception: " + str(e)
-            return HttpResponse(status=500)
-
-class DataHourView(generic.DetailView):
-    model = Data
-
-    def get(self, request, *args, **kwargs):
-
-        try:
-            data_list = []
-
-            day = kwargs["day"]
-            month = kwargs["month"]
-            year = kwargs["year"]
-            hour = kwargs["hour"]
-
-            datetime_string = day + "-" + month + "-" + year + " " + hour + ":" + "00"
-            #date = dp.parse(date_string, timezone.now())
-            date_from = datetime.datetime.strptime(datetime_string, "%d-%m-%Y %H:%M")
-            date_from = to_localtime(date_from) #TODO: Get timezone from country configured by user
-            date_to = date_from + timedelta(minutes=59)
-
-            data_query = Data.objects.all().filter(date__gte=date_from, date__lte=date_to)
-            data_query = list(data_query)
-
-            for data in data_query:
-                data_list.insert(0,data.serialize())
-
-            #print data_list
-            return JsonResponse({'data': data_list})
-
-        except Exception as e:
-            print "Some error ocurred getting Hour Data"
-            print "Exception: " + str(e)
-            return HttpResponse(status=500)
-
-class DataBetweenHoursView(generic.DetailView):
-    model = Data
-
-    def get(self, request, *args, **kwargs):
-
-        try:
-            data_list = []
-
-            day1 = kwargs["day1"]
-            month1 = kwargs["month1"]
-            year1 = kwargs["year1"]
-            hour1 = kwargs["hour1"]
-
-            day2 = kwargs["day2"]
-            month2 = kwargs["month2"]
-            year2 = kwargs["year2"]
-            hour2 = kwargs["hour2"]
-
-            datetime_string1 = day1 + "-" + month1 + "-" + year1 + " " + hour1 + ":" + "00"
-            datetime_string2 = day2 + "-" + month2 + "-" + year2 + " " + hour2 + ":" + "00"
-
-            date_from = datetime.datetime.strptime(datetime_string1, "%d-%m-%Y %H:%M")
-            date_to = datetime.datetime.strptime(datetime_string2, "%d-%m-%Y %H:%M")
-            date_from = to_localtime(date_from)
-            date_to = to_localtime(date_to)
-
-            data_query = Data.objects.all().filter(date__gte=date_from, date__lte=date_to)
-            data_query = list(data_query)
-
-            for data in data_query:
-                data_list.insert(0,data.serialize())
-
-            #print data_list
-            return JsonResponse({'data': data_list})
-
-        except Exception as e:
-            print "Some error ocurred getting Between Hour Data"
-            print "Exception: " + str(e)
-            return HttpResponse(status=500)
-
-class CreateView(generic.View):
-
-    def post(self, request, *args, **kwargs):
-        data = Data()
-
-        result = check_device(**request.POST)
-
-        if result:
-            try:
-                device = Device.objects.get(device_mac=result["device_mac"])
-            except Device.DoesNotExist:
-                device = Device(**result)
-                device.save()
-
-            device_enabled = device.enabled
-            if device_enabled:
-                result = check_data(**request.POST)
-                if result:
-                    data.data_value = result["data_value"]
-                    data.device = device
-                    data.date = datetime.datetime.now() #TODO: Device sends real datetime
-                    data.save()
-
-        return JsonResponse({'status':True})

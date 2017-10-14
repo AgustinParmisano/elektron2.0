@@ -309,13 +309,15 @@ class DataTaskUpdateView(generic.View):
 
     def post(self, request, *args, **kwargs):
 
+        print request.POST
+        print request
         result = check_device_mac(**request.POST)
 
         if result:
             device = Device.objects.get(device_mac=result["device_mac"])
-
+            print device
             task = check_task(**request.POST)
-
+            print task
             if task:
                 try:
                     datatask = DataTask(pk=kwargs['pk'])
@@ -344,6 +346,7 @@ class DateTimeTaskCreateView(generic.View):
         if result:
             device = Device.objects.get(device_mac=result["device_mac"])
 
+            print request.POST
             task = check_task(**request.POST)
             print task
 
