@@ -128,7 +128,6 @@ import requests
     r.url
     ```
 
-
   - Data en una Fecha y hora especificas (dd/mm/yyyy/hh):
   ```
   r = requests.get("http://localhost:8000/data/dd/mm/yyyy/hh")
@@ -178,7 +177,7 @@ import requests
   - Data en un rango de fechas y horas especificas segun Device por POST en el cuerpo opcional [corchetes = opcional]
     - post:
     ```
-    data = {'hour1': [hour1], 'hour2': [hour2], 'day1': [dia1], 'day2': [dia2],  'month1': [mes1], 'month2': [mes2], 'year1': [year1], 'year2': [year2], 'device_id': [pk]'}
+    data = {'hour1': hour1, 'hour2': hour2, 'day1': dia1, 'day2': dia2,  'month1': mes1, 'month2': mes2, 'year1': year1, 'year2': year2, ['device_id']: ['pk']}
     r = requests.post("http://localhost:8000/data/hours", data)
     r.text
     r.url
@@ -229,7 +228,7 @@ import requests
       - Create DateTimeTask:
         - post:
         ```
-        data = {'taskstate':'1', 'taskfunction':'1', 'label':'datetimtask1', 'description':'taks is done', 'owner':'root', 'datetime':"2017-10-10T17:23:47.636", 'device_mac':'11:11:11:11'} 
+        data = {'taskstate':'1', 'taskfunction':'1', 'label':'datetimtask1', 'description':'taks is done', 'owner':'root', 'datetime':"2017-10-10T17:23:47.636", 'device_mac':'11:11:11:11'}
         r = requests.post("http://localhost:8000/tasks/datetimetasks/create", data=data)
         r.text
         r.url
@@ -327,3 +326,11 @@ import requests
     r.text
     r.url
     ```
+
+    ## TaskState
+      - List taskstates (GET)
+      ```
+      r = requests.get("http://localhost:8000/tasks/taskstates")
+      r.text
+      r.url
+      ```

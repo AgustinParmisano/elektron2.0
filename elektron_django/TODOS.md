@@ -1,14 +1,12 @@
 # TODOS Django Elektron:
 
 ## Recent:
-	- Hacer POSTS para los between dates y hours
+	- Hacer el login y authenticación.
 
 ## Escritura:
 	- Escribir sobre el servidor y las tareas automatizadas
 
 ## Controlador (views):
-	- Hacer urls para taskstate (listar)
-	- Hacer urls para tasksfunctions (listar)
 	- Ver que devolver en cada caso  (error con http response 505 o en la alta)
 	- Alta, Baja y Modificación con authenticación.
 	- Chequeo de no enviar cosas en blanco ni caracteres extraños en todos los views

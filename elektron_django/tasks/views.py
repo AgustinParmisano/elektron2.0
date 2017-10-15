@@ -540,3 +540,53 @@ class DoneTasksView(generic.View):
         except Exception as e:
             print "Error en DoneTasksView: " + str(e)
             return HttpResponse(status=500)
+
+class TaskStatesView(generic.ListView):
+
+    def get(self, request, *args, **kwargs):
+
+        try:
+            taskstates = TaskState.objects.all()
+
+        except Exception as e:
+            print "Exception: " + str(e)
+            raise
+            return HttpResponse(status=500)
+
+        if taskstates:
+            try:
+
+                taskstate_list = list(taskstates)
+                taskstate_list = ({'taskstate': list(map(lambda x: x.serialize(), taskstates))})
+
+                return JsonResponse({'taskstates': taskstate_list})
+
+            except Exception as e:
+                print "Some error ocurred getting TaskStates"
+                print "Exception: " + str(e)
+                return HttpResponse(status=500)
+
+class TaskFunctionsView(generic.ListView):
+
+    def get(self, request, *args, **kwargs):
+
+        try:
+            taskfunctions = TaskFunction.objects.all()
+
+        except Exception as e:
+            print "Exception: " + str(e)
+            raise
+            return HttpResponse(status=500)
+
+        if taskfunctions:
+            try:
+
+                taskfunctions_list = list(taskfunctions)
+                taskfunctions_list = ({'taskfunctions': list(map(lambda x: x.serialize(), taskfunctions))})
+
+                return JsonResponse({'taskfunctions': taskfunctions_list})
+
+            except Exception as e:
+                print "Some error ocurred getting TaskStates"
+                print "Exception: " + str(e)
+                return HttpResponse(status=500)

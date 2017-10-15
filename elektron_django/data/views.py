@@ -319,15 +319,15 @@ class DataBetweenHoursPostView(generic.DetailView):
             data_list = []
 
 
-            day1 = kwargs["day1"]
-            month1 = kwargs["month1"]
-            year1 = kwargs["year1"]
-            hour1 = kwargs["hour1"]
+            day1 = postdata["day1"]
+            month1 = postdata["month1"]
+            year1 = postdata["year1"]
+            hour1 = postdata["hour1"]
 
-            day2 = kwargs["day2"]
-            month2 = kwargs["month2"]
-            year2 = kwargs["year2"]
-            hour2 = kwargs["hour2"]
+            day2 = postdata["day2"]
+            month2 = postdata["month2"]
+            year2 = postdata["year2"]
+            hour2 = postdata["hour2"]
 
             if "device_id" in postdata:
                 device_id = postdata["device_id"]
