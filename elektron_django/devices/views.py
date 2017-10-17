@@ -19,6 +19,8 @@ import paho.mqtt.publish as publish
 import Queue
 from django.views.generic.edit import DeleteView
 from django.urls import reverse_lazy
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 
 def to_UTC(date):
     utc = settings.UTC
@@ -498,6 +500,7 @@ class CreateView(generic.View):
 
 class UpdateView(generic.View):
 
+    @method_decorator(login_required)
     def post(self, request, *args, **kwargs):
 
         result = check_device(**request.POST)
