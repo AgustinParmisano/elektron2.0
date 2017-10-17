@@ -4,6 +4,22 @@
 import requests
 ```
 
+### Authentication (se debe guardar la sesion <s> = requests.post ... ):
+  ## Login (post)
+  ```
+  user = {'device_ip': '110.0.0.11', 'device_mac': '12:52:12:92', 'devicestate': 1, 'label': 'dispo2', 'owner': 'root'}
+  s = requests.post("http://localhost:8000/elektronusers/login", data=user)
+  r.text
+  r.url
+  ```
+
+  ## Logout (get)
+  ```
+  requests.get("http://localhost:8000/elektronusers/logout")
+  r.text
+  r.url
+  ```
+
 ### Data from devices:
 
 ```

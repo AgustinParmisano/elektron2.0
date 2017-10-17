@@ -7,8 +7,11 @@ from django.template import loader
 import datetime
 from .models import Task, DateTimeTask, DataTask, TaskState, TaskFunction
 from devices.models import Device
+from elektronusers.models import User as ElektronUser
 from django.views import generic
 from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 
 def check_device_mac(**kwargs):
     if not 'device_mac' in kwargs:
@@ -276,11 +279,15 @@ class DataTaskDeviceView(generic.ListView):
                     print "Exception: " + str(e)
                     return HttpResponse(status=500)
 
+
 class DataTaskCreateView(generic.View):
 
+    @method_decorator(login_required)
     def post(self, request, *args, **kwargs):
-
         result = check_device_mac(**request.POST)
+
+        print "request.session: " + str(request.session)
+        print "autenticated: " + str(request.user.is_authenticated())
 
         if result:
             device = Device.objects.get(device_mac=result["device_mac"])
@@ -307,6 +314,7 @@ class DataTaskCreateView(generic.View):
 
 class DataTaskUpdateView(generic.View):
 
+    @method_decorator(login_required)
     def post(self, request, *args, **kwargs):
 
         print request.POST
@@ -339,6 +347,7 @@ class DataTaskUpdateView(generic.View):
 
 class DateTimeTaskCreateView(generic.View):
 
+    @method_decorator(login_required)
     def post(self, request, *args, **kwargs):
 
         result = check_device_mac(**request.POST)
@@ -370,6 +379,7 @@ class DateTimeTaskCreateView(generic.View):
 
 class DateTimeTaskRemoveView(generic.View):
 
+    @method_decorator(login_required)
     def get(self, request, *args, **kwargs):
 
         task = kwargs["pk"]
@@ -386,6 +396,7 @@ class DateTimeTaskRemoveView(generic.View):
 
 class DataTaskRemoveView(generic.View):
 
+    @method_decorator(login_required)
     def get(self, request, *args, **kwargs):
 
         task = kwargs["pk"]
@@ -403,6 +414,7 @@ class DataTaskRemoveView(generic.View):
 
 class DateTimeTaskUpdateView(generic.View):
 
+    @method_decorator(login_required)
     def post(self, request, *args, **kwargs):
 
         result = check_device_mac(**request.POST)

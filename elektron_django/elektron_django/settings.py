@@ -1,3 +1,4 @@
+
 """
 Django settings for elektron_django project.
 
@@ -40,6 +41,7 @@ INSTALLED_APPS = [
     'devices.apps.DevicesConfig',
     'data.apps.DataConfig',
     'tasks.apps.TasksConfig',
+    'elektronusers.apps.ElektronUsersConfig',
     'corsheaders',
 ]
 

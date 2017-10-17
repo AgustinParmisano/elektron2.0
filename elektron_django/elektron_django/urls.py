@@ -21,4 +21,6 @@ urlpatterns = [
     url(r'^devices/', include('devices.urls')),
     url(r'^data/', include('data.urls')),
     url(r'^tasks/', include('tasks.urls')),
+    url(r'^elektronusers/', include('elektronusers.urls')),
+    #url(r'^accounts/', include('django.contrib.auth.urls')),
 ]

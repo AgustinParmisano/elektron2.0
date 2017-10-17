@@ -1,7 +1,6 @@
 # TODOS Django Elektron:
 
 ## Recent:
-	- Hacer el login y authenticación.
 
 ## Escritura:
 	- Escribir sobre el servidor y las tareas automatizadas
@@ -11,11 +10,7 @@
 	- Alta, Baja y Modificación con authenticación.
 	- Chequeo de no enviar cosas en blanco ni caracteres extraños en todos los views
 
-## Login:
-	- Hacer el login y authenticación.
-
 ## MQTT:
-	- Ver como reemplazar websocket por mqtt
 	- Falta la vuelta desde el server a mqtt (que mqtt consulte os dispositivos apagados o prendidos)
 	- Ver seguridad MD5 salt en nodemcu y en el server.
 
@@ -23,11 +18,6 @@
 	- Lo mismo pero con muchos devices.
 	- Ver seguridad.
 	- Ver si se reemplaza con mqtt
-
-## Integración:
-	- Integrar Server con Ionic
-	- Integrar Server con Web AngularJS
-	- Integrar Server con nodemcus
 
 ## Nodemcus:
 	### Sensado:
@@ -60,3 +50,8 @@
 
 ## Detalles:
 	- Logo Elektron e íconos
+
+## Integración:
+	- Integrar Server con Ionic
+	- Integrar Server con Web AngularJS
+	- Integrar Server con nodemcus
