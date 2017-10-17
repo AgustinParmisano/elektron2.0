@@ -108,6 +108,10 @@ class MqttClient(object):
         self.client.on_connect = on_connect
         self.client.on_message = on_message_device
         self.client.connect("localhost", 1883, 60)
+        actions = Queue.Queue()
+
+    def get_actions_queue(self):
+        return self.actions
 
     def get_client(self):
         return self.client

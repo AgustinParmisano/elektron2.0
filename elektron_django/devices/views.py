@@ -21,6 +21,42 @@ from django.views.generic.edit import DeleteView
 from django.urls import reverse_lazy
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from elektron_django.mqtt import MqttClient
+
+
+q = Queue.Queue()
+
+def on_connect(client, userdata, flags, rc):
+   print("Connected with result code "+str(rc))
+   client.subscribe("data_to_web")
+
+def on_message(client, userdata, msg):
+   print "Sending data from MQTT(Device) to WebSocket(Web Interface)"
+   data_json = ast.literal_eval(msg.payload)
+   print data_json
+
+   q.put(data_json)
+
+class MqttClient(object):
+    """docstring for MqttClient."""
+    def __init__(self, client=mqtt.Client()):
+        super(MqttClient, self).__init__()
+        self.client = client
+        self.client.on_connect = on_connect
+        self.client.on_message = on_message
+        self.client.connect("localhost", 1883, 60)
+        #self.client.connect("158.69.223.78", 1883, 60)
+
+    def get_client(self):
+        return self.client
+
+    def set_on_connect(self, func):
+        self.on_connect = func
+
+    def publish(self, message, topic):
+         print("Sending %s " % (message))
+         self.client.publish(str(topic), message)
+         return "Sending msg: %s " % (message)
 
 def to_UTC(date):
     utc = settings.UTC
@@ -518,40 +554,6 @@ class UpdateView(generic.View):
             device.save()
 
         return JsonResponse({'status':True})
-
-q = Queue.Queue()
-
-def on_connect(client, userdata, flags, rc):
-   print("Connected with result code "+str(rc))
-   client.subscribe("data_to_web")
-
-def on_message(client, userdata, msg):
-   print "Sending data from MQTT(Device) to WebSocket(Web Interface)"
-   data_json = ast.literal_eval(msg.payload)
-   print data_json
-
-   q.put(data_json)
-
-class MqttClient(object):
-    """docstring for MqttClient."""
-    def __init__(self, client=mqtt.Client()):
-        super(MqttClient, self).__init__()
-        self.client = client
-        self.client.on_connect = on_connect
-        self.client.on_message = on_message
-        self.client.connect("localhost", 1883, 60)
-        #self.client.connect("158.69.223.78", 1883, 60)
-
-    def get_client(self):
-        return self.client
-
-    def set_on_connect(self, func):
-        self.on_connect = func
-
-    def publish(self, message, topic):
-         print("Sending %s " % (message))
-         self.client.publish(str(topic), message)
-         return "Sending msg: %s " % (message)
 
 class ShutdownView(generic.View):
 

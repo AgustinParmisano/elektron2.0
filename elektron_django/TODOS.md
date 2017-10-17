@@ -1,27 +1,10 @@
 # TODOS Django Elektron:
 
 ## Recent:
-	- Falta la vuelta desde el server a mqtt:
-		Tiene que haber un demonio que se ejecute cada 1 segundo que chequee el estado de los dispositivos y
-		le envie al demonio MQTT cuando cambian de estado.
+	- Probar todo con dispositivos reales
 
 ## Escritura:
 	- Escribir sobre el servidor y las tareas automatizadas
-
-## MQTT:
-	- Falta la vuelta desde el server a mqtt:
-		Tiene que haber un demonio que se ejecute cada 1 segundo que chequee el estado de los dispositivos y
-		le envie al demonio MQTT cuando cambian de estado.
-	- Ver seguridad MD5 salt en nodemcu y en el server.
-
-## Controlador (views):
-	- Ver que devolver en cada caso  (error con http response 505 o en la alta)
-	- Chequeo de no recibir cosas en blanco ni caracteres extraños en todos los views
-
-## Websocket:
-	- Lo mismo pero con muchos devices.
-	- Ver seguridad.
-	- Ver si se reemplaza con mqtt
 
 ## Nodemcus:
 	### Sensado:
@@ -36,6 +19,19 @@
 		- Web del server AP con css bien hecha
 	### Infraestructura:
 		- Hacer un diseño para imprimir 3D o algo así para el circuito
+
+## MQTT:
+	- Probar todo con dispositivos reales
+	- Ver seguridad MD5 salt en nodemcu y en el server.
+
+## Controlador (views):
+	- Ver que devolver en cada caso  (error con http response 505 o en la alta)
+	- Chequeo de no recibir cosas en blanco ni caracteres extraños en todos los views
+
+## Websocket:
+	- Lo mismo pero con muchos devices.
+	- Ver seguridad.
+	- Ver si se reemplaza con mqtt
 
 ## Seguridad:
 	### Server:

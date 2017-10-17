@@ -4,11 +4,12 @@
 import requests
 ```
 
-### Authentication (se debe guardar la sesion <s> = requests.post ... ):
+### Authentication (se debe guardar la sesion <s> = requests.Session() y luego usarse la sesion logeada para guardar las credenciales ):
   ## Login (post)
   ```
   user = {'username':'root','password':'password'}
-  s = requests.post("http://localhost:8000/elektronusers/login", data=user)
+  s = requests.Session()
+  s.post("http://localhost:8000/elektronusers/login", data=user)
   r.text
   r.url
   ```

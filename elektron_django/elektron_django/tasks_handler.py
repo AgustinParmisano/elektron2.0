@@ -5,10 +5,20 @@ import time
 from Queue import Queue
 import paho.mqtt.client as mqtt
 from datetime import datetime
+import sys
 
-def get_tasks_from_server(server_ip, server_port):
+def authenticate_daemon(server_ip, server_port):
+    print "Authenticating Task Hanlder Daemon with Server . . . "
+    print  " "
+    password = str(sys.argv[1])
+    user = {'username':'taskd','password':password}
+    session = requests.Session()
+    session.post("http://" + server_ip + ":" + server_port + "/elektronusers/login", data=user)
+    return session
+
+def get_tasks_from_server(server_ip, server_port, session):
     tasks_q = Queue()
-    tasks_get = requests.get("http://" + server_ip + ":" + server_port + "/tasks/readytasks")
+    tasks_get = session.get("http://" + server_ip + ":" + server_port + "/tasks/readytasks")
 
     if tasks_get.status_code == 200:
         tasks = json.loads(tasks_get.text)["readytasks"]
@@ -72,43 +82,43 @@ def datetimetask_correct(tdate, task_datetime, device_data_list):
                 return task_datetime_list_ok
     return -1
 
-def execute_tasks(task_queue, server_ip, server_port):
+def execute_tasks(task_queue, server_ip, server_port, session):
     while not task_queue.empty():
         dt = task_queue.get()
         device = dt["device"]
         task_date = dt['created']
-        device_data_get = requests.get("http://" + server_ip + ":" + server_port + "/devices/"+ str(dt["device"]["id"]) +"/data")
+        device_data_get = session.get("http://" + server_ip + ":" + server_port + "/devices/"+ str(dt["device"]["id"]) +"/data")
 
         if device_data_get.status_code == 200:
             device_data = json.loads(device_data_get.text)
             device_data_list = device_data["data"]
 
             if "data_value" in dt:
-                execute_datatasks(dt,task_date,device_data_list,server_ip, server_port)
+                execute_datatasks(dt,task_date,device_data_list,server_ip, server_port, session)
 
             if "datetime" in dt:
-                execute_datetimetasks(dt,task_date,device_data_list,server_ip, server_port)
+                execute_datetimetasks(dt,task_date,device_data_list,server_ip, server_port, session)
 
 
-def execute_datatasks(dt,td,dl,server_ip, server_port):
+def execute_datatasks(dt,td,dl,server_ip, server_port, session):
     task_data = dt['data_value']
     task_date = datetime.strptime(td, '%Y-%m-%dT%H:%M:%S.%f')
     data_ok = datatask_correct(task_date, task_data, dl)
 
     if data_ok >= 0:
-        execute_datatask_function(dt, server_ip, server_port)
+        execute_datatask_function(dt, server_ip, server_port,session)
 
 
-def execute_datetimetasks(dtt,td,dl,server_ip, server_port):
+def execute_datetimetasks(dtt,td,dl,server_ip, server_port, session):
     task_datetime = dtt['datetime']
     task_date = datetime.strptime(td, '%Y-%m-%dT%H:%M:%S.%f')
     data_ok = datetimetask_correct(task_date, task_datetime, dl)
 
     if data_ok >= 0:
-        execute_datetimetask_function(dtt, server_ip, server_port)
+        execute_datetimetask_function(dtt, server_ip, server_port,session)
 
 
-def execute_datatask_function(task, server_ip, server_port):
+def execute_datatask_function(task, server_ip, server_port, session):
     print str(task["id"]) + " " + task["label"]
     task_function = task["taskfunction"]
     task_device = task["device"]
@@ -119,10 +129,10 @@ def execute_datatask_function(task, server_ip, server_port):
         print "Enviar msg al servidor para apagar el dispostivo"
         task_data = {'taskstate':'2', 'taskfunction': + task_function["id"], 'label': task["label"], 'description': task["description"], 'data_value': task["data_value"], 'device_mac': task_device["device_mac"], 'owner': 'root' }
         device_data = {'device_ip': task_device["device_ip"], 'device_mac': task_device["device_mac"], 'devicestate': task_device["devicestate"]['id'], 'label': task_device["label"], 'owner': 'root'}
-        function_exec_res = requests.post("http://" + server_ip + ":" + server_port + "/devices/" + str(task_device["id"]) + "/shutdown", data=device_data)
+        function_exec_res = session.post("http://" + server_ip + ":" + server_port + "/devices/" + str(task_device["id"]) + "/shutdown", data=device_data)
 
         if function_exec_res.status_code == 200:
-            update_task_state = requests.post("http://" + server_ip + ":" + server_port + "/tasks/datatasks/" + str(task["id"]) + "/update", data=task_data)
+            update_task_state = session.post("http://" + server_ip + ":" + server_port + "/tasks/datatasks/" + str(task["id"]) + "/update", data=task_data)
         else:
             print("Cannot apply function %s to device %s " % (str(task_function["name"]), str(task_device["label"])))
 
@@ -131,10 +141,9 @@ def execute_datatask_function(task, server_ip, server_port):
         print "Enviar msg al servidor para prender el dispostivo"
         task_data = {'taskstate':'2', 'taskfunction': + task_function["id"], 'label': task["label"], 'description': task["description"], 'data_value': task["data_value"], 'device_mac': task_device["device_mac"], 'owner': 'root' }
         device_data = {'device_ip': task_device["device_ip"], 'device_mac': task_device["device_mac"], 'devicestate': task_device["devicestate"]['id'], 'label': task_device["label"], 'owner': 'root'}
-        function_exec_res = requests.post("http://" + server_ip + ":" + server_port + "/devices/" + str(task["id"]) + "/turnon", data=device_data)
-
+        function_exec_res = session.post("http://" + server_ip + ":" + server_port + "/devices/" + str(task["id"]) + "/turnon", data=device_data)
         if function_exec_res.status_code == 200:
-            update_task_state = requests.post("http://" + server_ip + ":" + server_port + "/tasks/datatasks/" + str(task["id"]) + "/update", data=task_data)
+            update_task_state = session.post("http://" + server_ip + ":" + server_port + "/tasks/datatasks/" + str(task["id"]) + "/update", data=task_data)
         else:
             print("Cannot apply function %s to device %s " % (str(task_function["name"]), str(task_device["label"])))
 
@@ -143,7 +152,7 @@ def execute_datatask_function(task, server_ip, server_port):
     else:
         print "Some error updating state of task" + task_function["name"]
 
-def execute_datetimetask_function(task, server_ip, server_port):
+def execute_datetimetask_function(task, server_ip, server_port, session):
     print str(task["id"]) + " " + task["label"]
     task_function = task["taskfunction"]
     task_device = task["device"]
@@ -154,10 +163,10 @@ def execute_datetimetask_function(task, server_ip, server_port):
         print "Enviar msg al servidor para apagar el dispostivo"
         task_data = {'taskstate':'2', 'taskfunction': + task_function["id"], 'label': task["label"], 'description': task["description"], 'datetime': task["datetime"], 'device_mac': task_device["device_mac"], 'owner': 'root' }
         device_data = {'device_ip': task_device["device_ip"], 'device_mac': task_device["device_mac"], 'devicestate': task_device["devicestate"]['id'], 'label': task_device["label"], 'owner': 'root'}
-        function_exec_res = requests.post("http://" + server_ip + ":" + server_port + "/devices/" + str(task_device["id"]) + "/shutdown", data=device_data)
+        function_exec_res = session.post("http://" + server_ip + ":" + server_port + "/devices/" + str(task_device["id"]) + "/shutdown", data=device_data)
 
         if function_exec_res.status_code == 200:
-            update_task_state = requests.post("http://" + server_ip + ":" + server_port + "/tasks/datetimetasks/" + str(task["id"]) + "/update", data=task_data)
+            update_task_state = session.post("http://" + server_ip + ":" + server_port + "/tasks/datetimetasks/" + str(task["id"]) + "/update", data=task_data)
         else:
             print("Cannot apply function %s to device %s " % (str(task_function["name"]), str(task_device["label"])))
 
@@ -166,10 +175,10 @@ def execute_datetimetask_function(task, server_ip, server_port):
         print "Enviar msg al servidor para prender el dispostivo"
         task_data = {'taskstate':'2', 'taskfunction': + task_function["id"], 'label': task["label"], 'description': task["description"], 'datetime': task["datetime"], 'device_mac': task_device["device_mac"], 'owner': 'root' }
         device_data = {'device_ip': task_device["device_ip"], 'device_mac': task_device["device_mac"], 'devicestate': task_device["devicestate"]['id'], 'label': task_device["label"], 'owner': 'root'}
-        function_exec_res = requests.post("http://" + server_ip + ":" + server_port + "/devices/" + str(task["id"]) + "/turnon", data=device_data)
+        function_exec_res = session.post("http://" + server_ip + ":" + server_port + "/devices/" + str(task["id"]) + "/turnon", data=device_data)
 
         if function_exec_res.status_code == 200:
-            update_task_state = requests.post("http://" + server_ip + ":" + server_port + "/tasks/datetimetasks/" + str(task["id"]) + "/update", data=task_data)
+            update_task_state = session.post("http://" + server_ip + ":" + server_port + "/tasks/datetimetasks/" + str(task["id"]) + "/update", data=task_data)
         else:
             print("Cannot apply function %s to device %s " % (str(task_function["name"]), str(task_device["label"])))
 
@@ -182,10 +191,11 @@ def execute_datetimetask_function(task, server_ip, server_port):
 remote_ip = "localhost"
 port = "8000"
 print "Starting Task Handler Daemon . . ."
+session = authenticate_daemon(remote_ip, port)
 while True:
     time.sleep(1)
-    tasksq = get_tasks_from_server(remote_ip,port)
+    tasksq = get_tasks_from_server(remote_ip,port,session)
     if tasksq:
-        execute_tasks(tasksq, remote_ip,port)
+        execute_tasks(tasksq, remote_ip,port,session)
     else:
         print "Error in get task from server"
