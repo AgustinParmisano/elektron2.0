@@ -1,6 +1,9 @@
 # TODOS Django Elektron:
 
 ## Recent:
+	- Falta la vuelta desde el server a mqtt:
+		Tiene que haber un demonio que se ejecute cada 1 segundo que chequee el estado de los dispositivos y
+		le envie al demonio MQTT cuando cambian de estado.
 
 ## Escritura:
 	- Escribir sobre el servidor y las tareas automatizadas
