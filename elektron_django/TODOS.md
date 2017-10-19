@@ -1,12 +1,15 @@
 # TODOS Django Elektron:
 
 ## Recent:
-	- Probar todo con dispositivos reales
+	- Probar todo con varios dispositivos virtuales
+	- Armar por lo menos 3 dispositivos con sensores y reales
+	- Probar todo con varios dispositivos reales
 
 ## Escritura:
 	- Escribir sobre el servidor y las tareas automatizadas
 
 ## Nodemcus:
+	- Armar 3 nuevos lo mas chicos posibles con el código viejo a ver si andan
 	### Sensado:
 		- Calibrar sensado bien por software o por hardware
 	### Envio y recepción de datos:
@@ -23,6 +26,11 @@
 ## MQTT:
 	- Probar todo con dispositivos reales
 	- Ver seguridad MD5 salt en nodemcu y en el server.
+	- Se podría sacar websocket y dejar solo mqtt
+	- Se puede poner ssl con mqtt
+	- Se puede poner que mqtt tengo varios niveles de broker (local y remoto)
+	- Se puede equality of service en los topocs (QoS) (lib) (video) http://sonoff.itead.cc/en/products/sonoff/sonoff-pow
+
 
 ## Controlador (views):
 	- Ver que devolver en cada caso  (error con http response 505 o en la alta)
