@@ -1,8 +1,9 @@
 # TODOS Django Elektron:
 
 ## Recent:
-	- Probar todo con varios dispositivos virtuales
-	- Armar por lo menos 3 dispositivos con sensores y reales
+	- Armar por lo menos 3 dispositivos con sensores reales:
+		- Probando el código https://github.com/AgustinParmisano/mqtt_esp8266_acs712
+		- El nodemcu (wemos) no se conecta a la IP del servidor, si se conecta al SSID
 	- Probar todo con varios dispositivos reales
 
 ## Escritura:
