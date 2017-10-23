@@ -3,6 +3,8 @@
 #include <EEPROM.h>
 #include <PubSubClient.h>
 
+ESP8266WebServer server(80);
+
 char* ssid = "test";
 char* password = "12345678";
 String st;
@@ -17,20 +19,18 @@ String equrl;
 String esid;
 
 String apiurl;
-String mqtt_server;                 //!!!!!!!!!!!!!!!!!!!!!
-
-
-ESP8266WebServer server(80);
-WiFiClient espClient;
-PubSubClient client(espClient);
 
 String localip = "elektronip";
 String elektronname = "Elektron";
 String currtime = "elektrontime";
-float data = 1;
+String data = "elektrondata";
+
+WiFiClient espClient;
+PubSubClient client(espClient);
 
 //Current Sensor ACS712 Variable Set
 #define C_SENSOR1 A0
+#define relay 2
 const byte ledPin = D4; // digital pin 4 on a weMos D1 mini is next to ground so easy to stick a LED in.
 
 //For analog read
@@ -39,6 +39,7 @@ int r1_received = LOW;
 int incomingByte = 0;   // for incoming serial data
 int c_min = 0;
 int c_max = 30;
+float data = 1;
 
 //For analog read
 double value;
@@ -58,7 +59,6 @@ double SetV = 217.0;
 int counter=0;
 
 int samplenumber = 4000;
-int i = 0;
 
 //Used for calculating real, apparent power, Irms and Vrms.
 double sumI=0.0;
@@ -69,9 +69,11 @@ double sumVadc=0.0;
 double Vadc,Vsens,Isens,Imains,sqI,Irms;
 double apparentPower;
 
+int interrupt = 0;
+int wait = 5;
+
 //NODEMCU ESP8266-12 VALUES MAPPING!!!//
 int val;
-
 
 void callback(char* topic, byte* payload, unsigned int length) {
  Serial.print("Message arrived [");
@@ -98,7 +100,6 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.println();
 }
 
-
 void reconnect() {
  // Loop until we're reconnected
  while (!client.connected()) {
@@ -124,10 +125,8 @@ int wait = 5;
 void setup() {
   Serial.begin(115200);
 
-   pinMode(ledPin, OUTPUT);
-   digitalWrite(ledPin, HIGH);
-   delay(5000);
-   digitalWrite(ledPin, LOW);
+  pinMode(relay, OUTPUT);
+
 
   EEPROM.begin(512);
   delay(10);
@@ -156,15 +155,13 @@ void setup() {
   Serial.println(epass);
 
   Serial.println("Reading EEPROM Server URL");
-  mqtt_server = "";
+  equrl = "";
   for (int i = 64; i < 128; ++i)
   {
-    //equrl += char(EEPROM.read(i));
-    mqtt_server += char(EEPROM.read(i));
+    equrl += char(EEPROM.read(i));
   }
   Serial.print("URL: ");
-  Serial.println(mqtt_server);
-
+  Serial.println(equrl);
 
   // If SSID is set then start web mode 0 (web server mode)
   if ( esid.length() > 1 ) {
@@ -183,7 +180,7 @@ void setup() {
 bool testWifi(void) {
   int c = 0;
   Serial.println("Waiting for Wifi to connect");
-  while ( c < 30 ) {
+  while ( c < 20 ) {
     if (WiFi.status() == WL_CONNECTED) {
       return true;
     }
@@ -208,43 +205,17 @@ void launchWeb(int webtype) {
   if (localip != "0.0.0.0") {
     Serial.println("Local IP is NOT 0.0.0.0 so show main page: web mode 0 (connecting to configured SSID AP and start web server)");
     createWebServer(0);
-    mqtt_start();
+    mqtt_start(); // PUEDE SER EL PROBLEMA
   } else {
     Serial.println("Local IP is 0.0.0.0 so show SSID, PASS & URL configuration web: web mode 1");
     func_cleareeprom();
     createWebServer(1);
-
   }
 
   // Start the server
   server.begin();
   Serial.println("Server started");
-
 }
-
-void mqtt_start(){
-   Serial.println("Starting MQTT On Device Client");
-   Serial.print("MQTT BROKER IP (STRING): ");
-   Serial.println(mqtt_server);
-   char mqtt_server_char[50];
-   mqtt_server.toCharArray(mqtt_server_char, 50);
-   Serial.print("MQTT BROKER IP (CHAR): ");
-   Serial.println(mqtt_server_char);
-   client.setServer(mqtt_server_char, 1883);
-   client.setCallback(callback);
-   client.subscribe("ledStatus");
-   client.publish("esp8266status", "Relay OFF");
-   if (!client.connected()) {
-    reconnect();
-   }
-   IPAddress ip = WiFi.localIP();
-   localip = String(ip[0]) + '.' + String(ip[1]) + '.' + String(ip[2]) + '.' + String(ip[3]);
-   Serial.print("Local IP: ");
-   Serial.println(localip);
-   client.loop();
-}
-
-
 
 //function to start AP mode
 void setupAP(void) {
@@ -389,12 +360,20 @@ void createWebServer(int webtype)
     Serial.println("CONNECTED TO SSID: ");
     Serial.println(connected_ssid);
 
+    //Here its starts to send Post Data to server:
+    func_post_data();
+    //func_test_relay();
 
     server.on("/", []() {
-      client.publish("esp8266status", "TESTING MQTT FROM NODEMCU");
       IPAddress ip = WiFi.localIP();
       String ipStr = String(ip[0]) + '.' + String(ip[1]) + '.' + String(ip[2]) + '.' + String(ip[3]);
       server.send(200, "text/html", "{\"IP\":\"" + ipStr + "\"}");
+    });
+
+    server.on("/send", []() {
+
+      func_post_data();
+
     });
 
     server.on("/cleareeprom", []() {
@@ -408,10 +387,51 @@ void createWebServer(int webtype)
 
     });
 
+    /*server.on("/off", []() {
+
+    interrupt = 1;
+    Serial.println("Sending Relay Off");
+    func_relay_off();
+
+    });
+
+
+    server.on("/on", []() {
+
+    interrupt = 1;
+    Serial.println("Sending Relay On");
+    func_relay_on();
+
+    });*/
+
     }
 }
 
+void func_relay_on() {
+   //Turn On the realy at D0 pin
+   Serial.println("Relay On");
+   digitalWrite(relay, LOW); // turn the relay on to start
+   interrupt = 0;
 
+}
+
+void func_relay_off() {
+   //Turn Off the realy at 2 pin
+   Serial.println("Relay Off");
+   digitalWrite(relay, HIGH); // turn the relay off to start
+   interrupt = 0;
+
+}
+
+void func_test_relay() {
+   //Turn On the realy at D0 pin
+   Serial.println("Relay OFF");
+   digitalWrite(relay, LOW); // turn the relay off to start
+   delay(3000);
+   Serial.println("Relay On");
+   digitalWrite(relay, HIGH); // turn the relay off to start
+   delay(3000);
+}
 
 
 void func_disconnect() {
@@ -439,6 +459,120 @@ void func_cleareeprom() {
       Serial.println("eeprom cleared...");
 }
 
+void func_post_data() {
+      //Start sending data to configured server
+      Serial.println("Sending data to server ...");
+      const uint16_t port = 9292; //sinatra app port
+      char host[90];
+
+      if (wait < 1){
+        Serial.println("Wait for Relay = 0: Preparing to send");
+        interrupt = 0;
+        delay(1000);
+        wait = 5;
+      }
+
+      wait = wait -1;
+
+      equrl.toCharArray(host, port);
+      //apiurl = "/uraqi/web/app_dev.php/api/uraqis.json?post_id="; //simfony 2 rest app url
+      apiurl = "/elektronsends"; //sinatra app url
+
+      WiFiClient client; // Use WiFI Client to create TCP connections
+
+      Serial.print("Connecting to server host: ");
+      Serial.println(host);
+
+
+      if (!client.connect(host, port)) {
+        Serial.println("connection failed");
+      }
+
+
+
+      while (client.connect(host, port) && (interrupt == 0)) {
+
+        delay(5000);
+
+        //retrieving data from GPIOs to send
+
+        // read the input on analog pin 0:
+        //int sensorValue = analogRead(A0);
+        // Convert the analog reading (which goes from 0 - 1023) to a voltage (0 - 5V):
+        //int voltage = sensorValue; //sensorValue * (5.0 / 1023.0);
+        //voltage = (int) voltage * 1000;
+        //voltage = voltage / 100;
+
+
+        server.on("/off", []() {
+
+        Serial.println("Sending Relay Off");
+        func_relay_off();
+
+        });
+
+
+        server.on("/on", []() {
+
+        Serial.println("Sending Relay On");
+        func_relay_on();
+
+
+        });
+
+        // print out the value you read:
+        Serial.print("ACS712: ");
+        //Serial.println(voltage);
+        func_read_current_sensor();
+
+        //Creates the PostData Json with device current data
+        String PostData = "{\"ip\":\"" + localip + "\",\"time\":\"" + currtime + "\",\"name\":\"" + elektronname + "\",\"data\":\"" + apparentPower + "\"}";
+
+        Serial.println("Sending data: " + PostData);
+        Serial.println("API URL: " + apiurl);
+
+
+        client.println("POST " + apiurl + " HTTP/1.1");
+        client.println("Host: Elektron");
+        client.println("Cache-Control: no-cache");
+        client.println("Content-Type: application/x-www-form-urlencoded");
+        client.print("Content-Length: ");
+        client.println(PostData.length() + 2);
+        client.println();
+        client.println(PostData);
+
+        long interval = 2000;
+        unsigned long currentMillis = millis(), previousMillis = millis();
+
+        while (!client.available()) {
+
+          if ( (currentMillis - previousMillis) > interval ) {
+
+            Serial.println("Timeout");
+            Serial.println("closing connection");
+            client.stop();
+            return;
+          }
+          currentMillis = millis();
+        }
+
+        Serial.println("Server response: ");
+        while (client.connected())
+        {
+          if ( client.available() )
+          {
+            char str = client.read();
+            Serial.print(str);
+          }
+        }
+        Serial.println(" ");
+
+        interrupt = 1;
+      }
+
+
+
+}
 
 void func_configuration_mode() {
       Serial.println("CONFIGURING SSID CONNECTION");
@@ -459,64 +593,61 @@ void func_configuration_mode() {
 
 void func_read_current_sensor() {
   Serial.println("func_read_current_sensor");
-  i = 0;
-  for (int x = 0; x < samplenumber + 1; x++){
-    value = analogRead(C_SENSOR1);
 
-    val = map(value, 0, 767, 0, 512);
-    value = val;
+  value = analogRead(C_SENSOR1);
+
+  //Summing counter
+  counter++;
+
+  //Voltage at ADC
+  Vadc = value * ADCvoltsperdiv;
+
+  //Remove voltage divider offset
+  Vsens = Vadc-VDoffset;
+
+  //Current transformer scale to find Imains
+  Imains = Vsens;
+
+  //Calculates Voltage divider offset.
+  sum1i++; sumVadc = sumVadc + Vadc;
+  if (sum1i>=1000) {VDoffset = sumVadc/sum1i; sum1i = 0; sumVadc=0.0;}
+
+  //Root-mean-square method current
+  //1) square current values
+  sqI = Imains*Imains;
+  //2) sum
+  sumI=sumI+sqI;
+
+  Serial.println("Reading ACS712 Current Sensor");
+  counter=0;
+  //Calculation of the root of the mean of the current squared (rms)
+  Irms = factorA*sqrt(sumI/samplenumber)+Ioffset;
+  if (Irms<0.05) {Irms=0;}
+
+  //Calculation of the root of the mean of the voltage squared (rms)
 
 
-    //Summing counter
-    i++;
+  /*if (Irms < c_min || Irms > c_max) {
+    digitalWrite(RELAY1, HIGH);
+    r1 = 0;
+  }*/
 
-    //Voltage at ADC
-    Vadc = value * ADCvoltsperdiv;
+  apparentPower = Irms * SetV;
+  Serial.println("Watios: ");
+  Serial.println(apparentPower);
+  Serial.println("Voltaje: ");
+  Serial.println(SetV);
+  Serial.println("Amperios: ");
+  Serial.println(Irms);
+  Serial.println("status: ");
+  Serial.println(r1);
+  Serial.println("c_max: ");
+  Serial.println(c_max);
+  Serial.println();
 
-    //Remove voltage divider offset
-    Vsens = Vadc-VDoffset;
+  //Reset values ready for next sample.
+  sumI=0.0;
 
-    //Current transformer scale to find Imains
-    Imains = Vsens;
-
-    //Calculates Voltage divider offset.
-    sum1i++; sumVadc = sumVadc + Vadc;
-    if (sum1i>=1000) {VDoffset = sumVadc/sum1i; sum1i = 0; sumVadc=0.0;}
-
-    //Root-mean-square method current
-    //1) square current values
-    sqI = Imains*Imains;
-    //2) sum
-    sumI=sumI+sqI;
-
-    if (i>=samplenumber)
-    {
-      i=0;
-      //Calculation of the root of the mean of the current squared (rms)
-      Irms = factorA*sqrt(sumI/samplenumber)+Ioffset;
-      if (Irms<0.05) {Irms=0;}
-
-      //Calculation of the root of the mean of the voltage squared (rms)
-
-      apparentPower = Irms * SetV;
-      Serial.print(" A0: ");
-      Serial.print(value);
-      Serial.print(" Watios: ");
-      Serial.print(apparentPower);
-      Serial.print(" Voltaje: ");
-      Serial.print(SetV);
-      Serial.print(" Amperios: ");
-      Serial.print(Irms);
-      Serial.print(" status: ");
-      Serial.print(r1);
-      Serial.print(" c_max: ");
-      Serial.print(c_max);
-      Serial.println();
-
-      //Reset values ready for next sample.
-      sumI=0.0;
-    }
-  }
 }
 
 void loop() {
