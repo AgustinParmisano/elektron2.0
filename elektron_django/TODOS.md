@@ -2,12 +2,24 @@
 
 ## Recent:
 	- Armar por lo menos 3 dispositivos con sensores reales:
-		- Probando el código https://github.com/AgustinParmisano/mqtt_esp8266_acs712
-		- El nodemcu (wemos) no se conecta a la IP del servidor, si se conecta al SSID
+		- El código nuevo de los nodemcu casi andando está en éste mismo repo en la carpeta hardware: https://github.com/AgustinParmisano/elektron2.0/tree/master/hardware
+		- Los nodemcu se conectan a la red y al servidor, envían mensajes desde nodemcu al broker mqtt del servidor (forzando un subscribe por post de la url en ip/ ) pero pareciera que no hacen client.loop ya que no envian los mensajes (automaticamente) ni los reciben, tal vez hay un error en client.loop en en el subscribe. 
+			- Probar: Si client.loop está corriendo bien
+			- Probar: Si susbcribe está bien hecho y anda bien
+			- Probar: En otros dispositivos
+			- Probar: Forzar la susbcripción al igual que se fuerza la publicación, con acceso a ip/
+			- Probar: Otras formas de susbcribirse o hacer el loop
 	- Probar todo con varios dispositivos reales
+	- Probar que funcione con ips locales
+	- Probar que funcione con la ip remota
 
 ## Escritura:
-	- Escribir sobre el servidor y las tareas automatizadas
+	- Escribir sobre los nodemcus:
+		- Como se configuran por primera vez (ssid, pass e ip)
+		- Como envian los mensajes y los reciben
+		- Local y Remoto
+		- Tiempos de respuesta
+		- Multiples dispositivos
 
 ## Nodemcus:
 	- Armar 3 nuevos lo mas chicos posibles con el código viejo a ver si andan
