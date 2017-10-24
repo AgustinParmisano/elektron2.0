@@ -3,12 +3,10 @@
 ## Recent:
 	- Armar por lo menos 3 dispositivos con sensores reales:
 		- El código nuevo de los nodemcu casi andando está en éste mismo repo en la carpeta hardware: https://github.com/AgustinParmisano/elektron2.0/tree/master/hardware
-		- Los nodemcu se conectan a la red y al servidor, envían mensajes desde nodemcu al broker mqtt del servidor (forzando un subscribe por post de la url en ip/ ) pero pareciera que no hacen client.loop ya que no envian los mensajes (automaticamente) ni los reciben, tal vez hay un error en client.loop en en el subscribe. 
-			- Probar: Si client.loop está corriendo bien
-			- Probar: Si susbcribe está bien hecho y anda bien
-			- Probar: En otros dispositivos
-			- Probar: Forzar la susbcripción al igual que se fuerza la publicación, con acceso a ip/
-			- Probar: Otras formas de susbcribirse o hacer el loop
+		- Falta probar que sense y envíe bien (Conectar Sensor y probar MQTT)
+		- Falta probar que prenda y apague bien (Conectar Relé y probar MQTT)
+		- Falta probar con el servidor MQTT (demonio) real, cambiar los topics del códig de los nodemcus (según su mac)
+		- Ver que envíe los datos que el servidor pide (ip, mac, label, etc).
 	- Probar todo con varios dispositivos reales
 	- Probar que funcione con ips locales
 	- Probar que funcione con la ip remota

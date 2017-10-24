@@ -55,79 +55,85 @@ double Ioffset = 0;
 double SetV = 217.0;
 
 //Counter
-int counter=0;
+int counter = 0;
 
 int samplenumber = 4000;
 int i = 0;
 
 //Used for calculating real, apparent power, Irms and Vrms.
-double sumI=0.0;
+double sumI = 0.0;
 
-int sum1i=0;
-double sumVadc=0.0;
+int sum1i = 0;
+double sumVadc = 0.0;
 
-double Vadc,Vsens,Isens,Imains,sqI,Irms;
+double Vadc, Vsens, Isens, Imains, sqI, Irms;
 double apparentPower;
 
 //NODEMCU ESP8266-12 VALUES MAPPING!!!//
 int val;
-
+int device_state = 0;
 
 void callback(char* topic, byte* payload, unsigned int length) {
- Serial.print("Message arrived [");
- Serial.println(topic);
- Serial.print("] ");
- for (int i=0;i<length;i++) {
-  char receivedChar = (char)payload[i];
-  Serial.print(receivedChar);
-  if (receivedChar == '1')
-  digitalWrite(ledPin, HIGH);
-  if (receivedChar == '0')
-   digitalWrite(ledPin, LOW);
-  if (receivedChar == '2')
-   Serial.println("Retrieve Data Forced");
+  Serial.print("Message arrived [");
+  Serial.println(topic);
+  Serial.print("] ");
+  for (int i = 0; i < length; i++) {
+    char receivedChar = (char)payload[i];
+    Serial.print(receivedChar);
+    if (receivedChar == '1') {
+      digitalWrite(ledPin, HIGH);
+      device_state = 0;
+    }
+    if (receivedChar == '0') {
+      digitalWrite(ledPin, LOW);
+      device_state = 1;
+    }
+    if (receivedChar == '2')
+      Serial.println("Retrieve Data Forced");
+    char data[80];
 
+    String payload = "{\"ip\":\"" + localip + "\",\"time\":\"" + currtime + "\",\"name\":\"" + elektronname + "\",\"data\":\"" + apparentPower + "\"}";
+    payload.toCharArray(data, (payload.length() + 1));
 
-  char data[80];
-
-  String payload = "{\"ip\":\"" + localip + "\",\"time\":\"" + currtime + "\",\"name\":\"" + elektronname + "\",\"data\":\"" + apparentPower + "\"}";
-  payload.toCharArray(data, (payload.length() + 1));
-
-  client.publish("esp8266status", data);
+    Serial.print("Data to publish to client:");
+    Serial.print(data);
+    client.publish("esp8266status", data);
   }
   Serial.println();
 }
 
 
 void reconnect() {
- // Loop until we're reconnected
- while (!client.connected()) {
- Serial.print("Attempting MQTT connection...");
- // Attempt to connect
- if (client.connect("ESP8266 Client")) {
-  Serial.println("connected");
-  // ... and subscribe to topic
-  client.subscribe("ledStatus");
- } else {
-  Serial.print("failed, rc=");
-  Serial.print(client.state());
-  Serial.println(" try again in 5 seconds");
-  // Wait 5 seconds before retrying
-  delay(5000);
+  // Loop until we're reconnected
+  while (!client.connected()) {
+    Serial.print("Attempting MQTT connection...");
+    // Attempt to connect
+    if (client.connect("ESP8266 Client")) {
+      Serial.println("connected");
+      // ... and subscribe to topic
+      client.subscribe("ledStatus");
+    } else {
+      Serial.print("failed, rc=");
+      Serial.print(client.state());
+      Serial.println(" try again in 5 seconds");
+      // Wait 5 seconds before retrying
+      delay(5000);
+    }
   }
- }
 }
 
 int interrupt = 0;
 int wait = 5;
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
 
-   pinMode(ledPin, OUTPUT);
-   digitalWrite(ledPin, HIGH);
-   delay(5000);
-   digitalWrite(ledPin, LOW);
+
+  pinMode(ledPin, OUTPUT);
+  digitalWrite(ledPin, HIGH);
+  client.publish("esp8266status", "Relay OFF");
+  delay(5000);
+  digitalWrite(ledPin, LOW);
 
   EEPROM.begin(512);
   delay(10);
@@ -164,6 +170,11 @@ void setup() {
   }
   Serial.print("URL: ");
   Serial.println(mqtt_server);
+  char mqtt_server_char[50];
+  mqtt_server.toCharArray(mqtt_server_char, 50);
+  Serial.print("MQTT BROKER IP (CHAR): ");
+  Serial.println(mqtt_server_char);
+  client.setCallback(callback);
 
 
   // If SSID is set then start web mode 0 (web server mode)
@@ -221,27 +232,28 @@ void launchWeb(int webtype) {
   Serial.println("Server started");
 
 }
-
-void mqtt_start(){
-   Serial.println("Starting MQTT On Device Client");
-   Serial.print("MQTT BROKER IP (STRING): ");
-   Serial.println(mqtt_server);
-   char mqtt_server_char[50];
-   mqtt_server.toCharArray(mqtt_server_char, 50);
-   Serial.print("MQTT BROKER IP (CHAR): ");
-   Serial.println(mqtt_server_char);
-   client.setServer(mqtt_server_char, 1883);
-   client.setCallback(callback);
-   client.subscribe("ledStatus");
-   client.publish("esp8266status", "Relay OFF");
-   if (!client.connected()) {
+bool ok = false; //False until mqtt server is on and connected correctly with the device
+void mqtt_start() {
+  Serial.println("Starting MQTT On Device Client");
+  Serial.print("MQTT BROKER IP (STRING): ");
+  Serial.println(mqtt_server);
+  char mqtt_server_char[50];
+  mqtt_server.toCharArray(mqtt_server_char, 50);
+  Serial.print("MQTT BROKER IP (CHAR): ");
+  Serial.println(mqtt_server_char);
+  client.setServer(mqtt_server_char, 1883);
+  client.setCallback(callback);
+  client.subscribe("ledStatus");
+  client.publish("esp8266status", "Relay OFF");
+  if (!client.connected()) {
     reconnect();
-   }
-   IPAddress ip = WiFi.localIP();
-   localip = String(ip[0]) + '.' + String(ip[1]) + '.' + String(ip[2]) + '.' + String(ip[3]);
-   Serial.print("Local IP: ");
-   Serial.println(localip);
-   client.loop();
+  }
+  IPAddress ip = WiFi.localIP();
+  localip = String(ip[0]) + '.' + String(ip[1]) + '.' + String(ip[2]) + '.' + String(ip[3]);
+  Serial.print("Local IP: ");
+  Serial.println(localip);
+  client.loop();
+  ok = true;
 }
 
 
@@ -399,7 +411,7 @@ void createWebServer(int webtype)
 
     server.on("/cleareeprom", []() {
 
-       func_cleareeprom();
+      func_cleareeprom();
 
     });
     server.on("/disconnect", []() {
@@ -408,59 +420,59 @@ void createWebServer(int webtype)
 
     });
 
-    }
+  }
 }
 
 
 
 
 void func_disconnect() {
-      //Disconnect from configured SSID AP and setup owns AP again web mode 1
-      content = "<!DOCTYPE HTML>\r\n<html>";
-      content += "<p>Disconecting</p></html>";
-      server.send(200, "text/html", content);
-      Serial.println("disconecting . . .");
-      WiFi.disconnect();
-      Serial.println("Disconected");
-      //setup owns AP again web mode 1
-      setupAP();
+  //Disconnect from configured SSID AP and setup owns AP again web mode 1
+  content = "<!DOCTYPE HTML>\r\n<html>";
+  content += "<p>Disconecting</p></html>";
+  server.send(200, "text/html", content);
+  Serial.println("disconecting . . .");
+  WiFi.disconnect();
+  Serial.println("Disconected");
+  //setup owns AP again web mode 1
+  setupAP();
 }
 
 void func_cleareeprom() {
-      //Clear EEPROM to restart ESP default values
-      content = "<!DOCTYPE HTML>\r\n<html>";
-      content += "<p>Clearing the EEPROM</p></html>";
-      server.send(200, "text/html", content);
-      Serial.println("clearing eeprom");
-      for (int i = 0; i < 128; ++i) {
-        EEPROM.write(i, 0);
-      }
-      EEPROM.commit();
-      Serial.println("eeprom cleared...");
+  //Clear EEPROM to restart ESP default values
+  content = "<!DOCTYPE HTML>\r\n<html>";
+  content += "<p>Clearing the EEPROM</p></html>";
+  server.send(200, "text/html", content);
+  Serial.println("clearing eeprom");
+  for (int i = 0; i < 128; ++i) {
+    EEPROM.write(i, 0);
+  }
+  EEPROM.commit();
+  Serial.println("eeprom cleared...");
 }
 
 
 void func_configuration_mode() {
-      Serial.println("CONFIGURING SSID CONNECTION");
-      Serial.println("CONFIGURING SSID CONNECTION STARTING");
-      IPAddress ip = WiFi.softAPIP();
-      String ipStr = String(ip[0]) + '.' + String(ip[1]) + '.' + String(ip[2]) + '.' + String(ip[3]);
-      content = "<!DOCTYPE HTML>\r\n<html>Hello from ESP8266 at ";
-      content += ipStr;
-      content += "<p>";
-      content += st;
-      content += "</p><form method='get' action='setting'><label>SSID: </label><input name='ssid' length=32><label>PASS: </label><input name='pass' length=64><label>SERVER URL: </label><input name='url' length=64><input type='submit'></form>";
-      content += "</html>";
-      Serial.println("Sending configuration data");
-      server.send(200, "text/html", content);
-      content = "";
-      return;
+  Serial.println("CONFIGURING SSID CONNECTION");
+  Serial.println("CONFIGURING SSID CONNECTION STARTING");
+  IPAddress ip = WiFi.softAPIP();
+  String ipStr = String(ip[0]) + '.' + String(ip[1]) + '.' + String(ip[2]) + '.' + String(ip[3]);
+  content = "<!DOCTYPE HTML>\r\n<html>Hello from ESP8266 at ";
+  content += ipStr;
+  content += "<p>";
+  content += st;
+  content += "</p><form method='get' action='setting'><label>SSID: </label><input name='ssid' length=32><label>PASS: </label><input name='pass' length=64><label>SERVER URL: </label><input name='url' length=64><input type='submit'></form>";
+  content += "</html>";
+  Serial.println("Sending configuration data");
+  server.send(200, "text/html", content);
+  content = "";
+  return;
 }
 
 void func_read_current_sensor() {
   Serial.println("func_read_current_sensor");
   i = 0;
-  for (int x = 0; x < samplenumber + 1; x++){
+  for (int x = 0; x < samplenumber + 1; x++) {
     value = analogRead(C_SENSOR1);
 
     val = map(value, 0, 767, 0, 512);
@@ -474,27 +486,33 @@ void func_read_current_sensor() {
     Vadc = value * ADCvoltsperdiv;
 
     //Remove voltage divider offset
-    Vsens = Vadc-VDoffset;
+    Vsens = Vadc - VDoffset;
 
     //Current transformer scale to find Imains
     Imains = Vsens;
 
     //Calculates Voltage divider offset.
     sum1i++; sumVadc = sumVadc + Vadc;
-    if (sum1i>=1000) {VDoffset = sumVadc/sum1i; sum1i = 0; sumVadc=0.0;}
+    if (sum1i >= 1000) {
+      VDoffset = sumVadc / sum1i;
+      sum1i = 0;
+      sumVadc = 0.0;
+    }
 
     //Root-mean-square method current
     //1) square current values
-    sqI = Imains*Imains;
+    sqI = Imains * Imains;
     //2) sum
-    sumI=sumI+sqI;
+    sumI = sumI + sqI;
 
-    if (i>=samplenumber)
+    if (i >= samplenumber)
     {
-      i=0;
+      i = 0;
       //Calculation of the root of the mean of the current squared (rms)
-      Irms = factorA*sqrt(sumI/samplenumber)+Ioffset;
-      if (Irms<0.05) {Irms=0;}
+      Irms = factorA * sqrt(sumI / samplenumber) + Ioffset;
+      if (Irms < 0.05) {
+        Irms = 0;
+      }
 
       //Calculation of the root of the mean of the voltage squared (rms)
 
@@ -514,11 +532,27 @@ void func_read_current_sensor() {
       Serial.println();
 
       //Reset values ready for next sample.
-      sumI=0.0;
+      sumI = 0.0;
     }
   }
 }
 
 void loop() {
   server.handleClient();
+  if (ok == true) {
+    client.loop();
+    if (device_state == 1) {
+      func_read_current_sensor();
+
+      char data[80];
+
+      String payload = "{\"ip\":\"" + localip + "\",\"time\":\"" + currtime + "\",\"name\":\"" + elektronname + "\",\"data\":\"" + apparentPower + "\"}";
+      payload.toCharArray(data, (payload.length() + 1));
+
+      Serial.print("Data to publish to client:");
+      Serial.print(data);
+      client.publish("esp8266status", data);
+    }
+    delay(1000);
+  }
 }
