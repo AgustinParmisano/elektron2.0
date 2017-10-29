@@ -563,9 +563,10 @@ class ShutdownView(generic.View):
         if device_pk:
             try:
                 device = Device.objects.get(pk=device_pk)
+                mini_mac = device.device_mac[-5:]
 
                 if str(device.devicestate) == "on":
-                    topic = "elektron/new_order"
+                    topic = "elektron/"+str(mini_mac)+"/new_order"
                     order = 1
                     device.devicestate = DeviceState.objects.get(name="off")
                     mqtt = MqttClient()
@@ -590,10 +591,11 @@ class ShutdownView(generic.View):
                 device = Device.objects.get(device_mac=result["device_mac"])
                 device.device_ip = result["device_ip"]
                 device.label = result["label"]
+                mini_mac = device.device_mac[-5:]
 
                 if str(device.devicestate) == "on":
-                    topic = "elektron/new_order"
-                    order = "0"
+                    topic = "elektron/"+str(mini_mac)+"/new_order"
+                    order = 1
                     device.devicestate = DeviceState.objects.get(name="off")
                     mqtt = MqttClient()
                     mqtt.publish(order, topic)
@@ -617,9 +619,10 @@ class TurnonView(generic.View):
         if device_pk:
             try:
                 device = Device.objects.get(pk=device_pk)
+                mini_mac = device.device_mac[-5:]
 
                 if str(device.devicestate) == "off":
-                    topic = "elektron/new_order"
+                    topic = "elektron/"+str(mini_mac)+"/new_order"
                     order = 0
                     device.devicestate = DeviceState.objects.get(name="on")
                     mqtt = MqttClient()
@@ -644,10 +647,11 @@ class TurnonView(generic.View):
                 device = Device.objects.get(device_mac=result["device_mac"])
                 device.device_ip = result["device_ip"]
                 device.label = result["label"]
+                mini_mac = device.device_mac[-5:]
 
                 if str(device.devicestate) == "off":
-                    topic = "elektron/new_order"
-                    order = "1"
+                    topic = "elektron/"+str(mini_mac)+"/new_order"
+                    order = 0
                     device.devicestate = DeviceState.objects.get(name="on")
                     mqtt = MqttClient()
                     mqtt.publish(order, topic)

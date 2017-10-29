@@ -73,6 +73,7 @@ double apparentPower;
 //NODEMCU ESP8266-12 VALUES MAPPING!!!//
 int val;
 int device_state = 0;
+int first_time = 1;
 
 void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Message arrived [");
@@ -101,10 +102,20 @@ void callback(char* topic, byte* payload, unsigned int length) {
       payload.toCharArray(data, (payload.length() + 1));
       delay(1000);
 
+      String mini_mac;
+      //mini_mac = mac.substring(11);
+      mini_mac = mac.substring(mac.length() - 5);
+
+      Serial.print("MINI MAC: ");
+      Serial.println(mini_mac);
+
       Serial.print("Data to publish to client by callack:");
       Serial.print(data);
-      client.publish("sensors/new_data", data);
-    }
+      String topic = "sensors/new_data";
+      char topic_char[50];
+      topic.toCharArray(topic_char, (topic.length() + 1));
+      client.publish(topic_char, data);
+      }
 
   }
   Serial.println();
@@ -119,7 +130,17 @@ void reconnect() {
     if (client.connect("ESP8266 Client")) {
       Serial.println("connected");
       // ... and subscribe to topic
-      client.subscribe("elektron/new_order");
+      String mini_mac;
+      //mini_mac = mac.substring(11);
+      mini_mac = mac.substring(mac.length() - 5);
+      char topic_char[50];
+      String topic = "elektron/" + mini_mac + "/new_order";
+      topic.toCharArray(topic_char, (topic.length() + 1));
+      client.subscribe(topic_char);
+      Serial.println("Subscribing to mini mac based topic: ");
+      Serial.println(topic_char);
+
+
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -252,7 +273,15 @@ void mqtt_start() {
   Serial.println(mqtt_server_char);
   client.setServer(mqtt_server_char, 1883);
   client.setCallback(callback);
-  client.subscribe("elektron/new_order");
+  String mini_mac;
+  //mini_mac = mac.substring(11);
+  mini_mac = mac.substring(mac.length() - 5);
+  char topic_char[50];
+  String topic = "elektron/" + mini_mac + "/new_order";
+  topic.toCharArray(topic_char, (topic.length() + 1));
+  client.subscribe(topic_char);
+  Serial.println("Subscribing to mini mac based topic: ");
+  Serial.println(topic_char);
   client.publish("sensors/new_data", "Relay OFF");
   if (!client.connected()) {
     reconnect();
@@ -550,19 +579,22 @@ void loop() {
   server.handleClient();
   if (ok == true) {
     client.loop();
-    if (device_state == 1) {
+    if ((device_state == 1) || (first_time == 1)){
+      first_time = 0;
       func_read_current_sensor();
 
       char data[150];
 
-      //String payload = "{\"ip\":\"" + localip + "\",\"time\":\"" + currtime + "\",\"name\":\"" + elektronname + "\",\"data\":\"" + apparentPower + "\"}";
       String payload = "{\"device_ip\":\"" + localip + "\",\"device_mac\":\"" + mac + "\",\"label\":\"" + elektronname + "\",\"data_value\":\"" + apparentPower + "\"}";
       payload.toCharArray(data, (payload.length() + 1));
       delay(1000);
 
       Serial.print("Data to publish to client by loop:");
       Serial.print(data);
-      client.publish("sensors/new_data", data);
+      String topic = "sensors/new_data";
+      char topic_char[50];
+      topic.toCharArray(topic_char, (topic.length() + 1));
+      client.publish(topic_char, data);
     }
   }
 }
