@@ -513,7 +513,7 @@ void func_read_current_sensor() {
   for (int x = 0; x < samplenumber + 1; x++) {
     value = analogRead(C_SENSOR1);
 
-    val = map(value, 0, 767, 0, 512);
+    val = map(value, 0, 1024, 0, 512);
     value = val;
 
 
@@ -576,12 +576,22 @@ void func_read_current_sensor() {
 }
 
 void loop() {
+  if (first_time == 1) {
+      digitalWrite(ledPin, HIGH);
+      device_state = 0;
+  }
   server.handleClient();
   if (ok == true) {
     client.loop();
+    //Serial.print("Device State is (1: on; 0: off): ");
+    //Serial.println(device_state);
     if ((device_state == 1) || (first_time == 1)){
-      first_time = 0;
-      func_read_current_sensor();
+      if (first_time == 0) {
+        func_read_current_sensor();
+      }else{
+        apparentPower = 0;
+        first_time = 0;
+      }
 
       char data[150];
 

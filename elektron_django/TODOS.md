@@ -3,7 +3,6 @@
 ## Recent:
 	- Armar por lo menos 3 dispositivos con sensores reales:
 		- El código nuevo de los nodemcu casi andando está en éste mismo repo en la carpeta hardware: https://github.com/AgustinParmisano/elektron2.0/tree/master/hardware
-		- Que cuando se edita el dispositivo le mande los datos y los cambie en el dispositivo real
 	- Probar todo con varios dispositivos reales
 	- Probar que funcione con ips locales
 	- Probar que funcione con la ip remota
