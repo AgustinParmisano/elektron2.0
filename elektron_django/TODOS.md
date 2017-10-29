@@ -5,14 +5,13 @@
 		- El código nuevo de los nodemcu casi andando está en éste mismo repo en la carpeta hardware: https://github.com/AgustinParmisano/elektron2.0/tree/master/hardware
 		- Falta probar que sense y envíe bien (Conectar Sensor y probar MQTT)
 		- Obtener mac del nodemcu y ponerlo en su subscribe y en su publish
-		- Ver que envíe los datos que el servidor pide (ip, mac, label, etc).
-		- Falta probar que prenda y apague bien (Conectar Relé y probar MQTT)
 		- Falta probar con el servidor MQTT (demonio) real, cambiar los topics del código de los nodemcus (según su mac)
 	- Probar todo con varios dispositivos reales
 	- Probar que funcione con ips locales
 	- Probar que funcione con la ip remota
 
 ## Escritura:
+	- Ver las anotaciones de Luis y Tom
 	- Escribir sobre los nodemcus:
 		- Como se configuran por primera vez (ssid, pass e ip)
 		- Como envian los mensajes y los reciben
