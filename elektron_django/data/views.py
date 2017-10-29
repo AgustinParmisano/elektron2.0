@@ -372,7 +372,25 @@ class CreateView(generic.View):
             try:
                 device = Device.objects.get(device_mac=result["device_mac"])
             except Device.DoesNotExist:
-                device = Device(**result)
+                new_device = {}
+                new_device["device_ip"] = result["device_ip"]
+                new_device["device_mac"] = result["device_mac"]
+                new_device["label"] = result["label"]
+                try:
+                    new_device['devicestate'] = DeviceState.objects.get(id=result['devicestate'])
+                except Exception as e:
+                    #TODO: create default devicestates in settings.py
+                    new_device['devicestate'] = DeviceState.objects.get(name="off")
+
+                try:
+                    new_device['owner'] = User.objects.get(username=result['owner'])
+                except Exception as e:
+                    #TODO: create default user in settings.py
+                    new_device['owner'] = User.objects.get(username="root")
+                new_device["enabled"] = False
+                print "NEW DEVICE:"
+                print new_device
+                device = Device(**new_device)
                 device.save()
 
             device_enabled = device.enabled

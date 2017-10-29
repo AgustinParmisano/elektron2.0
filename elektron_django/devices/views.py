@@ -565,8 +565,8 @@ class ShutdownView(generic.View):
                 device = Device.objects.get(pk=device_pk)
 
                 if str(device.devicestate) == "on":
-                    topic = "sensors/new_order"
-                    order = "0"
+                    topic = "elektron/new_order"
+                    order = 1
                     device.devicestate = DeviceState.objects.get(name="off")
                     mqtt = MqttClient()
                     mqtt.publish(order, topic)
@@ -592,7 +592,7 @@ class ShutdownView(generic.View):
                 device.label = result["label"]
 
                 if str(device.devicestate) == "on":
-                    topic = "sensors/new_order"
+                    topic = "elektron/new_order"
                     order = "0"
                     device.devicestate = DeviceState.objects.get(name="off")
                     mqtt = MqttClient()
@@ -619,8 +619,8 @@ class TurnonView(generic.View):
                 device = Device.objects.get(pk=device_pk)
 
                 if str(device.devicestate) == "off":
-                    topic = "sensors/new_order"
-                    order = "1"
+                    topic = "elektron/new_order"
+                    order = 0
                     device.devicestate = DeviceState.objects.get(name="on")
                     mqtt = MqttClient()
                     mqtt.publish(order, topic)
@@ -646,7 +646,7 @@ class TurnonView(generic.View):
                 device.label = result["label"]
 
                 if str(device.devicestate) == "off":
-                    topic = "sensors/new_order"
+                    topic = "elektron/new_order"
                     order = "1"
                     device.devicestate = DeviceState.objects.get(name="on")
                     mqtt = MqttClient()

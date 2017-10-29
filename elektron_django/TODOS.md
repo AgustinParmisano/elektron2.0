@@ -4,9 +4,10 @@
 	- Armar por lo menos 3 dispositivos con sensores reales:
 		- El código nuevo de los nodemcu casi andando está en éste mismo repo en la carpeta hardware: https://github.com/AgustinParmisano/elektron2.0/tree/master/hardware
 		- Falta probar que sense y envíe bien (Conectar Sensor y probar MQTT)
-		- Falta probar que prenda y apague bien (Conectar Relé y probar MQTT)
-		- Falta probar con el servidor MQTT (demonio) real, cambiar los topics del códig de los nodemcus (según su mac)
+		- Obtener mac del nodemcu y ponerlo en su subscribe y en su publish
 		- Ver que envíe los datos que el servidor pide (ip, mac, label, etc).
+		- Falta probar que prenda y apague bien (Conectar Relé y probar MQTT)
+		- Falta probar con el servidor MQTT (demonio) real, cambiar los topics del código de los nodemcus (según su mac)
 	- Probar todo con varios dispositivos reales
 	- Probar que funcione con ips locales
 	- Probar que funcione con la ip remota
@@ -35,7 +36,15 @@
 		- Hacer un diseño para imprimir 3D o algo así para el circuito
 
 ## MQTT:
-	- Probar todo con dispositivos reales
+	- Armar por lo menos 3 dispositivos con sensores reales:
+		- El código nuevo de los nodemcu casi andando está en éste mismo repo en la carpeta hardware: https://github.com/AgustinParmisano/elektron2.0/tree/master/hardware
+			- Falta probar que sense y envíe bien (Conectar Sensor y probar MQTT)
+			- Falta probar que prenda y apague bien (Conectar Relé y probar MQTT)
+			- Falta probar con el servidor MQTT (demonio) real, cambiar los topics del códig de los nodemcus (según su mac)
+			- Ver que envíe los datos que el servidor pide (ip, mac, label, etc).
+	- Probar todo con varios dispositivos reales
+	- Probar que funcione con ips locales
+	- Probar que funcione con la ip remota
 	- Ver seguridad MD5 salt en nodemcu y en el server.
 	- Se podría sacar websocket y dejar solo mqtt
 	- Se puede poner ssl con mqtt

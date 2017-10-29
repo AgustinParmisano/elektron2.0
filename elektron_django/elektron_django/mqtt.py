@@ -63,7 +63,7 @@ def on_connect(client, userdata, flags, rc):
 
 data_list = []
 def on_message_device(client, userdata, msg):
-   #print(msg.topic+" "+str(msg.payload))
+    print(msg.topic+" "+str(msg.payload))
 
     try:
         mqtt_data = ast.literal_eval(str(msg.payload)) #json.loads(str(msg.payload))

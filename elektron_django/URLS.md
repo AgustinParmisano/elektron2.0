@@ -102,7 +102,7 @@ import requests
   r.url
   ```
 
-  - Device devices/<device_id>/turon enviar mensaje de apagado al dispositivo:
+  - Device devices/<device_id>/turnon enviar mensaje de apagado al dispositivo:
   ```
   r = requests.get("http://localhost:8000/devices/<device_id>/turnon")
   r.text

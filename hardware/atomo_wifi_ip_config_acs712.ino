@@ -27,6 +27,7 @@ PubSubClient client(espClient);
 String localip = "elektronip";
 String elektronname = "Elektron";
 String currtime = "elektrontime";
+String mac = "elektronmac";
 float data = 1;
 
 //Current Sensor ACS712 Variable Set
@@ -90,14 +91,21 @@ void callback(char* topic, byte* payload, unsigned int length) {
     }
     if (receivedChar == '2')
       Serial.println("Retrieve Data Forced");
-    char data[80];
+    if (device_state == 1) {
+      func_read_current_sensor();
 
-    String payload = "{\"ip\":\"" + localip + "\",\"time\":\"" + currtime + "\",\"name\":\"" + elektronname + "\",\"data\":\"" + apparentPower + "\"}";
-    payload.toCharArray(data, (payload.length() + 1));
+      char data[150];
 
-    Serial.print("Data to publish to client:");
-    Serial.print(data);
-    client.publish("esp8266status", data);
+      //String payload = "{\"ip\":\"" + localip + "\",\"time\":\"" + currtime + "\",\"name\":\"" + elektronname + "\",\"data\":\"" + apparentPower + "\"}";
+      String payload = "{\"device_ip\":\"" + localip + "\",\"device_mac\":\"" + mac + "\",\"label\":\"" + elektronname + "\",\"data_value\":\"" + apparentPower + "\"}";
+      payload.toCharArray(data, (payload.length() + 1));
+      delay(1000);
+
+      Serial.print("Data to publish to client by callack:");
+      Serial.print(data);
+      client.publish("sensors/new_data", data);
+    }
+
   }
   Serial.println();
 }
@@ -111,7 +119,7 @@ void reconnect() {
     if (client.connect("ESP8266 Client")) {
       Serial.println("connected");
       // ... and subscribe to topic
-      client.subscribe("ledStatus");
+      client.subscribe("elektron/new_order");
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -131,7 +139,7 @@ void setup() {
 
   pinMode(ledPin, OUTPUT);
   digitalWrite(ledPin, HIGH);
-  client.publish("esp8266status", "Relay OFF");
+  client.publish("sensors/new_data", "Relay OFF");
   delay(5000);
   digitalWrite(ledPin, LOW);
 
@@ -216,6 +224,7 @@ void launchWeb(int webtype) {
   Serial.println(WiFi.softAPIP());
   IPAddress ip = WiFi.localIP();
   localip = String(ip[0]) + '.' + String(ip[1]) + '.' + String(ip[2]) + '.' + String(ip[3]);
+  mac = WiFi.macAddress();
   if (localip != "0.0.0.0") {
     Serial.println("Local IP is NOT 0.0.0.0 so show main page: web mode 0 (connecting to configured SSID AP and start web server)");
     createWebServer(0);
@@ -243,8 +252,8 @@ void mqtt_start() {
   Serial.println(mqtt_server_char);
   client.setServer(mqtt_server_char, 1883);
   client.setCallback(callback);
-  client.subscribe("ledStatus");
-  client.publish("esp8266status", "Relay OFF");
+  client.subscribe("elektron/new_order");
+  client.publish("sensors/new_data", "Relay OFF");
   if (!client.connected()) {
     reconnect();
   }
@@ -403,7 +412,7 @@ void createWebServer(int webtype)
 
 
     server.on("/", []() {
-      client.publish("esp8266status", "TESTING MQTT FROM NODEMCU");
+      client.publish("sensors/new_data", "TESTING MQTT FROM NODEMCU");
       IPAddress ip = WiFi.localIP();
       String ipStr = String(ip[0]) + '.' + String(ip[1]) + '.' + String(ip[2]) + '.' + String(ip[3]);
       server.send(200, "text/html", "{\"IP\":\"" + ipStr + "\"}");
@@ -544,15 +553,16 @@ void loop() {
     if (device_state == 1) {
       func_read_current_sensor();
 
-      char data[80];
+      char data[150];
 
-      String payload = "{\"ip\":\"" + localip + "\",\"time\":\"" + currtime + "\",\"name\":\"" + elektronname + "\",\"data\":\"" + apparentPower + "\"}";
+      //String payload = "{\"ip\":\"" + localip + "\",\"time\":\"" + currtime + "\",\"name\":\"" + elektronname + "\",\"data\":\"" + apparentPower + "\"}";
+      String payload = "{\"device_ip\":\"" + localip + "\",\"device_mac\":\"" + mac + "\",\"label\":\"" + elektronname + "\",\"data_value\":\"" + apparentPower + "\"}";
       payload.toCharArray(data, (payload.length() + 1));
+      delay(1000);
 
-      Serial.print("Data to publish to client:");
+      Serial.print("Data to publish to client by loop:");
       Serial.print(data);
-      client.publish("esp8266status", data);
+      client.publish("sensors/new_data", data);
     }
-    delay(1000);
   }
 }
