@@ -46,7 +46,7 @@
 	- Se podría sacar websocket y dejar solo mqtt
 	- Se puede poner ssl con mqtt
 	- Se puede poner que mqtt tengo varios niveles de broker (local y remoto)
-	- Se puede equality of service en los topocs (QoS) (lib) (video) http://sonoff.itead.cc/en/products/sonoff/sonoff-pow
+	- Se puede quality of service en los topocs (QoS) (lib) (video) http://sonoff.itead.cc/en/products/sonoff/sonoff-pow
 
 
 ## Controlador (views):
