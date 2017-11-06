@@ -34,8 +34,8 @@
       //Web Socket comunication
       //Connect to server
 
-      //var ws = new WebSocket("ws://localhost:8888/websocket");
-      var ws = new WebSocket("ws://158.69.223.78:8888/websocket");
+      var ws = new WebSocket("ws://localhost:8888/websocket");
+      //var ws = new WebSocket("ws://158.69.223.78:8888/websocket");
       ws.onopen = function() {
         console.log("on open");
         ws.send("Hello, world");
@@ -45,7 +45,7 @@
         console.log("on message");
         console.log(evt.data);
         json = JSON.parse(evt.data);
-        data_value = json.data_value
+        data_value = parseInt(json.data_value)
         device_mac = json.device_mac
         last_data_time = json.last_data_time
         //queue.push(json.data_value);

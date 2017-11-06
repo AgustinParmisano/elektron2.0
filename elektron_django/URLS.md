@@ -4,7 +4,7 @@
 import requests
 ```
 
-### Authentication (se debe guardar la sesion <s> = requests.Session() y luego usarse la sesion logeada para guardar las credenciales ):
+### Authentication (se debe guardar la sesion s = requests.Session() y luego usarse la sesion logeada para guardar las credenciales ):
   ## Login (post)
   ```
   user = {'username':'root','password':'password'}
