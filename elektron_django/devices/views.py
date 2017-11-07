@@ -669,29 +669,29 @@ class TurnonView(generic.View):
 class UpdateLabelView(generic.View):
 
     def post(self, request, *args, **kwargs):
-        result = check_device(**request.POST)
 
-        if result:
-            try:
-                device = Device.objects.get(device_mac=result["device_mac"])
-                device.device_ip = result["device_ip"]
-                mini_mac = device.device_mac[-5:]
+        try:
 
-                topic = "elektron/"+str(mini_mac)+"/new_order"
-                new_label = str(result["label"])
-                device.label = new_label
-                #mqtt = MqttClient()
-                #mqtt.publish(new_label, topic)
-                #print "device.label"
-                #print device.label
+            device_pk = kwargs["pk"]
+            new_label = request.POST['label']
+            device = Device.objects.get(pk=device_pk)
+            #mini_mac = device.device_mac[-5:]
 
-            except Device.DoesNotExist:
-                print "Some error ocurred shutting downd Single Device with id: " + str(kwargs["pk"])
-                print "No such device"
-                print "Exception: " + str(e)
-                return HttpResponse(status=500)
+            #topic = "elektron/"+str(mini_mac)+"/new_order"
+            #new_label = str(request["label"])
+            device.label = new_label
+            #mqtt = MqttClient()
+            #mqtt.publish(new_label, topic)
+            #print "device.label"
+            #print device.label
 
-            device.save()
+        except Device.DoesNotExist:
+            print "Some error ocurred shutting downd Single Device with id: " + str(kwargs["pk"])
+            print "No such device"
+            print "Exception: " + str(e)
+            return HttpResponse(status=500)
+
+        device.save()
 
         return JsonResponse({'status':True})
 
@@ -699,34 +699,30 @@ class EnableView(generic.View):
 
     def post(self, request, *args, **kwargs):
 
-        result = check_device(**request.POST)
+        try:
+            device_pk = kwargs["pk"]
+            device = Device.objects.get(pk=device_pk)
+            device.enabled = True
 
-        if result:
-            try:
-                device = Device.objects.get(device_mac=result["device_mac"])
-                device.enabled = True
+        except Device.DoesNotExist:
+            device = Device(**result)
 
-            except Device.DoesNotExist:
-                device = Device(**result)
-
-            device.save()
+        device.save()
 
         return JsonResponse({'status':True})
 
-class DiableView(generic.View):
+class DisableView(generic.View):
 
     def post(self, request, *args, **kwargs):
 
-        result = check_device(**request.POST)
+        try:
+            device_pk = kwargs["pk"]
+            device = Device.objects.get(pk=device_pk)
+            device.enabled = False
 
-        if result:
-            try:
-                device = Device.objects.get(device_mac=result["device_mac"])
-                device.enabled = False
+        except Device.DoesNotExist:
+            device = Device(**result)
 
-            except Device.DoesNotExist:
-                device = Device(**result)
-
-            device.save()
+        device.save()
 
         return JsonResponse({'status':True})

@@ -111,11 +111,29 @@ import requests
 
   - Device devices/<device_id>/updatelabel cambia el label al dispositivo:
   ```
-  data = {'device_ip': '110.0.0.11', 'device_mac': '12:52:12:92', 'devicestate': 1, 'label': 'dispo2', 'owner': 'root'}
+  data = {'label': 'dispo2'}
   r = requests.post("http://localhost:8000/devices/<device_id>/updatelabel", data=data)
   r.text
   r.url
   ```
+
+  - Device devices/<device_id>/enable cambia el estado del dispositivo:
+    - POST
+    ```
+    data = {}
+    r = requests.post("http://localhost:8000/devices/<device_id>/enable", data=data)
+    r.text
+    r.url
+    ```
+
+  - Device devices/<device_id>/disable cambia el estado del dispositivo:
+    - POST
+    ```
+    data = {}
+    r = requests.post("http://localhost:8000/devices/<device_id>/disable", data=data)
+    r.text
+    r.url
+    ```
 
 ### Data:
 
