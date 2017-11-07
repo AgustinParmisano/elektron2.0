@@ -694,3 +694,39 @@ class UpdateLabelView(generic.View):
             device.save()
 
         return JsonResponse({'status':True})
+
+class EnableView(generic.View):
+
+    def post(self, request, *args, **kwargs):
+
+        result = check_device(**request.POST)
+
+        if result:
+            try:
+                device = Device.objects.get(device_mac=result["device_mac"])
+                device.enabled = True
+
+            except Device.DoesNotExist:
+                device = Device(**result)
+
+            device.save()
+
+        return JsonResponse({'status':True})
+
+class DiableView(generic.View):
+
+    def post(self, request, *args, **kwargs):
+
+        result = check_device(**request.POST)
+
+        if result:
+            try:
+                device = Device.objects.get(device_mac=result["device_mac"])
+                device.enabled = False
+
+            except Device.DoesNotExist:
+                device = Device(**result)
+
+            device.save()
+
+        return JsonResponse({'status':True})

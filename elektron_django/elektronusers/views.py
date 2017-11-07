@@ -52,7 +52,11 @@ class LoginView(FormView):
                 print user_object.username
                 request.session['username'] = user_object.username
                 print "request.session: " + str(request.session['username'])
-                return HttpResponse(status=200)
+                message = {"key":"value"}
+                return JsonResponse({'user': user_object.username})
+                #response = HttpResponse(msg=message,status=200)
+                #response.set_cookie('name','pepe',7) #key,value,days_expire
+                #return response
         print "User or password does not match"
         return HttpResponse(status=500)
 
