@@ -126,8 +126,11 @@ void reconnect() {
   // Loop until we're reconnected
   while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
+    // Create a random client ID
+    String clientId = "ESP8266Client-";
+    clientId += String(random(0xffff), HEX);
     // Attempt to connect
-    if (client.connect("ESP8266 Client")) {
+    if (client.connect(clientId.c_str())) {
       Serial.println("connected");
       // ... and subscribe to topic
       String mini_mac;

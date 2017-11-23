@@ -4,7 +4,6 @@
 	- Armar 3 nuevos lo mas chicos posibles con el código viejo a ver si andan
 	### Errores:
 		- Sensa mal (picos de 150 mal y de 30 bien).
-		- Puede haber uno solo respondiendo a la vez a MQTT
 	- Medición Eléctrica:
 		- Tiene que esperar los 4 segundos que espera con el timer pero ir acumulando lo sensado (ver si antes o después de convertirlo) y hacer la
 			fórmula de la integral acumulada de esas variables en los 4 segundos.
@@ -27,7 +26,6 @@
 	- Armar 3 nuevos lo mas chicos posibles con el código viejo a ver si andan
 	### Errores:
 		- Sensa mal (picos de 150 mal y de 30 bien).
-		- Puede haber uno solo respondiendo a la vez a MQTT
 	### Sensado:
 		- Calibrar sensado bien por software o por hardware
 	### Envio y recepción de datos:
