@@ -2,6 +2,7 @@
 #include <ESP8266WebServer.h>
 #include <EEPROM.h>
 #include <PubSubClient.h>
+#include <Metro.h>
 
 char* ssid = "test";
 char* password = "12345678";
@@ -32,7 +33,7 @@ float data = 1;
 
 //Current Sensor ACS712 Variable Set
 #define C_SENSOR1 A0
-const byte ledPin = D4; // digital pin 4 on a weMos D1 mini is next to ground so easy to stick a LED in.
+const byte rele = D4; // digital pin 4 on a weMos D1 mini is next to ground so easy to stick a LED in.
 
 //For analog read
 int r1 = LOW;
@@ -42,10 +43,13 @@ int c_min = 0;
 int c_max = 30;
 
 //For analog read
-double value;
+double valorVoltajeSensor;
+
+float ruido;
 
 //Constants to convert ADC divisions into mains current values.
-double ADCvoltsperdiv = 0.0048;
+//double ADCvoltsperdiv = 0.0048;
+double ADCvoltsperdiv = 0.012;
 double VDoffset = 2.4476; //Initial value (corrected as program runs)
 
 //Equation of the line calibration values
@@ -53,7 +57,7 @@ double factorA = 15.35; //factorA = CT reduction factor / rsens
 double Ioffset = 0;
 
 //Constants set voltage waveform amplitude.
-double SetV = 217.0;
+double SetV = 220.0;
 
 //Counter
 int counter = 0;
@@ -75,50 +79,62 @@ int val;
 int device_state = 0;
 int first_time = 1;
 
+boolean mqtt_state = false;
+Metro mqtt_metro = Metro(10);
+
+
 void callback(char* topic, byte* payload, unsigned int length) {
-  Serial.print("Message arrived [");
-  Serial.println(topic);
-  Serial.print("] ");
-  for (int i = 0; i < length; i++) {
-    char receivedChar = (char)payload[i];
-    Serial.print(receivedChar);
-    if (receivedChar == '1') {
-      digitalWrite(ledPin, HIGH);
-      device_state = 0;
-    }
-    if (receivedChar == '0') {
-      digitalWrite(ledPin, LOW);
-      device_state = 1;
-    }
-    if (receivedChar == '2')
-      Serial.println("Retrieve Data Forced");
-    if (device_state == 1) {
-      func_read_current_sensor();
+  if(mqtt_metro.check()) {
 
-      char data[150];
+    mqtt_state = !mqtt_state;
 
-      //String payload = "{\"ip\":\"" + localip + "\",\"time\":\"" + currtime + "\",\"name\":\"" + elektronname + "\",\"data\":\"" + apparentPower + "\"}";
-      String payload = "{\"device_ip\":\"" + localip + "\",\"device_mac\":\"" + mac + "\",\"label\":\"" + elektronname + "\",\"data_value\":\"" + apparentPower + "\"}";
-      payload.toCharArray(data, (payload.length() + 1));
-      delay(1000);
-
-      String mini_mac;
-      //mini_mac = mac.substring(11);
-      mini_mac = mac.substring(mac.length() - 5);
-
-      Serial.print("MINI MAC: ");
-      Serial.println(mini_mac);
-
-      Serial.print("Data to publish to client by callack:");
-      Serial.print(data);
-      String topic = "sensors/new_data";
-      char topic_char[50];
-      topic.toCharArray(topic_char, (topic.length() + 1));
-      client.publish(topic_char, data);
+    Serial.print("Message arrived [");
+    Serial.println(topic);
+    Serial.print("] ");
+    for (int i = 0; i < length; i++) {
+      char receivedChar = (char)payload[i];
+      Serial.print("MSG RECEIVED!!!!!!!!!!  ");
+      Serial.println(receivedChar);
+      if (receivedChar == '1') {
+        digitalWrite(rele, HIGH);
+        device_state = 0;
       }
+      if (receivedChar == '0') {
+        digitalWrite(rele, LOW);
+        device_state = 1;
+      }
+      if (receivedChar == '2')
+        Serial.println("Retrieve Data Forced");
+      if (device_state == 1) {
+        func_read_current_sensor();
+        if(apparentPower > 1000) {
+          apparentPower = 0;
+        }
+        char data[150];
 
-  }
-  Serial.println();
+        //String payload = "{\"ip\":\"" + localip + "\",\"time\":\"" + currtime + "\",\"name\":\"" + elektronname + "\",\"data\":\"" + apparentPower + "\"}";
+        String payload = "{\"device_ip\":\"" + localip + "\",\"device_mac\":\"" + mac + "\",\"label\":\"" + elektronname + "\",\"data_value\":\"" + apparentPower + "\"}";
+        payload.toCharArray(data, (payload.length() + 1));
+        delay(1000);
+
+        String mini_mac;
+        //mini_mac = mac.substring(11);
+        mini_mac = mac.substring(mac.length() - 5);
+
+        Serial.print("MINI MAC: ");
+        Serial.println(mini_mac);
+
+        Serial.print("Data to publish to client by callack:");
+        Serial.print(data);
+        String topic = "sensors/new_data";
+        char topic_char[50];
+        topic.toCharArray(topic_char, (topic.length() + 1));
+        client.publish(topic_char, data);
+        }
+
+    }
+    Serial.println();
+    }
 }
 
 
@@ -161,11 +177,11 @@ void setup() {
   Serial.begin(9600);
 
 
-  pinMode(ledPin, OUTPUT);
-  digitalWrite(ledPin, HIGH);
+  pinMode(rele, OUTPUT);
+  digitalWrite(rele, HIGH);
   client.publish("sensors/new_data", "Relay OFF");
   delay(5000);
-  digitalWrite(ledPin, LOW);
+  digitalWrite(rele, LOW);
 
   EEPROM.begin(512);
   delay(10);
@@ -226,7 +242,7 @@ void setup() {
 bool testWifi(void) {
   int c = 0;
   Serial.println("Waiting for Wifi to connect");
-  while ( c < 30 ) {
+  while ( c < 45 ) {
     if (WiFi.status() == WL_CONNECTED) {
       return true;
     }
@@ -508,25 +524,31 @@ void func_configuration_mode() {
   return;
 }
 
-void func_read_current_sensor() {
+float func_read_current_sensor() {
   Serial.println("func_read_current_sensor");
   i = 0;
   for (int x = 0; x < samplenumber + 1; x++) {
-    value = analogRead(C_SENSOR1);
-
-    val = map(value, 0, 1024, 0, 512);
-    value = val;
+    valorVoltajeSensor = analogRead(C_SENSOR1);
+    val = map(valorVoltajeSensor, 0, 1024, 0, 512);
+    valorVoltajeSensor = val;
+    float intensidadMinima=0;
+    float intensidadMaxima=0;
 
 
     //Summing counter
     i++;
 
     //Voltage at ADC
-    Vadc = value * ADCvoltsperdiv;
+    Vadc = valorVoltajeSensor * ADCvoltsperdiv;
 
     //Remove voltage divider offset
     Vsens = Vadc - VDoffset;
 
+    if (Vsens>intensidadMaxima)intensidadMaxima=Vsens;
+    if (Vsens<intensidadMinima)intensidadMinima=Vsens;
+    Vsens = (intensidadMaxima - intensidadMinima) / 2 - ruido;
+    //Serial.print("VSENS: ");
+    //Serial.println(Vsens);
     //Current transformer scale to find Imains
     Imains = Vsens;
 
@@ -557,7 +579,7 @@ void func_read_current_sensor() {
 
       apparentPower = Irms * SetV;
       Serial.print(" A0: ");
-      Serial.print(value);
+      Serial.print(valorVoltajeSensor);
       Serial.print(" Watios: ");
       Serial.print(apparentPower);
       Serial.print(" Voltaje: ");
@@ -574,45 +596,62 @@ void func_read_current_sensor() {
       sumI = 0.0;
     }
   }
+
+  return(apparentPower);
 }
 
-int timer = 0;
+float power_data = 0;
+
+unsigned long previousMillis = 0;        // will store last time LED was updated
+const long interval = 5000;           // interval at which to blink (milliseconds)
+
+boolean sensor_state = false;
+Metro sensor_metro = Metro(1000);
 
 void loop() {
   if (first_time == 1) {
-      digitalWrite(ledPin, HIGH);
+      digitalWrite(rele, HIGH);
       device_state = 0;
   }
   server.handleClient();
   if (ok == true) {
-    client.loop();
-    //Serial.print("Device State is (1: on; 0: off): ");
-    //Serial.println(device_state);
-    if ((device_state == 1) || (first_time == 1)){
-      char data[150];
+    if(sensor_metro.check()) {
+      sensor_state = !sensor_state;
+      client.loop();
+      //Serial.print("Device State is (1: on; 0: off): ");
+      //Serial.println(device_state);
+      if ((device_state == 1) || (first_time == 1)){
+        char data[150];
 
-      String payload = "{\"device_ip\":\"" + localip + "\",\"device_mac\":\"" + mac + "\",\"label\":\"" + elektronname + "\",\"data_value\":\"" + apparentPower + "\"}";
-      payload.toCharArray(data, (payload.length() + 1));
-      delay(1000);
+        String topic = "sensors/new_data";
+        char topic_char[50];
+        topic.toCharArray(topic_char, (topic.length() + 1));
+        unsigned long currentMillis = millis();
 
-      String topic = "sensors/new_data";
-      char topic_char[50];
-      topic.toCharArray(topic_char, (topic.length() + 1));
-      timer = timer + 1;
+        if (first_time == 0) {
 
-      if (first_time == 0) {
-        if (timer >= 4) { //DELAY TO GIVE TIME TO SERVER AND NODEMCU TO REACT THIS WILL AFFECT SENSING VARIABLES, NEED TO SEND THE 5 SECONDS ACCUMULATE
-          func_read_current_sensor();
-          Serial.print("Data to publish to client by loop:");
-          Serial.print(data);
-          client.publish(topic_char, data);
-          timer = 0;
+            power_data += func_read_current_sensor();
+
+          //delay(1);
+          if (currentMillis - previousMillis >= interval) {
+            previousMillis = currentMillis;
+            power_data = power_data / 6;
+            if (power_data > 1000) {
+              power_data = 0;
+            }
+            String payload = "{\"device_ip\":\"" + localip + "\",\"device_mac\":\"" + mac + "\",\"label\":\"" + elektronname + "\",\"data_value\":\"" + power_data + "\"}";
+            payload.toCharArray(data, (payload.length() + 1));
+
+            Serial.print("Data to publish to client by loop:");
+            Serial.print(data);
+            client.publish(topic_char, data);
+          }
+        }else{
+          power_data = 0;
+          first_time = 0;
         }
-      }else{
-        apparentPower = 0;
-        first_time = 0;
-      }
 
+      }
     }
   }
 }
