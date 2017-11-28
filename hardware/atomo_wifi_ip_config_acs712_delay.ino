@@ -49,7 +49,7 @@ float ruido;
 
 //Constants to convert ADC divisions into mains current values.
 //double ADCvoltsperdiv = 0.0048;
-double ADCvoltsperdiv = 0.012;
+double ADCvoltsperdiv = 0.0121;
 double VDoffset = 2.4476; //Initial value (corrected as program runs)
 
 //Equation of the line calibration values
@@ -585,7 +585,7 @@ float func_read_current_sensor() {
       Serial.print(" Voltaje: ");
       Serial.print(SetV);
       Serial.print(" Amperios: ");
-      Serial.print(Irms);
+      Serial.print(Irms, 4 );
       Serial.print(" status: ");
       Serial.print(r1);
       Serial.print(" c_max: ");
@@ -607,6 +607,8 @@ const long interval = 5000;           // interval at which to blink (millisecond
 
 boolean sensor_state = false;
 Metro sensor_metro = Metro(1000);
+
+int divs = 1;
 
 void loop() {
   if (first_time == 1) {
@@ -631,11 +633,11 @@ void loop() {
         if (first_time == 0) {
 
             power_data += func_read_current_sensor();
-
+            divs += 1;
           //delay(1);
           if (currentMillis - previousMillis >= interval) {
             previousMillis = currentMillis;
-            power_data = power_data / 6;
+            power_data = power_data / divs;
             if (power_data > 1000) {
               power_data = 0;
             }
@@ -645,6 +647,7 @@ void loop() {
             Serial.print("Data to publish to client by loop:");
             Serial.print(data);
             client.publish(topic_char, data);
+            divs = 1;
           }
         }else{
           power_data = 0;

@@ -3,11 +3,7 @@
 ## Recent:
 	- Armar 3 nuevos lo mas chicos posibles con el código viejo a ver si andan
 	### Errores:
-		- Sensa mal (picos de 150 mal y de 30 bien).
-	- Medición Eléctrica:
-		- Tiene que esperar los 4 segundos que espera con el timer pero ir acumulando lo sensado (ver si antes o después de convertirlo) y hacer la
-			fórmula de la integral acumulada de esas variables en los 4 segundos.
-		- Ver si con la acumulada se arregla la medición si no consultar con luis.
+		- La IP del dispositivo puede cambiar y no se refleja en la iterfaz / servidor.
 		- Escribir las problemáticas.
 	- Armar por lo menos 3 dispositivos con sensores reales:
 		- El código nuevo de los nodemcu casi andando está en éste mismo repo en la carpeta hardware: https://github.com/AgustinParmisano/elektron2.0/tree/master/hardware
