@@ -2,7 +2,10 @@
 
 ## Recent:
 	- Armar 3 nuevos lo mas chicos posibles con el código viejo a ver si andan
-	### Errores:
+	### Problemáticas:
+		- La conexión MQTT con el dispositivo puede caer y el dispositivo no se entera pero el servidor si?
+		Solución Servidor: Ver si el servidor puede mandar una señal cuando el dispositivo deja de enviar datos sin ser apagado y fijarse si el dispositivo responde, si no responde, ponerlo en estado de error.
+		Solución Dispositivo: Que cada 10 minutos mas o menos se fije si está conectado (no sé como) y si no está que se reinicie (no sé como) o se reconecte.
 		- La IP del dispositivo puede cambiar y no se refleja en la iterfaz / servidor.
 		- Escribir las problemáticas.
 	- Armar por lo menos 3 dispositivos con sensores reales:
