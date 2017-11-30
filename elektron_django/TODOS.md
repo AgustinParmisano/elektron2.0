@@ -4,11 +4,11 @@
 	- Armar 3 nuevos lo mas chicos posibles con el código viejo a ver si andan
 	### Problemáticas:
 		- Testear Corriente con polímetro de corriente (comprar uno)
-		- Escribir problmáticas por un lado y las soluciones en la parte de desarrollo
 		- La IP del dispositivo puede cambiar y no se refleja en la iterfaz / servidor.
-		- Escribir las problemáticas.
+		- El relé no tiene el voltaje suficiente para prenderse siempre, a veces se traba, porque necesita 5v y el nodemcu le pasa 3.3v. Podría usarse un level shifter de 3.3 a 5.
+		- Escribir problemáticas por un lado y las soluciones en la parte de desarrollo
 	- Armar por lo menos 3 dispositivos con sensores reales:
-		- El código nuevo de los nodemcu casi andando está en éste mismo repo en la carpeta hardware: https://github.com/AgustinParmisano/elektron2.0/tree/master/hardware
+		- El código nuevo de los nodemcu andando está en éste mismo repo en la carpeta hardware: https://github.com/AgustinParmisano/elektron2.0/tree/master/hardware
 	- Probar todo con varios dispositivos reales
 	- Hacer un configurador automático de las redes para mejor testeo y escribir
 
