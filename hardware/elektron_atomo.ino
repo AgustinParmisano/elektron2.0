@@ -48,12 +48,13 @@ double valorVoltajeSensor;
 float ruido;
 
 //Constants to convert ADC divisions into mains current values.
-//double ADCvoltsperdiv = 0.0048;
-double ADCvoltsperdiv = 0.0121;
+double ADCvoltsperdiv = 0.0048;
+//double ADCvoltsperdiv = 0.011;
 double VDoffset = 2.4476; //Initial value (corrected as program runs)
 
 //Equation of the line calibration values
-double factorA = 15.35; //factorA = CT reduction factor / rsens
+//double factorA = 15.35; //factorA = CT reduction factor / rsens
+double factorA = 35.8; //factorA = CT reduction factor / rsens
 double Ioffset = 0;
 
 //Constants set voltage waveform amplitude.
@@ -171,7 +172,8 @@ void reconnect() {
       if (reconnection_tries > 5) {
         reconnection_tries = 0;
         Serial.println("Failed 5 times, trying connection to wifi network");
-        testWifi();
+        //testWifi();
+        setup();
       }
     }
   }
@@ -186,7 +188,7 @@ void setup() {
 
   pinMode(rele, OUTPUT);
   digitalWrite(rele, HIGH);
-  client.publish("sensors/new_data", "Relay OFF");
+  //client.publish("sensors/new_data", "Relay OFF");
   delay(5000);
   digitalWrite(rele, LOW);
 
@@ -316,7 +318,7 @@ void mqtt_start() {
   client.subscribe(topic_char);
   Serial.println("Subscribing to mini mac based topic: ");
   Serial.println(topic_char);
-  client.publish("sensors/new_data", "Relay OFF");
+  //client.publish("sensors/new_data", "Relay OFF");
   if (!client.connected()) {
     reconnect();
   }
