@@ -3,13 +3,9 @@
 ## Recent:
 	- Armar 3 nuevos lo mas chicos posibles con el código viejo a ver si andan
 	### Problemáticas:
-		- Testear Corriente con polímetro de corriente (comprar uno)
+		- El estado del dispositivo debe ponerse en OFF en el servidor al conectarse (o el servidor debe consutlar el estado al dispositivo en cada primer conexión a MQTT).
 		- La IP del dispositivo puede cambiar y no se refleja en la iterfaz / servidor.
-		- El relé no tiene el voltaje suficiente para prenderse siempre, a veces se traba, porque necesita 5v y el nodemcu le pasa 3.3v. Podría usarse un level shifter de 3.3 a 5.
 		- Escribir problemáticas por un lado y las soluciones en la parte de desarrollo
-	- Armar por lo menos 3 dispositivos con sensores reales:
-		- El código nuevo de los nodemcu andando está en éste mismo repo en la carpeta hardware: https://github.com/AgustinParmisano/elektron2.0/tree/master/hardware
-	- Probar todo con varios dispositivos reales
 	- Hacer un configurador automático de las redes para mejor testeo y escribir
 
 
@@ -74,7 +70,7 @@
 		- Chequeo de no recibir cosas en blanco ni caracteres extraños en todos los views
 
 ## Tasks:
-	- Ver si las tareas son con repetición por día o mes, tipo calendar
+	- Ver si las tareas son con repetición por día o mes, tipo calendar (refactoring con python crontab)
 	- Que onda el owner??
 
 ## Costos $$ y co2:
