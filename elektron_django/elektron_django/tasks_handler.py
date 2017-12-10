@@ -56,7 +56,7 @@ def data_date_is_greater(d,l):
 
 def data_is_greater(d,l):
     for i in range(0,len(l)):
-        if int(l[i]["data_value"]) > int(d):
+        if float(l[i]["data_value"]) > float(d):
             return i
     return -1
 
