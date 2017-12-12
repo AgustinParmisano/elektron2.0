@@ -27,4 +27,6 @@ urlpatterns = [
     url(r'^datatasks/(?P<pk>[0-9]+)/remove$', csrf_exempt(views.DataTaskRemoveView.as_view()), name='remove_datatask'),
     url(r'^taskstates$', views.TaskStatesView.as_view(), name='taskstates_list'),
     url(r'^taskfunctions$', views.TaskFunctionsView.as_view(), name='taskfunctions_list'),
+    url(r'^datatasks/(?P<pk>[0-9]+)/updatestate$', csrf_exempt(views.DataTaskUpdateStateView.as_view()), name='datatasks_update_state'),
+    url(r'^datetimetasks/(?P<pk>[0-9]+)/updatestate$', csrf_exempt(views.DateTimeTaskUpdateStateView.as_view()), name='datetimetasks_update_state'),
 ]

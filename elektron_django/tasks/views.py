@@ -282,7 +282,7 @@ class DataTaskDeviceView(generic.ListView):
 
 class DataTaskCreateView(generic.View):
 
-    @method_decorator(login_required)
+    #@method_decorator(login_required)
     def post(self, request, *args, **kwargs):
         result = check_device_mac(**request.POST)
 
@@ -314,7 +314,7 @@ class DataTaskCreateView(generic.View):
 
 class DataTaskUpdateView(generic.View):
 
-    @method_decorator(login_required)
+    #@method_decorator(login_required)
     def post(self, request, *args, **kwargs):
 
         print request.POST
@@ -347,7 +347,7 @@ class DataTaskUpdateView(generic.View):
 
 class DateTimeTaskCreateView(generic.View):
 
-    @method_decorator(login_required)
+    #@method_decorator(login_required)
     def post(self, request, *args, **kwargs):
 
         result = check_device_mac(**request.POST)
@@ -379,7 +379,7 @@ class DateTimeTaskCreateView(generic.View):
 
 class DateTimeTaskRemoveView(generic.View):
 
-    @method_decorator(login_required)
+    #@method_decorator(login_required)
     def get(self, request, *args, **kwargs):
 
         task = kwargs["pk"]
@@ -396,7 +396,7 @@ class DateTimeTaskRemoveView(generic.View):
 
 class DataTaskRemoveView(generic.View):
 
-    @method_decorator(login_required)
+    #@method_decorator(login_required)
     def get(self, request, *args, **kwargs):
 
         task = kwargs["pk"]
@@ -414,7 +414,7 @@ class DataTaskRemoveView(generic.View):
 
 class DateTimeTaskUpdateView(generic.View):
 
-    @method_decorator(login_required)
+    #@method_decorator(login_required)
     def post(self, request, *args, **kwargs):
 
         result = check_device_mac(**request.POST)
@@ -602,3 +602,62 @@ class TaskFunctionsView(generic.ListView):
                 print "Some error ocurred getting TaskStates"
                 print "Exception: " + str(e)
                 return HttpResponse(status=500)
+
+
+class DateTimeTaskUpdateStateView(generic.View):
+
+    #@method_decorator(login_required)
+    def post(self, request, *args, **kwargs):
+
+        device = Device.objects.get(device_mac=kwargs["device_mac"])
+        task = check_task(**request.POST)
+
+        if task:
+            try:
+                datetimetask = DateTimeTask(pk=kwargs['pk'])
+                datetimetask.taskstate = task["taskstate"]
+                datetimetask.last_run = datetime.datetime.now()
+                datetimetask.repeats = task["repeats"]
+
+            except DateTimeTask.DoesNotExist:
+                datetimetask = DateTimeTask(**task)
+
+            datetimetask.save()
+
+        return JsonResponse({'status':True})
+
+
+class DataTaskUpdateStateView(generic.View):
+
+    #@method_decorator(login_required)
+    def post(self, request, *args, **kwargs):
+        task = request.POST
+
+        if task:
+            try:
+                #datatask = DataTask(pk=task['id'])
+                datatask = DataTask.objects.all().filter(pk=task['id'])
+                datatask = datatask[0]
+                datatask.taskstate = TaskState.objects.get(id=task['taskstate'])
+                datatask.last_run = datetime.datetime.now()
+                datatask.repeats = task["repeats"]
+                print task["repeats"]
+                print datatask.taskstate
+                datatask.comparator = datatask.comparator
+                datatask.data_value = datatask.data_value
+                datatask.created = datatask.created
+                datatask.description = datatask.description
+                datatask.label = datatask.label
+                datatask_serialized = datatask
+                datatask.taskfunction = datatask.taskfunction
+                datatask.owner = datatask.owner
+                datatask.device = datatask.device
+
+            except DataTask.DoesNotExist:
+                raise
+                datatask = DataTask(task)
+
+
+            datatask.save()
+
+        return JsonResponse({'status':True})

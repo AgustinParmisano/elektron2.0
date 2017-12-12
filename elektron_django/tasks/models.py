@@ -67,6 +67,8 @@ class Task(models.Model):
     taskfunction = models.ForeignKey(TaskFunction)
     device = models.ForeignKey(Device)
     owner = models.ForeignKey('auth.User', related_name='tasks', on_delete=models.CASCADE)
+    repeats = models.IntegerField(default=1)
+    last_run = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         ordering = ('created',)
@@ -81,6 +83,8 @@ class DateTimeTask(Task):
     datetime = models.DateTimeField(default=timezone.now)
 
     def serialize(self):
+
+        aux = "No Runs" if self.last_run == None else to_UTC(self.last_run)
         return {
             'id': self.id,
             'label': self.label,
@@ -90,12 +94,17 @@ class DateTimeTask(Task):
             'device': self.device.serialize(),
             'datetime': to_UTC(self.datetime),
             'created': to_UTC(self.created),
+            'repeats': self.repeats,
+            'last_run': aux,
         }
 
 class DataTask(Task):
     data_value = models.CharField(max_length=100, blank=True, default='0')
+    comparator = models.IntegerField(default=0)
 
     def serialize(self):
+
+        aux = "No Runs" if self.last_run == None else to_UTC(self.last_run)
         return {
             'id': self.id,
             'label': self.label,
@@ -105,4 +114,7 @@ class DataTask(Task):
             'taskfunction': self.taskfunction.serialize(),
             'device': self.device.serialize(),
             'created': to_UTC(self.created),
+            'repeats': self.repeats,
+            'last_run': aux,
+            'comparator': self.comparator,
         }
