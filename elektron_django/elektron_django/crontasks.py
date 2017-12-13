@@ -11,7 +11,7 @@ class CronTask(object):
         self.device = kwargs["device"]
         self.devicedata = []
         self.repeats = kwargs["repeats"]
-        self.last_exec = "No Runs"
+        self.last_run =  kwargs["last_run"]
         self.state = "1" #ready
         self.creation = kwargs["creation"]
         self.tfunction = kwargs["tfunction"]
@@ -29,7 +29,7 @@ class DateTimeTask(CronTask):
             if self.datetime < datetime.now():
                 taskhandler.execute_task_function(self)
                 self.repeats = self.repeats - 1
-                self.last_exec = datetime.now()
+                self.last_run = datetime.now()
         else:
             self.state = "2" #done
 
@@ -41,19 +41,27 @@ class DataTask(CronTask):
         super(DataTask, self).__init__(**kwargs)
         #ct = CronTask(kwargs["id"],kwargs["name"],kwargs["description"],kwargs["device"],kwargs["repeats"],kwargs["creation"],kwargs["tfunction"])
         #CronTask.__init__(ct,kwargs["id"],kwargs["name"],kwargs["description"],kwargs["device"],kwargs["repeats"],kwargs["creation"],kwargs["tfunction"])
-        self.data = kwargs["data"]
+        self.datacomp = kwargs["data"]
 
     def execute(self, taskhandler):
         if self.repeats > 0 and self.state == "1":
+            print "--------CronTask Execute-----------"
             print self.devicedata["date"]
-            print self.last_exec
+            print "LA NO POSTA"
+            print self.last_run
+            print datetime.now()
             print self.devicedata["data_value"]
-            print self.data
+            print self.datacomp
+            print "-------- End CronTask Execute-----------"
+
             if len(self.devicedata) != 0:
-                if self.devicedata["data_value"] > self.data:
-                    self.repeats = self.repeats - 1
-                    self.last_exec = datetime.now()
-                    taskhandler.execute_task_function(self)
+                if self.last_run < self.devicedata["date"]:
+                    if self.devicedata["data_value"] > self.datacomp:
+                        print "Excecuting task " + self.name
+                        self.repeats = self.repeats - 1
+                        print "LA POSTA"
+                        print self.last_run
+                        taskhandler.execute_task_function(self)
         else:
             print self.state
             self.state = "2" #done

@@ -54,22 +54,22 @@ class TaskHandler(object):
                 tasks = json.loads(tasks_get.text)["readytasks"]
                 ready_datatasks = []
                 ready_datetimetasks = []
-                ready_datatasks = tasks[0]['datatask']
-                ready_datetimetasks = tasks[1]['datetimetask']
+                ready_datatasks = tasks[0]['datatask'] #Needs refactoring
+                ready_datetimetasks = tasks[1]['datetimetask'] #Needs refactoring
 
-                sorted_ready_datatasks = sorted(ready_datatasks, key=lambda k: k['created'])
-                sorted_ready_datetimetasks = sorted(ready_datetimetasks, key=lambda k: k['created'])
+                sorted_ready_datatasks = sorted(ready_datatasks, key=lambda k: k['created']) #Needs refactoring
+                sorted_ready_datetimetasks = sorted(ready_datetimetasks, key=lambda k: k['created']) #Needs refactoring
 
                 for srdt in sorted_ready_datatasks:
                     print "Proccesing DataTask: " + srdt["label"]
                     print " "
-                    datatask = DataTask({"id":srdt["id"], "name":srdt["label"], "description":srdt["description"],"device":srdt["device"],"repeats":srdt["repeats"],"creation":srdt["created"],"tfunction":srdt["taskfunction"],"data":srdt["data_value"]})
+                    datatask = DataTask({"id":srdt["id"], "name":srdt["label"], "description":srdt["description"],"device":srdt["device"],"repeats":srdt["repeats"],"creation":srdt["created"],"tfunction":srdt["taskfunction"],"data":srdt["data_value"],"last_run":srdt["last_run"]})
                     self.tasks_q.put(datatask)
 
                 for srdtt in sorted_ready_datetimetasks:
                     print "Proccesing DateTimeTask: " + srdtt["label"]
                     print " "
-                    datetimetask = DateTimeTask({"id":srdtt["id"], "name":srdtt["label"], "description":srdtt["description"],"device":srdtt["device"],"repeats":srdtt["repeats"],"creation":srdtt["created"],"tfunction":srdtt["taskfunction"],"datetime":srdtt["datetime"]})
+                    datetimetask = DateTimeTask({"id":srdtt["id"], "name":srdtt["label"], "description":srdtt["description"],"device":srdtt["device"],"repeats":srdtt["repeats"],"creation":srdtt["created"],"tfunction":srdtt["taskfunction"],"datetime":srdtt["datetime"],"last_run":srdtt["last_run"]})
                     self.tasks_q.put(datetimetask)
 
                 return self.tasks_q
@@ -88,18 +88,16 @@ class TaskHandler(object):
         print "Getting Tasks Device Data . . . "
         print " "
         try:
-
-            print "AAAAAA"
-            print task.last_run
-
             task_creation_date = task.creation #passes from date format to /dd/mm/yyyy/hh format
-            tcds = task_creation_date.split("T")[0]
+            if task.last_run == "No Runs":
+                task.last_run = task_creation_date
+
+            tlrs = task.last_run.split("T")[0]
+
             task_creation_date = ""
 
-            for i in tcds.split("-"):
+            for i in tlrs.split("-"):
                 task_creation_date = str(i) + "/" + task_creation_date
-
-
 
             device_data_get = self.session.get("http://" + self.server_ip + ":" + self.server_port + "/devices/"+ str(task.device["id"]) +"/data/"+str(task_creation_date))
 
@@ -107,7 +105,6 @@ class TaskHandler(object):
                 device_data = json.loads(device_data_get.text)
                 if len(device_data["data"]) != 0:
                     device_data_list = device_data["data"][0]#["data_value"]
-                    print device_data["data"][0]
                     task.devicedata = device_data_list
                 else:
                     pass
@@ -150,7 +147,12 @@ class TaskHandler(object):
             raise
 
     def update_task_state(self, task):
-        task_data = {'id':task.id,'taskstate':task.state, 'repeats':task.repeats}
+        task.last_run = datetime.now()
+        print "--------update_task_state-----------"
+        print "LA POSTA"
+        print task.last_run
+        print "--------End update_task_state-----------"
+        task_data = {'id':task.id,'taskstate':task.state, 'repeats':task.repeats, 'last_run':task.last_run}
         update_task_state = self.session.post("http://" + self.server_ip + ":" + self.server_port + "/tasks/datatasks/" + str(task.id) + "/updatestate", data=task_data)
 
 

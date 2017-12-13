@@ -9,11 +9,13 @@ from django.conf import settings
 # Create your models here.
 
 def to_UTC(date):
+    """
     utc = settings.UTC
     if utc < 0:
         date = date - timedelta(hours=abs(utc))
     elif(utc >= 0):
         date = date + timedelta(hours=abs(utc))
+    """
     return date
 
 class Data(models.Model):

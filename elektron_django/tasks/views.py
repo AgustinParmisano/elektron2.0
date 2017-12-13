@@ -639,7 +639,7 @@ class DataTaskUpdateStateView(generic.View):
                 datatask = DataTask.objects.all().filter(pk=task['id'])
                 datatask = datatask[0]
                 datatask.taskstate = TaskState.objects.get(id=task['taskstate'])
-                datatask.last_run = datetime.datetime.now()
+                datatask.last_run = task['last_run']
                 datatask.repeats = task["repeats"]
                 print task["repeats"]
                 print datatask.taskstate
