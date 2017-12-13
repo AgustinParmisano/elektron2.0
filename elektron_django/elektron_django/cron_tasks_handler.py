@@ -63,7 +63,7 @@ class TaskHandler(object):
                 for srdt in sorted_ready_datatasks:
                     print "Proccesing DataTask: " + srdt["label"]
                     print " "
-                    datatask = DataTask({"id":srdt["id"], "name":srdt["label"], "description":srdt["description"],"device":srdt["device"],"repeats":srdt["repeats"],"creation":srdt["created"],"tfunction":srdt["taskfunction"],"data":srdt["data_value"],"last_run":srdt["last_run"]})
+                    datatask = DataTask({"id":srdt["id"], "name":srdt["label"], "description":srdt["description"],"device":srdt["device"],"repeats":srdt["repeats"],"creation":srdt["created"],"tfunction":srdt["taskfunction"],"data":srdt["data_value"],"last_run":srdt["last_run"],"comparator":srdt["comparator"]})
                     self.tasks_q.put(datatask)
 
                 for srdtt in sorted_ready_datetimetasks:
