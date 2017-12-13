@@ -85,11 +85,11 @@ class TaskHandler(object):
 
     def get_task_device_data(self,task):
         print " "
-        print "Getting Tasks Device Data . . . "
+        print "Getting Task " + task.name + " Device Data . . . "
         print " "
         try:
             task_creation_date = task.creation #passes from date format to /dd/mm/yyyy/hh format
-            if task.last_run == "No Runs":
+            if task.last_run == "":
                 task.last_run = task_creation_date
 
             tlrs = task.last_run.split("T")[0]
@@ -127,7 +127,7 @@ class TaskHandler(object):
 
     def execute_task_function(self,task):
         print " "
-        print "Running Tasks Funtions . . . "
+        print "Running Task " + task.name + " Functions . . . "
         print " "
         try:
             print("Executing: " + str(task.id) + " " + str(task.name))
@@ -147,13 +147,8 @@ class TaskHandler(object):
             raise
 
     def update_task_state(self, task):
-        task.last_run = datetime.now()
-        print "--------update_task_state-----------"
-        print "LA POSTA"
-        print task.last_run
-        print "--------End update_task_state-----------"
-        task_data = {'id':task.id,'taskstate':task.state, 'repeats':task.repeats, 'last_run':task.last_run}
-        update_task_state = self.session.post("http://" + self.server_ip + ":" + self.server_port + "/tasks/datatasks/" + str(task.id) + "/updatestate", data=task_data)
+        task.update()
+        update_task_state = self.session.post("http://" + self.server_ip + ":" + self.server_port + task.url + str(task.id) + "/updatestate", data=task.task_data)
 
 
 #remote_ip = "158.69.223.78"

@@ -301,6 +301,8 @@ class DataTaskCreateView(generic.View):
                     datatask.label = task["label"]
                     datatask.data_value = task["data_value"]
                     datatask.taskstate = task["taskstate"]
+                    datatask.repeats = task["repeats"]
+                    datatask.set_repeats = task["repeats"]
                     datatask.taskfunction = task["taskfunction"]
                     datatask.owner = task["owner"]
                     datatask.device = device
@@ -367,6 +369,9 @@ class DateTimeTaskCreateView(generic.View):
                     datetimetask.taskstate = task["taskstate"]
                     datetimetask.taskfunction = task["taskfunction"]
                     datetimetask.datetime = task["datetime"]
+                    datetimetask.set_datetime = task["datetime"]
+                    datetimetask.repeats = task["repeats"]
+                    datetimetask.set_repeats = task["repeats"]
                     datetimetask.owner = task["owner"]
                     datetimetask.device = device
 
@@ -608,17 +613,25 @@ class DateTimeTaskUpdateStateView(generic.View):
 
     #@method_decorator(login_required)
     def post(self, request, *args, **kwargs):
-
-        device = Device.objects.get(device_mac=kwargs["device_mac"])
-        task = check_task(**request.POST)
+        task = request.POST
 
         if task:
             try:
-                datetimetask = DateTimeTask(pk=kwargs['pk'])
-                datetimetask.taskstate = task["taskstate"]
-                datetimetask.last_run = datetime.datetime.now()
+                datetimetask = DateTimeTask.objects.all().filter(pk=task['id'])
+                datetimetask = datetimetask[0]
+                datetimetask.taskstate = TaskState.objects.get(id=task['taskstate'])
+                datetimetask.last_run = task['last_run']
+                datetimetask.set_repeats = datetimetask.set_repeats
                 datetimetask.repeats = task["repeats"]
-
+                datetimetask.set_datetime = datetimetask.set_datetime
+                datetimetask.datetime = task["datetime"]
+                datetimetask.created = datetimetask.created
+                datetimetask.description = datetimetask.description
+                datetimetask.label = datetimetask.label
+                datetimetask_serialized = datetimetask
+                datetimetask.taskfunction = datetimetask.taskfunction
+                datetimetask.owner = datetimetask.owner
+                datetimetask.device = datetimetask.device
             except DateTimeTask.DoesNotExist:
                 datetimetask = DateTimeTask(**task)
 
@@ -635,14 +648,12 @@ class DataTaskUpdateStateView(generic.View):
 
         if task:
             try:
-                #datatask = DataTask(pk=task['id'])
                 datatask = DataTask.objects.all().filter(pk=task['id'])
                 datatask = datatask[0]
                 datatask.taskstate = TaskState.objects.get(id=task['taskstate'])
                 datatask.last_run = task['last_run']
+                datatask.set_repeats = datatask.set_repeats
                 datatask.repeats = task["repeats"]
-                print task["repeats"]
-                print datatask.taskstate
                 datatask.comparator = datatask.comparator
                 datatask.data_value = datatask.data_value
                 datatask.created = datatask.created

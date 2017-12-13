@@ -69,6 +69,7 @@ class Task(models.Model):
     taskfunction = models.ForeignKey(TaskFunction)
     device = models.ForeignKey(Device)
     owner = models.ForeignKey('auth.User', related_name='tasks', on_delete=models.CASCADE)
+    set_repeats = models.IntegerField(default=1)
     repeats = models.IntegerField(default=1)
     last_run = models.DateTimeField(blank=True, null=True)
 
@@ -83,6 +84,8 @@ class Task(models.Model):
 
 class DateTimeTask(Task):
     datetime = models.DateTimeField(default=timezone.now)
+    set_datetime = models.DateTimeField(default=timezone.now)
+
 
     def serialize(self):
 
