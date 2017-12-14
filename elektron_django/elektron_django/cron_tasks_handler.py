@@ -69,7 +69,7 @@ class TaskHandler(object):
                 for srdtt in sorted_ready_datetimetasks:
                     print "Proccesing DateTimeTask: " + srdtt["label"]
                     print " "
-                    datetimetask = DateTimeTask({"id":srdtt["id"], "name":srdtt["label"], "description":srdtt["description"],"device":srdtt["device"],"repeats":srdtt["repeats"],"creation":srdtt["created"],"tfunction":srdtt["taskfunction"],"datetime":srdtt["datetime"],"last_run":srdtt["last_run"]})
+                    datetimetask = DateTimeTask({"id":srdtt["id"], "name":srdtt["label"], "description":srdtt["description"],"device":srdtt["device"],"repeats":srdtt["repeats"],"repeat_criteria":srdtt["repeat_criteria"],"creation":srdtt["created"],"tfunction":srdtt["taskfunction"],"datetime":srdtt["datetime"],"last_run":srdtt["last_run"]})
                     self.tasks_q.put(datetimetask)
 
                 return self.tasks_q

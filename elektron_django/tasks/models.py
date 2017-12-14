@@ -71,7 +71,7 @@ class Task(models.Model):
     owner = models.ForeignKey('auth.User', related_name='tasks', on_delete=models.CASCADE)
     set_repeats = models.IntegerField(default=1)
     repeats = models.IntegerField(default=1)
-    last_run = models.DateTimeField(blank=True, null=True)
+    last_run = models.DateTimeField(default=timezone.now())
 
     class Meta:
         ordering = ('created',)
@@ -85,7 +85,7 @@ class Task(models.Model):
 class DateTimeTask(Task):
     datetime = models.DateTimeField(default=timezone.now)
     set_datetime = models.DateTimeField(default=timezone.now)
-
+    repeat_criteria = models.IntegerField(default=0) #0 per day, 1 per hour
 
     def serialize(self):
 
@@ -101,6 +101,7 @@ class DateTimeTask(Task):
             'created': to_UTC(self.created),
             'repeats': self.repeats,
             'last_run': aux,
+            'repeat_criteria': self.repeat_criteria,
         }
 
 class DataTask(Task):

@@ -24,32 +24,25 @@ class DateTimeTask(CronTask):
         self.datetime = kwargs["datetime"]
         self.task_data = {'id':self.id,'taskstate':self.state, 'repeats':self.repeats, 'last_run':self.last_run, 'datetime':self.datetime}
         self.url = "/tasks/datetimetask/"
+        self.repeat_criteria = kwargs["repeat_criteria"]
 
     def execute(self, taskhandler):
         if self.repeats > 0 and self.state == "1":
-            """print "--------CronTask Execute-----------"
-            print self.devicedata["date"]
-            print self.last_run
-            print self.devicedata["data_value"]
-            print self.datacomp
-            print self.comparator
-            print "-------- End CronTask Execute-----------"
-            """
-            if len(self.devicedata) != 0:
-                print "self.datetime: " + str(self.datetime)
-                print "datetime.now(): " + str(datetime.now())
-                self.datetime = datetime.strptime(self.datetime, '%Y-%m-%dT%H:%M:%S')
-                if self.datetime < datetime.now():
-                        print "Excecuting task " + self.name
-                        self.repeats = self.repeats - 1
-                        taskhandler.execute_task_function(self)
+            self.datetime = datetime.strptime(self.datetime, '%Y-%m-%dT%H:%M:%S')
+            if self.datetime < datetime.now():
+                    print "Excecuting task " + self.name
+                    self.repeats = self.repeats - 1
+                    taskhandler.execute_task_function(self)
         else:
             self.state = "2" #done
             taskhandler.update_task_state(self)
 
     def update(self):
         print "Updating " + self.name
-        self.datetime = self.datetime + timedelta(hours=24) #repeats per day
+        if self.repeat_criteria == 0:
+            self.datetime = self.datetime + timedelta(hours=24) #repeats per day
+        else:
+            self.datetime = self.datetime + timedelta(hours=1)
         self.task_data = {'id':self.id,'taskstate':self.state, 'repeats':self.repeats, 'last_run':self.last_run, 'datetime':self.datetime}
         print self.datetime
 
@@ -65,14 +58,6 @@ class DataTask(CronTask):
 
     def execute(self, taskhandler):
         if self.repeats > 0 and self.state == "1":
-            """print "--------CronTask Execute-----------"
-            print self.devicedata["date"]
-            print self.last_run
-            print self.devicedata["data_value"]
-            print self.datacomp
-            print self.comparator
-            print "-------- End CronTask Execute-----------"
-            """
             if len(self.devicedata) != 0:
                 if self.last_run < self.devicedata["date"]:
                     print "Excecuting task " + self.name

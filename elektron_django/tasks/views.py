@@ -372,6 +372,7 @@ class DateTimeTaskCreateView(generic.View):
                     datetimetask.set_datetime = task["datetime"]
                     datetimetask.repeats = task["repeats"]
                     datetimetask.set_repeats = task["repeats"]
+                    datetimetask.repeat_criteria = task["repeat_criteria"]
                     datetimetask.owner = task["owner"]
                     datetimetask.device = device
 

@@ -1,13 +1,11 @@
 # TODOS Django Elektron:
 
 ## Recent:
+	- Hay un error en obtener los datos del día: si estamos a menos de 1 hora del siguiente día no obtiene bien los datos del día.
+	- El estado del dispositivo debe ponerse en OFF en el servidor al conectarse (o el servidor debe consutlar el estado al dispositivo en cada primer conexión a MQTT).
+	- La IP del dispositivo puede cambiar y no se refleja en la iterfaz / servidor.
+	- Crear un modelo nuevo que guarde como LOGS las tareas ejecutados y su información.
 	- Armar 3 nuevos lo mas chicos posibles con el código viejo a ver si andan
-	### Problemáticas:
-		- Refactorizando TaskHanlder con Cron: Falta poner comparador de DateTimeTask por hora o día.
-		- Hay un error en obtener los datos del día: si estamos a menos de 1 hora del siguiente día no obtiene bien los datos del día.
-		- El estado del dispositivo debe ponerse en OFF en el servidor al conectarse (o el servidor debe consutlar el estado al dispositivo en cada primer conexión a MQTT).
-		- La IP del dispositivo puede cambiar y no se refleja en la iterfaz / servidor.
-		- Escribir problemáticas por un lado y las soluciones en la parte de desarrollo
 	- Hacer un configurador automático de las redes para mejor testeo y escribir
 
 
