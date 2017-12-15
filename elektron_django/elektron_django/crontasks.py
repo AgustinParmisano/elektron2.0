@@ -27,8 +27,8 @@ class DateTimeTask(CronTask):
         self.repeat_criteria = kwargs["repeat_criteria"]
 
     def execute(self, taskhandler):
+        self.datetime = datetime.strptime(self.datetime, '%Y-%m-%dT%H:%M:%S')
         if self.repeats > 0 and self.state == "1":
-            self.datetime = datetime.strptime(self.datetime, '%Y-%m-%dT%H:%M:%S')
             if self.datetime < datetime.now():
                     print "Excecuting task " + self.name
                     self.repeats = self.repeats - 1
