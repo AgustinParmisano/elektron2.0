@@ -292,6 +292,50 @@ class DataPerDayView(generic.DetailView):
             return HttpResponse(status=500)
 
 
+class DataBetweenDaysPerdayView(generic.DetailView):
+    model = Device
+
+    def get(self, request, *args, **kwargs):
+        try:
+            data_list = []
+
+            day1 = kwargs["day1"]
+            month1 = kwargs["month1"]
+            year1 = kwargs["year1"]
+
+            day2 = kwargs["day2"]
+            month2 = kwargs["month2"]
+            year2 = kwargs["year2"]
+
+            datetime_string1 = day1 + "-" + month1 + "-" + year1 + " " + "00" + ":" + "00"
+            datetime_string2 = day2 + "-" + month2 + "-" + year2 + " " + "00" + ":" + "00"
+
+            date_from = datetime.datetime.strptime(datetime_string1, "%d-%m-%Y %H:%M")#.date()
+            date_to = datetime.datetime.strptime(datetime_string2, "%d-%m-%Y %H:%M")#.date()
+
+            date1 = date_from
+            date2 = date_to
+
+            diff = date2 - date1
+
+            days = diff.days
+
+            date_to = date_from + timedelta(days=1)
+            for hours_to in range(0,days + 1):
+                data_query = Data.objects.all().filter(date__gte=date_from, date__lte=date_to).aggregate(data_perdaysum_day=Sum('data_value'))
+                dph = DataPH(data_query["data_perdaysum_day"],date_from)
+                data_list.insert(0,dph.serialize())
+                date_from = date_from + timedelta(hours=24)
+                date_to = date_to + timedelta(hours=24)
+
+            return JsonResponse({'data': data_list})
+
+        except Exception as e:
+            print "Some error ocurred getting Data Per Day"
+            print "Exception: " + str(e)
+            return HttpResponse(status=500)
+
+
 class IndexView(generic.DetailView):
     model = Data
 
