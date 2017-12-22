@@ -411,6 +411,104 @@ class DeviceDataBetweenDaysView(generic.DetailView):
             print "Exception: " + str(e)
             return HttpResponse(status=500)
 
+class DeviceDataBetweenDaysPerhourView(generic.DetailView):
+    model = Device
+
+    def get(self, request, *args, **kwargs):
+
+        try:
+            data_list = []
+            device = kwargs["pk"]
+
+            day1 = kwargs["day1"]
+            month1 = kwargs["month1"]
+            year1 = kwargs["year1"]
+
+            day2 = kwargs["day2"]
+            month2 = kwargs["month2"]
+            year2 = kwargs["year2"]
+
+            datetime_string1 = day1 + "-" + month1 + "-" + year1 + " " + "00" + ":" + "00"
+            datetime_string2 = day2 + "-" + month2 + "-" + year2 + " " + "23" + ":" + "59"
+
+            date_from = datetime.datetime.strptime(datetime_string1, "%d-%m-%Y %H:%M")
+            date_to = datetime.datetime.strptime(datetime_string2, "%d-%m-%Y %H:%M")
+
+            date1 = date_from
+            date2 = date_to
+
+            diff = date2 - date1
+
+            days, seconds = diff.days, diff.seconds
+            hours = days * 24 + seconds // 3600
+
+            device_obj = Device.objects.get(pk=device)
+            date_to = date_from + timedelta(hours=1)
+            for hours_to in range(0,hours + 1):
+                data_query = Data.objects.all().filter(device=device, date__gte=date_from, date__lte=date_to).aggregate(data_perhoursum_hour=Sum('data_value'))
+                dph = DataPH(data_query["data_perhoursum_hour"],device_obj,date_to)
+                data_list.insert(0,dph.serialize())
+                date_from = date_from + timedelta(hours=1)
+                date_to = date_to + timedelta(hours=1)
+
+            #print data_list
+            return JsonResponse({'data': data_list})
+
+        except Exception as e:
+            print "Some error ocurred getting Between Days Per Hour Device Data"
+            print "Exception: " + str(e)
+            return HttpResponse(status=500)
+
+
+class DeviceDataBetweenDaysPerdayView(generic.DetailView):
+    model = Device
+
+    def get(self, request, *args, **kwargs):
+
+        try:
+            data_list = []
+            device = kwargs["pk"]
+
+            day1 = kwargs["day1"]
+            month1 = kwargs["month1"]
+            year1 = kwargs["year1"]
+
+            day2 = kwargs["day2"]
+            month2 = kwargs["month2"]
+            year2 = kwargs["year2"]
+
+            datetime_string1 = day1 + "-" + month1 + "-" + year1 + " " + "00" + ":" + "00"
+            datetime_string2 = day2 + "-" + month2 + "-" + year2 + " " + "23" + ":" + "59"
+
+            date_from = datetime.datetime.strptime(datetime_string1, "%d-%m-%Y %H:%M")#.date()
+            date_to = datetime.datetime.strptime(datetime_string2, "%d-%m-%Y %H:%M")
+
+            date1 = date_from
+            date2 = date_to
+
+            diff = date2 - date1
+
+            days = diff.days
+
+            device_obj = Device.objects.get(pk=device)
+            date_to = date_from + timedelta(days=1)
+            for hours_to in range(0,days):
+                data_query = Data.objects.all().filter(device=device, date__gte=date_from, date__lte=date_to).aggregate(data_perdaysum_day=Sum('data_value'))
+                dph = DataPH(data_query["data_perdaysum_day"],device_obj,date_to)
+                data_list.insert(0,dph.serialize())
+                date_from = date_from + timedelta(hours=24)
+                date_to = date_to + timedelta(hours=24)
+
+            #print data_list
+            return JsonResponse({'data': data_list})
+
+        except Exception as e:
+            print "Some error ocurred getting Between Days Per Day Device Data"
+            print "Exception: " + str(e)
+            return HttpResponse(status=500)
+
+
+
 class DeviceDataHourView(generic.DetailView):
     model = Device
 
@@ -515,10 +613,9 @@ class DeviceLastDataView(generic.DetailView):
 
 class DataPH(object):
     """docstring for DataPH."""
-    def __init__(self, data, hour, device, date):
+    def __init__(self, data, device, date):
         super(DataPH, self).__init__()
         self.data_value = data
-        self.hour = hour
         self.date = date
         self.device = device
 
@@ -534,7 +631,6 @@ class DataPH(object):
     def serialize(self):
         return {
             'data_value': self.data_value,
-            'hour' : self.hour,
             'date' : self.date,
             'device': self.device.serialize()
         }
@@ -563,7 +659,7 @@ class DeviceDataDayPerHourView(generic.DetailView):
             date_to = date_from + timedelta(hours=1)
             for hours_to in range(1,24):
                 data_query = Data.objects.all().filter(device=device, date__gte=date_from, date__lte=date_to).aggregate(data_perhoursum_hour=Sum('data_value'))
-                dph = DataPH(data_query["data_perhoursum_hour"],date_to.hour,device_obj,date_to)
+                dph = DataPH(data_query["data_perhoursum_hour"],device_obj,date_to)
                 data_list.insert(0,dph.serialize())
                 date_from = date_from + timedelta(hours=1)
                 date_to = date_to + timedelta(hours=1)
@@ -607,7 +703,7 @@ class DeviceDataMonthPerHourView(generic.DetailView):
             date_to = date_from + timedelta(hours=1)
             for hours_to in range(1,hours):
                 data_query = Data.objects.all().filter(device=device, date__gte=date_from, date__lte=date_to).aggregate(data_perhoursum_hour=Sum('data_value'))
-                dph = DataPH(data_query["data_perhoursum_hour"],date_to.hour,device_obj,date_to)
+                dph = DataPH(data_query["data_perhoursum_hour"],device_obj,date_to)
                 data_list.insert(0,dph.serialize())
                 date_from = date_from + timedelta(hours=1)
                 date_to = date_to + timedelta(hours=1)
@@ -654,7 +750,7 @@ class DeviceDataPerHourView(generic.DetailView):
             date_to = date_from + timedelta(hours=1)
             for hours_to in range(1,hours):
                 data_query = Data.objects.all().filter(device=device, date__gte=date_from, date__lte=date_to).aggregate(data_perhoursum_hour=Sum('data_value'))
-                dph = DataPH(data_query["data_perhoursum_hour"],date_to.hour,device_obj,date_to)
+                dph = DataPH(data_query["data_perhoursum_hour"],device_obj,date_to)
                 data_list.insert(0,dph.serialize())
                 date_from = date_from + timedelta(hours=1)
                 date_to = date_to + timedelta(hours=1)
@@ -666,6 +762,90 @@ class DeviceDataPerHourView(generic.DetailView):
             print "Exception: " + str(e)
             return HttpResponse(status=500)
 
+
+class DeviceDataMonthPerDayView(generic.DetailView):
+    model = Device
+
+    def get(self, request, *args, **kwargs):
+
+        try:
+            data_list = []
+            device = kwargs["pk"]
+
+            day = "1"
+            month = kwargs["month"]
+            year = kwargs["year"]
+            cant_days_month = monthrange(int(year), int(month))[1]
+
+            datetime_string = day + "-" + month + "-" + year  + " " + "00" + ":" + "00"
+
+            date_from = datetime.datetime.strptime(datetime_string, "%d-%m-%Y %H:%M")#.date()
+
+            device_obj = Device.objects.get(pk=device)
+            date_to = date_from + timedelta(days=1)
+            for hours_to in range(1,cant_days_month):
+                data_query = Data.objects.all().filter(device=device, date__gte=date_from, date__lte=date_to).aggregate(data_perdaysum_day=Sum('data_value'))
+                dph = DataPH(data_query["data_perdaysum_day"],device_obj,date_from)
+                data_list.insert(0,dph.serialize())
+                date_from = date_from + timedelta(hours=24)
+                date_to = date_to + timedelta(hours=24)
+
+            return JsonResponse({'data': data_list})
+
+        except Exception as e:
+            print "Some error ocurred getting Device Data Per Hour"
+            print "Exception: " + str(e)
+            return HttpResponse(status=500)
+
+
+class DeviceDataPerDayView(generic.DetailView):
+    model = Device
+
+    def get(self, request, *args, **kwargs):
+
+        try:
+            data_list = []
+
+            device = kwargs["pk"]
+            device_obj = Device.objects.get(pk=device)
+            device_year = device_obj.created.year
+            device_month = device_obj.created.month
+            device_day = device_obj.created.day
+
+            day = str(device_day)
+            month = str(device_month)
+            year = str(device_year)
+            cant_days_month = monthrange(int(year), int(month))[1]
+
+            datetime_string = day + "-" + month + "-" + year  + " " + "00" + ":" + "00"
+
+            date_from = datetime.datetime.strptime(datetime_string, "%d-%m-%Y %H:%M")#.date()
+            date_to = datetime.datetime.now()
+
+            date1 = date_from
+            date2 = date_to
+
+            diff = date2 - date1
+
+            days = diff.days
+
+            date_from = datetime.datetime.strptime(datetime_string, "%d-%m-%Y %H:%M")#.date()
+
+            device_obj = Device.objects.get(pk=device)
+            date_to = date_from + timedelta(days=1)
+            for hours_to in range(1,days):
+                data_query = Data.objects.all().filter(device=device, date__gte=date_from, date__lte=date_to).aggregate(data_perdaysum_day=Sum('data_value'))
+                dph = DataPH(data_query["data_perdaysum_day"],device_obj,date_from)
+                data_list.insert(0,dph.serialize())
+                date_from = date_from + timedelta(hours=24)
+                date_to = date_to + timedelta(hours=24)
+
+            return JsonResponse({'data': data_list})
+
+        except Exception as e:
+            print "Some error ocurred getting Device Data Per Day"
+            print "Exception: " + str(e)
+            return HttpResponse(status=500)
 
 
 class RecognitionView(generic.View):

@@ -23,7 +23,7 @@ def check_device_mac(**kwargs):
     return kwargs
 
 def check_task(**kwargs):
-
+    print kwargs
     if not 'taskfunction' in kwargs:
         return False
     else:
@@ -41,14 +41,61 @@ def check_task(**kwargs):
     else:
         if 'data_value' in kwargs and type(kwargs['data_value']) is list:
             kwargs['data_value'] = kwargs['data_value'][0]
+
+            if not 'comparator' in kwargs:
+                return False
+            else:
+                if type(kwargs['comparator']) is list:
+                    kwargs['comparator'] = kwargs['comparator'][0]
+
         elif 'datetime' in kwargs and type(kwargs['datetime']) is list:
             kwargs['datetime'] = kwargs['datetime'][0]
+            try:
+                kwargs['datetime'] = datetime.datetime.strptime(kwargs['datetime'], "%a, %d %b %Y %H:%M:%S %Z")
+            except Exception as e:
+                pass
+            if not 'set_datetime' in kwargs:
+                kwargs['set_datetime'] = kwargs['datetime']
+            else:
+                if type(kwargs['set_datetime']) is list:
+                    kwargs['set_datetime'] = kwargs['set_datetime'][0]
+
+            if not 'repeat_criteria' in kwargs:
+                return False
+            else:
+                if type(kwargs['repeat_criteria']) is list:
+                    kwargs['repeat_criteria'] = kwargs['repeat_criteria'][0]
+
+    if not 'repeats' in kwargs:
+        return False
+    else:
+        if type(kwargs['repeats']) is list:
+            kwargs['repeats'] = kwargs['repeats'][0]
+
+    if not 'set_repeats' in kwargs:
+        kwargs['set_repeats'] = kwargs['repeats']
+    else:
+        if type(kwargs['set_repeats']) is list:
+            kwargs['set_repeats'] = kwargs['set_repeats'][0]
+
+    if not 'last_run' in kwargs:
+        kwargs['last_run'] = datetime.datetime.now()
+    else:
+        if type(kwargs['last_run']) is list:
+            kwargs['last_run'] = kwargs['last_run'][0]
 
     if not 'description' in kwargs:
         return False
     else:
         if type(kwargs['description']) is list:
             kwargs['description'] = kwargs['description'][0]
+
+    if not 'description' in kwargs:
+        return False
+    else:
+        if type(kwargs['description']) is list:
+            kwargs['description'] = kwargs['description'][0]
+
 
     if not 'taskstate' in kwargs:
         return False
@@ -282,106 +329,122 @@ class DataTaskDeviceView(generic.ListView):
 
 class DataTaskCreateView(generic.View):
 
-    #@method_decorator(login_required)
-    def post(self, request, *args, **kwargs):
-        result = check_device_mac(**request.POST)
+        #@method_decorator(login_required)
+        def post(self, request, *args, **kwargs):
+            try:
 
-        print "request.session: " + str(request.session)
-        print "autenticated: " + str(request.user.is_authenticated())
+                result = check_device_mac(**request.POST)
 
-        if result:
-            device = Device.objects.get(device_mac=result["device_mac"])
+                if result:
+                    device = Device.objects.get(device_mac=result["device_mac"])
 
-            task = check_task(**request.POST)
+                    task = check_task(**request.POST)
 
-            if task:
-                try:
-                    datatask = DataTask()
-                    datatask.description = task["description"]
-                    datatask.label = task["label"]
-                    datatask.data_value = task["data_value"]
-                    datatask.taskstate = task["taskstate"]
-                    datatask.repeats = task["repeats"]
-                    datatask.set_repeats = task["repeats"]
-                    datatask.taskfunction = task["taskfunction"]
-                    datatask.owner = task["owner"]
-                    datatask.device = device
+                    if task:
+                        try:
+                            datatask = DataTask()
+                            datatask.description = task["description"]
+                            datatask.label = task["label"]
+                            datatask.data_value = task["data_value"]
+                            datatask.taskstate = task["taskstate"]
+                            datatask.taskfunction = task["taskfunction"]
+                            datatask.owner = task["owner"]
+                            datatask.device = device
+                            datatask.comparator = task["comparator"]
+                            datatask.repeats = task["repeats"]
+                            datatask.set_repeats = task["set_repeats"]
+                            datatask.last_run = task["last_run"]
 
-                except DataTask.DoesNotExist:
-                    datatask = DataTask(**task)
+                        except DataTask.DoesNotExist:
+                            datatask = DataTask(**task)
 
-                datatask.save()
+                        datatask.save()
 
-            return JsonResponse({'status':True})
+                    return JsonResponse({'status':True})
+
+            except Exception as e:
+                    print "Some error ocurred Creating DataTask"
+                    print "Exception: " + str(e)
+                    return HttpResponse(status=500)
+
 
 class DataTaskUpdateView(generic.View):
 
     #@method_decorator(login_required)
     def post(self, request, *args, **kwargs):
+        try:
+            result = check_device_mac(**request.POST)
 
-        print request.POST
-        print request
-        result = check_device_mac(**request.POST)
+            if result:
+                device = Device.objects.get(device_mac=result["device_mac"])
+                task = check_task(**request.POST)
+                if task:
+                    try:
+                        datatask = DataTask.objects.all().filter(pk=kwargs['pk'])
+                        datatask = datatask[0]
+                        datatask.description = task["description"]
+                        datatask.label = task["label"]
+                        datatask.data_value = task["data_value"]
+                        datatask.taskstate = task["taskstate"]
+                        datatask.repeats = task["repeats"]
+                        datatask.set_repeats = task["set_repeats"]
+                        datatask.taskfunction = task["taskfunction"]
+                        datatask.owner = task["owner"]
+                        datatask.device = device
+                        datatask.comparator = task["comparator"]
+                        datatask.last_run = task["last_run"]
+                        print datatask
+                    except Task.DoesNotExist:
+                        datatask = DataTask(**task)
 
-        if result:
-            device = Device.objects.get(device_mac=result["device_mac"])
-            print device
-            task = check_task(**request.POST)
-            print task
-            if task:
-                try:
-                    datatask = DataTask(pk=kwargs['pk'])
-                    datatask.description = task["description"]
-                    datatask.label = task["label"]
-                    datatask.data_value = task["data_value"]
-                    datatask.taskstate = task["taskstate"]
-                    datatask.taskfunction = task["taskfunction"]
-                    datatask.owner = task["owner"]
-                    datatask.device = device
-                    datatask.created = datetime.datetime.now()
+                    datatask.save()
 
-                except Task.DoesNotExist:
-                    datatask = DataTask(**task)
-
-                datatask.save()
-
-            return JsonResponse({'status':True})
+                return JsonResponse({'status':True})
+        except Exception as e:
+                print "Some error ocurred Updating DataTask"
+                print "Exception: " + str(e)
+                return HttpResponse(status=500)
 
 class DateTimeTaskCreateView(generic.View):
 
     #@method_decorator(login_required)
     def post(self, request, *args, **kwargs):
+        try:
+            result = check_device_mac(**request.POST)
 
-        result = check_device_mac(**request.POST)
+            if result:
+                device = Device.objects.get(device_mac=result["device_mac"])
 
-        if result:
-            device = Device.objects.get(device_mac=result["device_mac"])
+                print request.POST
+                task = check_task(**request.POST)
+                print task
 
-            print request.POST
-            task = check_task(**request.POST)
-            print task
+                if task:
+                    try:
+                        datetimetask = DateTimeTask()
+                        datetimetask.description = task["description"]
+                        datetimetask.label = task["label"]
+                        datetimetask.taskstate = task["taskstate"]
+                        datetimetask.taskfunction = task["taskfunction"]
+                        datetimetask.datetime = task["datetime"]
+                        datetimetask.set_datetime = task["set_datetime"]
+                        datetimetask.repeats = task["repeats"]
+                        datetimetask.set_repeats = task["set_repeats"]
+                        datetimetask.repeat_criteria = task["repeat_criteria"]
+                        datetimetask.owner = task["owner"]
+                        datetimetask.device = device
 
-            if task:
-                try:
-                    datetimetask = DateTimeTask()
-                    datetimetask.description = task["description"]
-                    datetimetask.label = task["label"]
-                    datetimetask.taskstate = task["taskstate"]
-                    datetimetask.taskfunction = task["taskfunction"]
-                    datetimetask.datetime = task["datetime"]
-                    datetimetask.set_datetime = task["datetime"]
-                    datetimetask.repeats = task["repeats"]
-                    datetimetask.set_repeats = task["repeats"]
-                    datetimetask.repeat_criteria = task["repeat_criteria"]
-                    datetimetask.owner = task["owner"]
-                    datetimetask.device = device
+                    except DateTimeTask.DoesNotExist:
+                        datetimetask = DateTimeTask(**task)
 
-                except DateTimeTask.DoesNotExist:
-                    datetimetask = DateTimeTask(**task)
+                    datetimetask.save()
 
-                datetimetask.save()
-
-            return JsonResponse({'status':True})
+                return JsonResponse({'status':True})
+        except Exception as e:
+                print "Some error ocurred Creating DateTimeTask"
+                print "Exception: " + str(e)
+                return HttpResponse(status=500)
+                raise
 
 class DateTimeTaskRemoveView(generic.View):
 
@@ -422,32 +485,42 @@ class DateTimeTaskUpdateView(generic.View):
 
     #@method_decorator(login_required)
     def post(self, request, *args, **kwargs):
+        try:
+            result = check_device_mac(**request.POST)
 
-        result = check_device_mac(**request.POST)
+            if result:
+                device = Device.objects.get(device_mac=result["device_mac"])
 
-        if result:
-            device = Device.objects.get(device_mac=result["device_mac"])
+                task = check_task(**request.POST)
 
-            task = check_task(**request.POST)
+                if task:
+                    try:
+                        datetimetask = DateTimeTask.objects.all().filter(pk=kwargs['pk'])
+                        datetimetask = datetimetask[0]
+                        datetimetask.description = task["description"]
+                        datetimetask.label = task["label"]
+                        datetimetask.taskstate = task["taskstate"]
+                        datetimetask.taskfunction = task["taskfunction"]
+                        datetimetask.datetime = task["datetime"]
+                        datetimetask.set_datetime = task["set_datetime"]
+                        datetimetask.repeats = task["repeats"]
+                        datetimetask.set_repeats = task["set_repeats"]
+                        datetimetask.repeat_criteria = task["repeat_criteria"]
+                        datetimetask.owner = task["owner"]
+                        datetimetask.device = device
 
-            if task:
-                try:
-                    datetimetask = DateTimeTask(pk=kwargs['pk'])
-                    datetimetask.description = task["description"]
-                    datetimetask.label = task["label"]
-                    datetimetask.taskstate = task["taskstate"]
-                    datetimetask.taskfunction = task["taskfunction"]
-                    datetimetask.datetime = task["datetime"]
-                    datetimetask.owner = task["owner"]
-                    datetimetask.device = device
-                    datetimetask.created = datetime.datetime.now()
+                    except DateTimeTask.DoesNotExist:
+                        datetimetask = DateTimeTask(**task)
 
-                except DateTimeTask.DoesNotExist:
-                    datetimetask = DateTimeTask(**task)
+                    datetimetask.save()
 
-                datetimetask.save()
+                return JsonResponse({'status':True})
+        except Exception as e:
+                print "Some error ocurred Updating DateTimeTask"
+                print "Exception: " + str(e)
+                return HttpResponse(status=500)
+                raise
 
-            return JsonResponse({'status':True})
 
 class ReadyTasksView(generic.View):
 

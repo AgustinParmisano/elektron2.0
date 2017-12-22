@@ -231,7 +231,7 @@ import requests
     - Create DataTask:
       - post:
       ```
-      data = {'taskstate':'1', 'taskfunction':'1', 'label':'done', 'description':'taks is done', 'owner':'root', 'data_value':'10', 'device_mac':'11:11:11:11'}
+      data = {'taskstate':'1', 'taskfunction':'1', 'label':'done', 'description':'taks is done', 'owner':'root', 'data_value':'10', 'device_mac':'11:11:11:11','comparator':'1','repeats':'5'}
       r = requests.post("http://localhost:8000/tasks/datatasks/create", data=data)
       r.text
       r.url
@@ -239,7 +239,7 @@ import requests
 
     - Update DataTask:
     ```
-    data = {'taskstate':'1', 'taskfunction':'1', 'label':'riego', 'description':'regando', 'owner':'root', 'data_value':79, 'device_mac':'33:33:22:22'}
+    data = {'taskstate':'1', 'taskfunction':'1', 'label':'riego', 'description':'regando', 'owner':'root', 'data_value':79, 'device_mac':'11:11:11:11','comparator':'1','repeats':'5'}
     r = requests.post("http://localhost:8000/tasks/datatasks/<datatask_id>/update", data=data)
     r.text
     r.url
@@ -270,7 +270,7 @@ import requests
       - Create DateTimeTask:
         - post:
         ```
-        data = {'taskstate':'1', 'taskfunction':'1', 'label':'datetimtask1', 'description':'taks is done', 'owner':'root', 'datetime':"2017-10-10T17:23:47.636", 'device_mac':'11:11:11:11'}
+        data = {'taskstate':'1', 'taskfunction':'1', 'label':'datetimtask1', 'description':'taks is done', 'owner':'root', 'datetime':"2017-10-10T17:23:47.636", 'device_mac':'11:11:11:11','repeats':'5','repeat_criteria':'1'}
         r = requests.post("http://localhost:8000/tasks/datetimetasks/create", data=data)
         r.text
         r.url
@@ -278,7 +278,7 @@ import requests
 
     - Update DateTimeTask:
     ```
-    data = {'taskstate':'1', 'taskfunction':'1', 'label':'datetimtask2', 'description':'taks is done', 'owner':'root', 'datatime':datetime, 'device_mac':'11:11:11:11'}
+    data = {'taskstate':'1', 'taskfunction':'1', 'label':'datetimtask2', 'description':'taks is done', 'owner':'root', 'datatime':datetime, 'device_mac':'11:11:11:11','repeats':'5','repeat_criteria':'1'}
     r = requests.post("http://localhost:8000/tasks/datetimetasks/<datetimetask_id>/update", data=data)
     r.text
     r.url

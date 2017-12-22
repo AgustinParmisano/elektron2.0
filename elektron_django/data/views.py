@@ -14,6 +14,7 @@ from .models import Data
 from django.views import generic
 from django.contrib.auth.models import User
 from django.conf import settings
+from django.db.models import Sum, Avg
 
 def to_localtime(date):
     utc = settings.UTC
@@ -66,6 +67,230 @@ def check_data(**kwargs):
             kwargs['data_value'] = kwargs['data_value'][0]
 
     return kwargs
+
+class DataPH(object):
+    """docstring for DataPH."""
+    def __init__(self, data, date):
+        super(DataPH, self).__init__()
+        self.data_value = data
+        self.date = date
+
+    def set_date(self,date):
+        self.date = date
+
+    def __str__(self):
+        return "Hour: " + str(self.hour) + " Data: " + str(self.data_value)
+
+    def serialize(self):
+        return {
+            'data_value': self.data_value,
+            'date' : self.date,
+        }
+
+class DataDayPerHourView(generic.DetailView):
+    model = Data
+
+    def get(self, request, *args, **kwargs):
+
+        try:
+            data_list = []
+            day = kwargs["day"]
+            month = kwargs["month"]
+            year = kwargs["year"]
+
+            datetime_string = day + "-" + month + "-" + year  + " " + "00" + ":" + "00"
+
+            #date = dp.parse(date_string, timezone.now())
+
+            date_from = datetime.datetime.strptime(datetime_string, "%d-%m-%Y %H:%M")
+
+            date_to = date_from + timedelta(hours=1)
+            print date_from
+            print date_to
+            for hours_to in range(1,24):
+                data_query = Data.objects.all().filter(date__gte=date_from, date__lte=date_to).aggregate(data_perhoursum_hour=Sum('data_value'))
+                dph = DataPH(data_query["data_perhoursum_hour"],date_to)
+                data_list.insert(0,dph.serialize())
+                date_from = date_from + timedelta(hours=1)
+                date_to = date_to + timedelta(hours=1)
+
+            return JsonResponse({'data': data_list})
+
+        except Exception as e:
+            print "Some error ocurred getting Data Day Per Hour"
+            print "Exception: " + str(e)
+            return HttpResponse(status=500)
+
+
+class DataMonthPerHourView(generic.DetailView):
+    model = Data
+
+    def get(self, request, *args, **kwargs):
+
+        try:
+            data_list = []
+
+            day = "1"
+            month = kwargs["month"]
+            year = kwargs["year"]
+            cant_days_month = monthrange(int(year), int(month))[1]
+
+            datetime_string = day + "-" + month + "-" + year  + " " + "00" + ":" + "00"
+
+            date_from = datetime.datetime.strptime(datetime_string, "%d-%m-%Y %H:%M")#.date()
+            date_to = date_from + timedelta(days=cant_days_month)
+
+            date1 = date_from
+            date2 = date_to
+
+            diff = date2 - date1
+
+            days, seconds = diff.days, diff.seconds
+            hours = days * 24 + seconds // 3600
+
+            date_to = date_from + timedelta(hours=1)
+            for hours_to in range(1,hours):
+                data_query = Data.objects.all().filter(date__gte=date_from, date__lte=date_to).aggregate(data_perhoursum_hour=Sum('data_value'))
+                dph = DataPH(data_query["data_perhoursum_hour"],date_to)
+                data_list.insert(0,dph.serialize())
+                date_from = date_from + timedelta(hours=1)
+                date_to = date_to + timedelta(hours=1)
+
+            return JsonResponse({'data': data_list})
+
+        except Exception as e:
+            print "Some error ocurred getting Data Month Per Hour"
+            print "Exception: " + str(e)
+            return HttpResponse(status=500)
+
+
+class DataPerHourView(generic.DetailView):
+    model = Data
+
+    def get(self, request, *args, **kwargs):
+
+        try:
+            data_list = []
+
+            day = "1"
+            month = "1"
+            year = "2017"
+
+            datetime_string = day + "-" + month + "-" + year  + " " + "00" + ":" + "00"
+
+            date_from = datetime.datetime.strptime(datetime_string, "%d-%m-%Y %H:%M")#.date()
+            date_to = datetime.datetime.now()
+
+            date1 = date_from
+            date2 = date_to
+
+            diff = date2 - date1
+
+            days, seconds = diff.days, diff.seconds
+            hours = days * 24 + seconds // 3600
+
+            date_to = date_from + timedelta(hours=1)
+            for hours_to in range(1,hours):
+                data_query = Data.objects.all().filter(date__gte=date_from, date__lte=date_to).aggregate(data_perhoursum_hour=Sum('data_value'))
+                dph = DataPH(data_query["data_perhoursum_hour"],date_to)
+                data_list.insert(0,dph.serialize())
+                date_from = date_from + timedelta(hours=1)
+                date_to = date_to + timedelta(hours=1)
+
+            return JsonResponse({'data': data_list})
+
+        except Exception as e:
+            print "Some error ocurred getting Data Per Hour"
+            print "Exception: " + str(e)
+            return HttpResponse(status=500)
+
+
+class DataBetweenDaysPerhourView(generic.DetailView):
+    model = Data
+
+    def get(self, request, *args, **kwargs):
+
+        try:
+            data_list = []
+
+            day1 = kwargs["day1"]
+            month1 = kwargs["month1"]
+            year1 = kwargs["year1"]
+
+            day2 = kwargs["day2"]
+            month2 = kwargs["month2"]
+            year2 = kwargs["year2"]
+
+            datetime_string1 = day1 + "-" + month1 + "-" + year1 + " " + "00" + ":" + "00"
+            datetime_string2 = day2 + "-" + month2 + "-" + year2 + " " + "00" + ":" + "00"
+
+            date_from = datetime.datetime.strptime(datetime_string1, "%d-%m-%Y %H:%M")#.date()
+            date_to = datetime.datetime.strptime(datetime_string2, "%d-%m-%Y %H:%M")#.date()
+
+            date1 = date_from
+            date2 = date_to
+
+            diff = date2 - date1
+
+            days, seconds = diff.days, diff.seconds
+            hours = days * 24 + seconds // 3600
+
+            date_to = date_from + timedelta(hours=1)
+            for hours_to in range(1,hours):
+                data_query = Data.objects.all().filter(date__gte=date_from, date__lte=date_to).aggregate(data_perhoursum_hour=Sum('data_value'))
+                dph = DataPH(data_query["data_perhoursum_hour"],date_to)
+                data_list.insert(0,dph.serialize())
+                date_from = date_from + timedelta(hours=1)
+                date_to = date_to + timedelta(hours=1)
+
+            return JsonResponse({'data': data_list})
+
+        except Exception as e:
+            print "Some error ocurred getting Data Between Days Per Hour"
+            print "Exception: " + str(e)
+            return HttpResponse(status=500)
+
+class DataPerDayView(generic.DetailView):
+    model = Device
+
+    def get(self, request, *args, **kwargs):
+
+        try:
+            data_list = []
+
+            day = "1"
+            month = "1"
+            year = "2017"
+
+            datetime_string = day + "-" + month + "-" + year  + " " + "00" + ":" + "00"
+
+            date_from = datetime.datetime.strptime(datetime_string, "%d-%m-%Y %H:%M")#.date()
+            date_to = datetime.datetime.now()
+
+            date1 = date_from
+            date2 = date_to
+
+            diff = date2 - date1
+
+            days = diff.days
+
+            date_from = datetime.datetime.strptime(datetime_string, "%d-%m-%Y %H:%M")#.date()
+
+            date_to = date_from + timedelta(days=1)
+            for hours_to in range(0,days + 1):
+                data_query = Data.objects.all().filter(date__gte=date_from, date__lte=date_to).aggregate(data_perdaysum_day=Sum('data_value'))
+                dph = DataPH(data_query["data_perdaysum_day"],date_from)
+                data_list.insert(0,dph.serialize())
+                date_from = date_from + timedelta(hours=24)
+                date_to = date_to + timedelta(hours=24)
+
+            return JsonResponse({'data': data_list})
+
+        except Exception as e:
+            print "Some error ocurred getting Data Per Day"
+            print "Exception: " + str(e)
+            return HttpResponse(status=500)
+
 
 class IndexView(generic.DetailView):
     model = Data
@@ -185,7 +410,6 @@ class DataBetweenDaysView(generic.DetailView):
             print "Some error ocurred getting Between Days Data"
             print "Exception: " + str(e)
             return HttpResponse(status=500)
-
 
 class DataBetweenDaysPostView(generic.DetailView):
     model = Data
@@ -359,6 +583,7 @@ class DataBetweenHoursPostView(generic.DetailView):
             print "Some error ocurred getting Between Hour Data"
             print "Exception: " + str(e)
             return HttpResponse(status=500)
+
 
 
 class CreateView(generic.View):
