@@ -6,7 +6,6 @@ import json
 import ast
 import requests
 
-
 localhost = "0.0.0.0"
 
 # The callback for when the client receives a CONNACK response from the server.
