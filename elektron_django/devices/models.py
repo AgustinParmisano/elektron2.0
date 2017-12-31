@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from django.db import models
 from datetime import timedelta
 from django.conf import settings
+from django.utils import timezone
 
 # Create your models here.
 
@@ -43,8 +44,13 @@ class Device(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     label = models.CharField(max_length=100, blank=True, default='Elektron')
     devicestate = models.ForeignKey(DeviceState)
+    last_state_date_on = models.DateTimeField(default=timezone.now())
+    last_state_date_off = models.DateTimeField(default=timezone.now())
     owner = models.ForeignKey('auth.User', related_name='devices', on_delete=models.CASCADE)
     enabled = models.BooleanField(default=False)
+    last_run = models.DateTimeField(default=timezone.now())
+    state_counter_on = models.IntegerField(default=0)
+    state_counter_off = models.IntegerField(default=0)
 
     class Meta:
         ordering = ('created',)
@@ -63,5 +69,9 @@ class Device(models.Model):
             'created': to_UTC(self.created),
             'label': self.label,
             'devicestate': self.devicestate.serialize(),
-            'enabled': self.enabled
+            'enabled': self.enabled,
+            'last_state_date_on': to_UTC(self.created),
+            'last_state_date_off': to_UTC(self.created),
+            'state_counter_on': self.state_counter_on,
+            'state_counter_off':  self.state_counter_off
         }

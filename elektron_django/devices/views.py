@@ -931,6 +931,8 @@ class ShutdownView(generic.View):
                     topic = "elektron/"+str(mini_mac)+"/new_order"
                     order = 1
                     device.devicestate = DeviceState.objects.get(name="off")
+                    device.last_state_date_off = datetime.datetime.now()
+                    device.state_counter_off += 1
                     mqtt = MqttClient()
                     mqtt.publish(order, topic)
 
@@ -959,6 +961,8 @@ class ShutdownView(generic.View):
                     topic = "elektron/"+str(mini_mac)+"/new_order"
                     order = 1
                     device.devicestate = DeviceState.objects.get(name="off")
+                    device.last_state_date_off = datetime.datetime.now()
+                    device.state_counter_off += 1
                     mqtt = MqttClient()
                     mqtt.publish(order, topic)
 
@@ -987,6 +991,8 @@ class TurnonView(generic.View):
                     topic = "elektron/"+str(mini_mac)+"/new_order"
                     order = 0
                     device.devicestate = DeviceState.objects.get(name="on")
+                    device.last_state_date_on = datetime.datetime.now()
+                    device.state_counter_on += 1
                     mqtt = MqttClient()
                     mqtt.publish(order, topic)
 
@@ -1015,6 +1021,8 @@ class TurnonView(generic.View):
                     topic = "elektron/"+str(mini_mac)+"/new_order"
                     order = 0
                     device.devicestate = DeviceState.objects.get(name="on")
+                    device.last_state_date_on = datetime.datetime.now()
+                    device.state_counter_on += 1
                     mqtt = MqttClient()
                     mqtt.publish(order, topic)
 
@@ -1088,3 +1096,88 @@ class DisableView(generic.View):
         device.save()
 
         return JsonResponse({'status':True})
+
+
+class DeviceStatisticsView(generic.DetailView):
+    model = Device
+    """
+    - ID componente
+    - Nombre componente
+    - Estado (encendido/apagado)
+
+    - Consumo total historico
+    - Consumo promedio historico:
+        - Por hora
+        - Por día
+        - Por mes
+    - Ultima medicion
+    - Tiempo del ultimo periodo de actividad en minutos/horas
+    - Consumo del último periodo de actividad total
+    - Consumo promedio del último periodo de actividad
+    - Cantidad de encendidos y apagados históricos
+    """
+    def get(self, request, *args, **kwargs):
+
+        try:
+            data_list = []
+
+            device = kwargs["pk"]
+            device = Device.objects.all().filter(id=device)
+            data_query = Data.objects.all().filter(device=device)
+            data_query = list(data_query)
+
+            device = device[0].serialize()
+
+            for data in data_query:
+                data_list.insert(0,data.serialize())
+
+            data_sum_query = Data.objects.all().filter(device= device['id']).aggregate(data_sum=Sum('data_value'))
+
+            date_from = device["created"]
+            date_to = datetime.datetime.now()
+
+            date1 = date_from
+            date2 = date_to
+
+            diff = date2 - date1
+
+            days, seconds = diff.days, diff.seconds
+            hours = days * 24 + seconds // 3600
+
+            data_sum = data_sum_query['data_sum']
+
+            if data_sum == None:
+                data_sum = 0
+
+            prom_hours = data_sum / hours
+            prom_days = data_sum / days
+
+            data_avg_query = Data.objects.all().filter(device= device['id']).aggregate(data_avg=Avg('data_value'))
+            data_avg = data_avg_query['data_avg']
+
+            last_data_query = Data.objects.all().filter(device= device['id'])
+            last_data = list(last_data_query)[-1]
+            last_data = int(last_data.serialize()['data_value'])
+
+            last_state_date_on = device['last_state_date_on']
+            last_state_date_off = device['last_state_date_off']
+            state_counter_on = device['state_counter_on']
+            state_counter_off = device['state_counter_off']
+
+            date_from = device['last_state_date_on']
+            date_to = device['last_state_date_off']
+
+            data_query_avg_states = Data.objects.all().filter(device=device['id'], date__gte=date_from, date__lte=date_to).aggregate(data_avg_states=Avg('data_value'))
+            data_avg_states = data_query_avg_states['data_avg_states']
+
+            data_query_sum_states = Data.objects.all().filter(device=device['id'], date__gte=date_from, date__lte=date_to).aggregate(data_sum_states=Sum('data_value'))
+            data_sum_states = data_query_sum_states['data_sum_states']
+
+            #return JsonResponse({'device': device, 'data_sum': data_sum, 'days_created': days, 'hours_created':hours, 'prom_days': prom_days, 'prom_hours':prom_hours, 'prom_total': data_avg })
+            return JsonResponse({'device': device, 'data_sum': data_sum, 'days_created': days, 'hours_created':hours, 'prom_total': data_avg, 'last_data':last_data, 'data_list_avg_states': data_avg_states, 'data_list_sum_states': data_sum_states })
+
+        except Exception as e:
+            print "Some error ocurred getting Device Data"
+            print "Exception: " + str(e)
+            raise
+            return HttpResponse(status=500)
