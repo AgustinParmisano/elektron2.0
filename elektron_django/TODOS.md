@@ -1,6 +1,8 @@
 # TODOS Django Elektron:
 
 ## Recent:
+	- Los dispositivos envían datos aunque estén desactivados.
+	- Hay que paginar de a 20 los datos pedidos en los rangos y mandar página actual, datos de página y cantidad de páginas.
 	- Device Statistics
 	- Ver si está obteniendo los promedios por hora y por día coherentes por dispositivos (watts / hora) y retorna coherentemente para el gráfico de barras de estadísticas
 	- Hay un error en obtener los datos del día: si estamos a menos de 1 hora del siguiente día no obtiene bien los datos del día.

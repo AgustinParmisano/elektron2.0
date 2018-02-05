@@ -34,4 +34,5 @@ urlpatterns = [
     url(r'^(?P<pk>[0-9]+)/enable$', csrf_exempt(views.EnableView.as_view()), name='enable'),
     url(r'^(?P<pk>[0-9]+)/disable$', csrf_exempt(views.DisableView.as_view()), name='disable'),
     url(r'^(?P<pk>[0-9]+)/statistics$', csrf_exempt(views.DeviceStatisticsView.as_view()), name='statistics'),
+    url(r'^mac$', csrf_exempt(views.DeviceByMac.as_view()), name='get_device_by_mac'),
 ]

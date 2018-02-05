@@ -45,11 +45,22 @@ def check_data(mqtt_data):
     return result
 
 def check_device(device_mqtt):
-    result = requests.post("http://localhost:8000/devices/create", data=device_mqtt).status_code
-    if result == 200:
-        result = True
+    device = requests.post("http://localhost:8000/devices/mac", data=device_mqtt)
+    if device.status_code == 200:
+        is_enabled = json.loads(device.content)["device"]["enabled"]
+        if is_enabled:
+            result = "enabled"
+        else:
+            result = "disabled"
+
     else:
-        result = False
+        result = requests.post("http://localhost:8000/devices/create", data=device_mqtt).status_code
+
+        if result == 200:
+            result = True
+        else:
+            result = False
+
     return result
 
 def on_connect(client, userdata, flags, rc):
@@ -67,10 +78,10 @@ def on_message_device(client, userdata, msg):
 
     try:
         mqtt_data = ast.literal_eval(str(msg.payload)) #json.loads(str(msg.payload))
-        mqtt_data # = remove_duplicated_msg(mqtt_data)
+        #mqtt_data # = remove_duplicated_msg(mqtt_data)
         device_ok = check_device(mqtt_data)
 
-        if device_ok != False:
+        if device_ok == "enabled":
             mqtt_data = ast.literal_eval(json.dumps(mqtt_data))
             message = str(mqtt_data)
             #msg_ws(message)
