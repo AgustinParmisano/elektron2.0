@@ -39,7 +39,8 @@ def create_new_device(device_mqtt):
 """
 
 def check_data(mqtt_data):
-    #print mqtt_data
+    print "Sending MQTT Data: "
+    print mqtt_data
     result = requests.post("http://localhost:8000/data/create", data=mqtt_data)
     #print result
     return result
@@ -49,6 +50,7 @@ def check_device(device_mqtt):
     if device.status_code == 200:
         is_enabled = json.loads(device.content)["device"]["enabled"]
         if is_enabled:
+            print "Device " + json.loads(device.content)["device"]["label"] + " is enabled"
             result = "enabled"
         else:
             result = "disabled"
