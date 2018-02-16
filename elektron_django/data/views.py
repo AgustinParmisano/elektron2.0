@@ -15,6 +15,7 @@ from django.views import generic
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.db.models import Sum, Avg
+from django.core import serializers
 
 def to_localtime(date):
     utc = settings.UTC
@@ -201,6 +202,50 @@ class DataPerHourView(generic.DetailView):
 
         except Exception as e:
             print "Some error ocurred getting Data Per Hour"
+            print "Exception: " + str(e)
+            return HttpResponse(status=500)
+
+
+class GetDataOffsetLimit(generic.DetailView):
+    DEFAULT_OFFSET = 1
+    DEFAULT_LIMIT = 20
+    DEFAULT_ORDER = 1
+
+    def get(self, request, *args, **kwargs):
+        try:
+            data_list = []
+            offset = kwargs['offset'] if 'offset' in kwargs else self.DEFAULT_OFFSET
+            offset = int(offset) - 1
+            limit = kwargs['limit'] if 'limit' in kwargs else self.DEFAULT_LIMIT
+            order = kwargs['order'] if 'order' in kwargs else self.DEFAULT_ORDER
+
+            data_query = Data.objects.all()[offset:limit]
+            total_data = len(Data.objects.all())
+
+            for data in data_query:
+                data_list.insert(0,data.serialize())
+
+            if int(order) > 1:
+                data_list = list(reversed(data_list))
+
+            return JsonResponse({'total_data': total_data,'data': data_list})
+
+        except Exception as e:
+            print "Some error ocurred getting DataOffsetLimit"
+            print "Exception: " + str(e)
+            return HttpResponse(status=500)
+
+
+class GetTotalData(generic.DetailView):
+
+    def get(self, request, *args, **kwargs):
+        try:
+            total_data = len(Data.objects.all())
+
+            return JsonResponse({'total_data': total_data})
+
+        except Exception as e:
+            print "Some error ocurred getting TotalData"
             print "Exception: " + str(e)
             return HttpResponse(status=500)
 

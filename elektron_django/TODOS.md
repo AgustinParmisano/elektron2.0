@@ -1,8 +1,6 @@
 # TODOS Django Elektron:
 
 ## Recent:
-	- Hay que paginar de a 20 los datos pedidos en los rangos y mandar página actual, datos de página y cantidad de páginas.
-	- Device Statistics
 	- Ver si está obteniendo los promedios por hora y por día coherentes por dispositivos (watts / hora) y retorna coherentemente para el gráfico de barras de estadísticas
 	- Hay un error en obtener los datos del día: si estamos a menos de 1 hora del siguiente día no obtiene bien los datos del día.
 	- El estado del dispositivo debe ponerse en OFF en el servidor al conectarse (o el servidor debe consutlar el estado al dispositivo en cada primer conexión a MQTT).
@@ -10,16 +8,6 @@
 	- Crear un modelo nuevo que guarde como LOGS las tareas ejecutados y su información.
 	- Armar 3 nuevos lo mas chicos posibles con el código viejo a ver si andan
 	- Hacer un configurador automático de las redes para mejor testeo y escribir
-
-
-## Escritura:
-	- Ver las anotaciones de Luis y Tom
-	- Escribir sobre los nodemcus:
-		- Como se configuran por primera vez (ssid, pass e ip)
-		- Como envian los mensajes y los reciben
-		- Local y Remoto
-		- Tiempos de respuesta
-		- Multiples dispositivos
 
 ## Nodemcus:
 	- Armar 3 nuevos lo mas chicos posibles con el código viejo a ver si andan

@@ -12,6 +12,8 @@ urlpatterns = [
     url(r'^delete$', csrf_exempt(views.DeleteView.as_view()), name='delete'),
     url(r'^update$', csrf_exempt(views.UpdateView.as_view()), name='update'),
     url(r'^data$', csrf_exempt(views.DeviceMacDataView.as_view()), name='data_device_mac'),
+    url(r'^(?P<pk>[0-9]+)/data/offsetlimit/(?P<offset>\d+)/(?P<limit>\d+)/(?P<order>\d+)/$', csrf_exempt(views.DeviceDataOffsetLimitView.as_view()), name='data_device_offset_limit'),
+    url(r'^(?P<pk>[0-9]+)/totaldata$', csrf_exempt(views.DeviceTotalData.as_view()), name='get_total_data'),
     url(r'^task$', csrf_exempt(views.DeviceMacTaskView.as_view()), name='task_device_mac'),
     url(r'^(?P<pk>[0-9]+)/data$', csrf_exempt(views.DeviceDataView.as_view()), name='data'),
     url(r'^(?P<pk>[0-9]+)/tasks$', csrf_exempt(views.DeviceTaskView.as_view()), name='task'),
@@ -34,5 +36,6 @@ urlpatterns = [
     url(r'^(?P<pk>[0-9]+)/enable$', csrf_exempt(views.EnableView.as_view()), name='enable'),
     url(r'^(?P<pk>[0-9]+)/disable$', csrf_exempt(views.DisableView.as_view()), name='disable'),
     url(r'^(?P<pk>[0-9]+)/statistics$', csrf_exempt(views.DeviceStatisticsView.as_view()), name='statistics'),
+    url(r'^statistics$', csrf_exempt(views.StatisticsView.as_view()), name='all_statistics'),
     url(r'^mac$', csrf_exempt(views.DeviceByMac.as_view()), name='get_device_by_mac'),
 ]

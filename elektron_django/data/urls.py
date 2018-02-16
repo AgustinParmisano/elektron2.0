@@ -22,4 +22,6 @@ urlpatterns = [
     url(r'^date$', csrf_exempt(views.DataDatePostView.as_view()), name='data_date_post'),
     url(r'^days$', csrf_exempt(views.DataBetweenDaysPostView.as_view()), name='data_days_post'),
     url(r'^hours$', csrf_exempt(views.DataBetweenHoursPostView.as_view()), name='data_hours_post'),
+    url(r'^offsetlimit/(?P<offset>\d+)/(?P<limit>\d+)/(?P<order>\d+)/$', csrf_exempt(views.GetDataOffsetLimit.as_view()), name='get_data_offset_limit'),
+    url(r'^totaldata$', csrf_exempt(views.GetTotalData.as_view()), name='get_total_data'),
 ]

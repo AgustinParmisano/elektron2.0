@@ -152,6 +152,7 @@ class DetailView(generic.DetailView):
             print "Exception: " + str(e)
             return HttpResponse(status=500)
 
+
 class DeviceByMac(generic.DetailView):
     model = Device
 
@@ -188,6 +189,50 @@ class DeviceDataView(generic.DetailView):
 
         except Exception as e:
             print "Some error ocurred getting Device Data"
+            print "Exception: " + str(e)
+            return HttpResponse(status=500)
+
+
+class DeviceDataOffsetLimitView(generic.DetailView):
+    DEFAULT_OFFSET = 1
+    DEFAULT_LIMIT = 20
+    DEFAULT_ORDER = 1
+
+    def get(self, request, *args, **kwargs):
+        try:
+            data_list = []
+            offset = int(kwargs['offset'] if 'offset' in kwargs else self.DEFAULT_OFFSET) -1
+            limit = kwargs['limit'] if 'limit' in kwargs else self.DEFAULT_LIMIT
+            order = kwargs['order'] if 'order' in kwargs else self.DEFAULT_ORDER
+
+            device = kwargs["pk"]
+            data_query = Data.objects.all().filter(device=device)[offset:limit]
+            data_query = list(data_query)
+            total_data = len(Data.objects.all().filter(device=device))
+
+            for data in data_query:
+                data_list.insert(0,data.serialize())
+
+            #print data_list
+            return JsonResponse({'total_data': total_data,'data': data_list})
+
+        except Exception as e:
+            print "Some error ocurred getting Device Data"
+            print "Exception: " + str(e)
+            return HttpResponse(status=500)
+
+
+class DeviceTotalData(generic.DetailView):
+
+    def get(self, request, *args, **kwargs):
+        try:
+            device = kwargs["pk"]
+            total_data = len(Data.objects.all().filter(device=device))
+
+            return JsonResponse({'total_data': total_data})
+
+        except Exception as e:
+            print "Some error ocurred getting TotalData"
             print "Exception: " + str(e)
             return HttpResponse(status=500)
 
@@ -1113,7 +1158,6 @@ class DisableView(generic.View):
 
         return JsonResponse({'status':True})
 
-
 class DeviceStatisticsView(generic.DetailView):
     model = Device
     """
@@ -1191,6 +1235,102 @@ class DeviceStatisticsView(generic.DetailView):
 
             #return JsonResponse({'device': device, 'data_sum': data_sum, 'days_created': days, 'hours_created':hours, 'prom_days': prom_days, 'prom_hours':prom_hours, 'prom_total': data_avg })
             return JsonResponse({'device': device, 'data_sum': data_sum, 'days_created': days, 'hours_created':hours, 'prom_total': data_avg, 'last_data':last_data, 'data_list_avg_states': data_avg_states, 'data_list_sum_states': data_sum_states })
+
+        except Exception as e:
+            print "Some error ocurred getting Device Data"
+            print "Exception: " + str(e)
+            raise
+            return HttpResponse(status=500)
+
+
+class StatisticsView(generic.DetailView):
+    model = Device
+    """
+    - ID componente
+    - Nombre componente
+    - Estado (encendido/apagado)
+
+    - Consumo total historico
+    - Consumo promedio historico:
+        - Por hora
+        - Por día
+        - Por mes
+    - Ultima medicion
+    - Tiempo del ultimo periodo de actividad en minutos/horas
+    - Consumo del último periodo de actividad total
+    - Consumo promedio del último periodo de actividad
+    - Cantidad de encendidos y apagados históricos
+    """
+    def get(self, request, *args, **kwargs):
+
+        try:
+            device_list = []
+
+            devices = Device.objects.all()
+
+            for device in devices:
+
+                data_list = []
+
+                data_query = Data.objects.all().filter(device=device)
+                data_query = list(data_query)
+
+                device = device.serialize()
+
+                for data in data_query:
+                    data_list.insert(0,data.serialize())
+
+                data_sum_query = Data.objects.all().filter(device= device['id']).aggregate(data_sum=Sum('data_value'))
+
+                date_from = device["created"]
+                date_to = datetime.datetime.now()
+
+                date1 = date_from
+                date2 = date_to
+
+                diff = date2 - date1
+
+                days, seconds = diff.days, diff.seconds
+                hours = days * 24 + seconds // 3600
+
+                data_sum = data_sum_query['data_sum']
+
+                if data_sum == None:
+                    data_sum = 0
+
+                prom_hours = data_sum / hours
+                prom_days = data_sum / days
+
+                data_avg_query = Data.objects.all().filter(device= device['id']).aggregate(data_avg=Avg('data_value'))
+                data_avg = data_avg_query['data_avg']
+
+                last_data = None
+                if len(data_query) > 0:
+                    last_data_query = Data.objects.all().filter(device= device['id'])
+                    last_data = list(last_data_query)[-1]
+                    last_data = int(last_data.serialize()['data_value'])
+
+
+                last_state_date_on = device['last_state_date_on']
+                last_state_date_off = device['last_state_date_off']
+                state_counter_on = device['state_counter_on']
+                state_counter_off = device['state_counter_off']
+
+                date_from = device['last_state_date_on']
+                date_to = device['last_state_date_off']
+
+                data_query_avg_states = Data.objects.all().filter(device=device['id'], date__gte=date_from, date__lte=date_to).aggregate(data_avg_states=Avg('data_value'))
+                data_avg_states = data_query_avg_states['data_avg_states']
+
+                data_query_sum_states = Data.objects.all().filter(device=device['id'], date__gte=date_from, date__lte=date_to).aggregate(data_sum_states=Sum('data_value'))
+                data_sum_states = data_query_sum_states['data_sum_states']
+
+                #return JsonResponse({'device': device, 'data_sum': data_sum, 'days_created': days, 'hours_created':hours, 'prom_days': prom_days, 'prom_hours':prom_hours, 'prom_total': data_avg })
+
+                device_data = {'device': device, 'data_sum': data_sum, 'days_created': days, 'hours_created':hours, 'prom_total': data_avg, 'last_data':last_data, 'data_list_avg_states': data_avg_states, 'data_list_sum_states': data_sum_states }
+                device_list.append(device_data)
+
+            return JsonResponse({"devices": device_list})
 
         except Exception as e:
             print "Some error ocurred getting Device Data"
