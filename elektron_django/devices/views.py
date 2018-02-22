@@ -75,6 +75,8 @@ def to_localtime(date):
     return date
 
 def check_device(**kwargs):
+    print "-------------- KWARGS --------------"
+    print kwargs
     if not 'device_ip' in kwargs:
         return False
     else:
@@ -87,11 +89,13 @@ def check_device(**kwargs):
         if type(kwargs['device_mac']) is list:
             kwargs['device_mac'] = kwargs['device_mac'][0]
 
+    """
     if not 'label' in kwargs:
         return False
     else:
         if type(kwargs['label']) is list:
             kwargs['label'] = kwargs['label'][0]
+    """
 
     if not 'devicestate' in kwargs:
         return False
@@ -159,11 +163,12 @@ class DeviceByMac(generic.DetailView):
     def post(self, request, *args, **kwargs):
         """Return a Device by MAC"""
         result = check_device(**request.POST)
-
         if result:
             try:
                 device_mac = str(result["device_mac"]).encode("utf-8")
-                return JsonResponse({'device': Device.objects.get(device_mac=str(device_mac)).serialize()})
+                device = Device.objects.get(device_mac=str(device_mac)).serialize()
+                
+                return JsonResponse({'device': device})
             except Exception as e:
                 print "Some error ocurred getting Single Device by MAC"
                 print "Exception: " + str(e)
