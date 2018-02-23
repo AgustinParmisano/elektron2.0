@@ -25,8 +25,8 @@ def remove_duplicated_msg(mqtt_data):
 """
 
 def msg_ws(msg):
-   resp = publish.single("data_to_web", msg, hostname="localhost")
-   return resp
+    resp = publish.single("data_to_web", msg, hostname="localhost")
+    return resp
 
 """
 def create_new_device(device_mqtt):
@@ -54,6 +54,8 @@ def check_device(device_mqtt):
             result = "enabled"
         else:
             result = "disabled"
+
+        result = requests.post("http://localhost:8000/devices/updateip", data=device_mqtt).status_code
 
     else:
         result = requests.post("http://localhost:8000/devices/create", data=device_mqtt).status_code
@@ -86,7 +88,7 @@ def on_message_device(client, userdata, msg):
         if device_ok == "enabled":
             mqtt_data = ast.literal_eval(json.dumps(mqtt_data))
             message = str(mqtt_data)
-            #msg_ws(message)
+            msg_ws(message)
             mqtt_data = check_data(mqtt_data)
     except Exception as e:
         print "Exception in on_message_device : " + str(e)

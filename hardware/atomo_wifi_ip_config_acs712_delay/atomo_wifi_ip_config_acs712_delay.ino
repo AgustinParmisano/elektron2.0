@@ -641,7 +641,7 @@ void loop() {
             if (power_data > 1000) {
               power_data = 0;
             }
-            String payload = "{\"device_ip\":\"" + localip + "\",\"device_mac\":\"" + mac + "\",\"label\":\"" + elektronname + "\",\"data_value\":\"" + power_data + "\"}";
+            String payload = "{\"device_ip\":\"" + localip + "\",\"device_mac\":\"" + mac + "\",\"label\":\"" + elektronname + "\",\"data_value\":\"" + valorVoltajeSensor + "\"}";
             payload.toCharArray(data, (payload.length() + 1));
 
             Serial.print("Data to publish to client by loop:");

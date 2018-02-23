@@ -86,8 +86,8 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
             #msg["last_data_time"] = str(datetime.datetime.now())
             message = msg
             #print type(message)
-            #print "Sending device message to WebInterface"
-            #print message
+            print "Sending device message to WebInterface"
+            print message
 
             try:
                 time.sleep(1)

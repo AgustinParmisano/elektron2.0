@@ -89,16 +89,15 @@ def check_device(**kwargs):
         if type(kwargs['device_mac']) is list:
             kwargs['device_mac'] = kwargs['device_mac'][0]
 
-    """
     if not 'label' in kwargs:
-        return False
+        #return false
+        pass
     else:
         if type(kwargs['label']) is list:
             kwargs['label'] = kwargs['label'][0]
-    """
 
     if not 'devicestate' in kwargs:
-        return False
+        pass #return False
     else:
         if type(kwargs['devicestate']) is list:
             kwargs['devicestate'] = kwargs['devicestate'][0]
@@ -108,7 +107,7 @@ def check_device(**kwargs):
     except Exception as e:
         #TODO: create default devicestates in settings.py
         kwargs['devicestate'] = DeviceState.objects.get(name="off")
-        raise
+        pass
     try:
         kwargs['owner'] = User.objects.get(username=kwargs['owner'])
     except Exception as e:
@@ -167,7 +166,7 @@ class DeviceByMac(generic.DetailView):
             try:
                 device_mac = str(result["device_mac"]).encode("utf-8")
                 device = Device.objects.get(device_mac=str(device_mac)).serialize()
-                
+
                 return JsonResponse({'device': device})
             except Exception as e:
                 print "Some error ocurred getting Single Device by MAC"
@@ -1130,6 +1129,29 @@ class UpdateLabelView(generic.View):
         device.save()
 
         return JsonResponse({'status':True})
+
+class UpdateIpView(generic.View):
+
+    def post(self, request, *args, **kwargs):
+
+        try:
+
+            device_mac = request.POST["device_mac"]
+            new_ip = request.POST['device_ip']
+            device = Device.objects.get(device_mac=device_mac)
+            device.device_ip = new_ip
+
+
+        except Device.DoesNotExist:
+            print "Some error ocurred shutting downd Single Device with id: " + str(kwargs["pk"])
+            print "No such device"
+            print "Exception: " + str(e)
+            return HttpResponse(status=500)
+
+        device.save()
+
+        return JsonResponse({'status':True})
+
 
 class EnableView(generic.View):
 

@@ -33,6 +33,7 @@ urlpatterns = [
     url(r'^(?P<pk>[0-9]+)/shutdown$', csrf_exempt(views.ShutdownView.as_view()), name='shutdown'),
     url(r'^(?P<pk>[0-9]+)/turnon$', csrf_exempt(views.TurnonView.as_view()), name='turnon'),
     url(r'^(?P<pk>[0-9]+)/updatelabel$', csrf_exempt(views.UpdateLabelView.as_view()), name='updatelabel'),
+    url(r'^updateip$', csrf_exempt(views.UpdateIpView.as_view()), name='updateip'),
     url(r'^(?P<pk>[0-9]+)/enable$', csrf_exempt(views.EnableView.as_view()), name='enable'),
     url(r'^(?P<pk>[0-9]+)/disable$', csrf_exempt(views.DisableView.as_view()), name='disable'),
     url(r'^(?P<pk>[0-9]+)/statistics$', csrf_exempt(views.DeviceStatisticsView.as_view()), name='statistics'),
