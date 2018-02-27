@@ -161,17 +161,16 @@ class DeviceByMac(generic.DetailView):
 
     def post(self, request, *args, **kwargs):
         """Return a Device by MAC"""
-        result = check_device(**request.POST)
-        if result:
-            try:
-                device_mac = str(result["device_mac"]).encode("utf-8")
-                device = Device.objects.get(device_mac=str(device_mac)).serialize()
+        result = request.POST
+        try:
+            device_mac = str(result["device_mac"]).encode("utf-8")
+            device = Device.objects.get(device_mac=str(device_mac)).serialize()
 
-                return JsonResponse({'device': device})
-            except Exception as e:
-                print "Some error ocurred getting Single Device by MAC"
-                print "Exception: " + str(e)
-                return HttpResponse(status=500)
+            return JsonResponse({'device': device})
+        except Exception as e:
+            print "Some error ocurred getting Single Device by MAC"
+            print "Exception: " + str(e)
+            return HttpResponse(status=500)
 
 class DeviceDataView(generic.DetailView):
     model = Device
