@@ -141,7 +141,38 @@ class IndexView(generic.ListView):
 
     def get(self, request, *args, **kwargs):
         """Return all devices."""
-        return JsonResponse({'devices': list(map(lambda x: x.serialize(), Device.objects.all()))})
+
+        pluged_devices = []
+
+
+        stateoff = DeviceState.objects.get(name="off")
+        stateon = DeviceState.objects.get(name="on")
+        #devices = list(map(lambda x: x.serialize(), Device.objects.all().filter(devicestate=stateon, enabled=True)))
+        devices = Device.objects.all().filter(devicestate=stateon, enabled=True)
+
+        for device in devices:
+            datehourago = datetime.datetime.now() - timedelta(hours=1)
+            data_query = Data.objects.all().filter(device=device, date__gte=datehourago)
+            if len(data_query) > 0:
+                #pluged_devices.append(device)
+                device.pluged = True
+            else:
+                device.pluged = False
+            device.save()
+
+        """
+        off_devices = Device.objects.all().filter(devicestate=stateoff)
+        for device in off_devices:
+                pluged_devices.append(device)
+
+        disabled_devices = Device.objects.all().filter(enabled=False)
+        for device in disabled_devices:
+                pluged_devices.append(device)
+        """
+
+        pluged_devices = Device.objects.all().filter(pluged=True)
+
+        return JsonResponse({'devices': list(map(lambda x: x.serialize(), pluged_devices))})
 
 class DetailView(generic.DetailView):
     model = Device
@@ -216,7 +247,6 @@ class DeviceDataOffsetLimitView(generic.DetailView):
             for data in data_query:
                 data_list.insert(0,data.serialize())
 
-            #print data_list
             return JsonResponse({'total_data': total_data,'data': data_list})
 
         except Exception as e:
@@ -666,7 +696,6 @@ class DeviceLastDataView(generic.DetailView):
             for data in data_query:
                 data_list.insert(0,data.serialize())
 
-            print data_list
             return JsonResponse({'data': data_list})
 
         except Exception as e:

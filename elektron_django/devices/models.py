@@ -51,6 +51,7 @@ class Device(models.Model):
     last_run = models.DateTimeField(default=timezone.now())
     state_counter_on = models.IntegerField(default=0)
     state_counter_off = models.IntegerField(default=0)
+    pluged = models.BooleanField(default=True)
 
     class Meta:
         ordering = ('created',)
@@ -73,5 +74,6 @@ class Device(models.Model):
             'last_state_date_on': to_UTC(self.created),
             'last_state_date_off': to_UTC(self.created),
             'state_counter_on': self.state_counter_on,
-            'state_counter_off':  self.state_counter_off
+            'state_counter_off':  self.state_counter_off,
+            'pluged':  self.pluged
         }
