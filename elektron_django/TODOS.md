@@ -3,11 +3,10 @@
 ## Recent:
 	- Ver si está obteniendo los promedios por hora y por día coherentes por dispositivos (watts / hora) y retorna coherentemente para el gráfico de barras de estadísticas
 	- Hay un error en obtener los datos del día: si estamos a menos de 1 hora del siguiente día no obtiene bien los datos del día.
-	- El estado del dispositivo debe ponerse en OFF en el servidor al conectarse (o el servidor debe consutlar el estado al dispositivo en cada primer conexión a MQTT).
 	- La IP del dispositivo puede cambiar y no se refleja en la iterfaz / servidor.
 	- Crear un modelo nuevo que guarde como LOGS las tareas ejecutados y su información.
 	- Armar 3 nuevos lo mas chicos posibles con el código viejo a ver si andan
-	- Hacer un configurador automático de las redes para mejor testeo y escribir
+	- Hacer un configurador automático de las redes para mejor testeo
 
 ## Nodemcus:
 	- Armar 3 nuevos lo mas chicos posibles con el código viejo a ver si andan
@@ -25,13 +24,10 @@
 ## MQTT:
 	- Armar por lo menos 3 dispositivos con sensores reales:
 	- Probar todo con varios dispositivos reales
-	- Probar que funcione con ips locales
-	- Probar que funcione con la ip remota
 	- Ver seguridad MD5 salt en nodemcu y en el server.
 	- Se podría sacar websocket y dejar solo mqtt
 	- Se puede poner ssl con mqtt
 	- Se puede quality of service en los topocs (QoS) (lib) (video) http://sonoff.itead.cc/en/products/sonoff/sonoff-pow
-
 
 ## Controlador (views):
 	- Ver que devolver en cada caso  (error con http response 505 o en la alta)

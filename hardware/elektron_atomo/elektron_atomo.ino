@@ -657,7 +657,7 @@ void loop() {
           if (currentMillis - previousMillis >= interval) {
             previousMillis = currentMillis;
             power_data = power_data / divs;
-            if (power_data > 1000) {
+            if (power_data > 5000) {
               power_data = 0;
             }
             String payload = "{\"device_ip\":\"" + localip + "\",\"device_mac\":\"" + mac + "\",\"label\":\"" + elektronname + "\",\"data_value\":\"" + power_data + "\"}";
