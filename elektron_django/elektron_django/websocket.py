@@ -83,6 +83,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
             msg["device_ip"] = message["device_ip"]
             msg["device_mac"] = message["device_mac"]
             msg["data_value"] = message["data_value"]
+            msg["data_datetime"] = message["date"]
             #msg["last_data_time"] = str(datetime.datetime.now())
             message = msg
             #print type(message)
