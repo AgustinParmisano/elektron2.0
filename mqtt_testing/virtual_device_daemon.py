@@ -14,6 +14,8 @@ import Queue
 from virtual_device_creator import Device
 import time
 
+q = Queue.Queue()
+
 def on_connect(client, userdata, flags, rc):
    print("Connected with result code "+str(rc))
 

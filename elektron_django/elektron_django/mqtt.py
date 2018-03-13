@@ -39,7 +39,7 @@ def create_new_device(device_mqtt):
 """
 
 def check_data(mqtt_data):
-    print "Sending MQTT Data: "
+    print "Sending MQTT Data to Server: "
     print mqtt_data
     result = requests.post("http://localhost:8000/data/create", data=mqtt_data)
     #print result
@@ -47,19 +47,24 @@ def check_data(mqtt_data):
 
 def check_device(device_mqtt):
     device = requests.post("http://localhost:8000/devices/mac", data=device_mqtt)
+
     if device.status_code == 200:
+        print "Device does exists in system. Checking if its enabled."
         is_enabled = json.loads(device.content)["device"]["enabled"]
+        print "is_enabled"
+        print is_enabled
         if is_enabled:
             print "Device " + json.loads(device.content)["device"]["label"] + " is enabled"
-            result = "enabled"
+            result = 0
         else:
-            result = "disabled"
+            result = 1
 
-        result = requests.post("http://localhost:8000/devices/updateip", data=device_mqtt).status_code
-
+        ipchange = requests.post("http://localhost:8000/devices/updateip", data=device_mqtt).status_code
+        if ipchange != 200:
+            print "Warning!: IP failed to change! "
     else:
         result = requests.post("http://localhost:8000/devices/create", data=device_mqtt).status_code
-
+        print "Device does not exists in system. Creating it."
         if result == 200:
             result = True
         else:
@@ -85,11 +90,15 @@ def on_message_device(client, userdata, msg):
         #mqtt_data # = remove_duplicated_msg(mqtt_data)
         device_ok = check_device(mqtt_data)
 
-        if device_ok == "enabled":
+        print "device_ok"
+        print device_ok
+
+        if device_ok == 0:
             mqtt_data = ast.literal_eval(json.dumps(mqtt_data))
             message = str(mqtt_data)
             msg_ws(message)
             mqtt_data = check_data(mqtt_data)
+            
     except Exception as e:
         print "Exception in on_message_device : " + str(e)
         #raise
