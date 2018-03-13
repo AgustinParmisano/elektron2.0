@@ -61,7 +61,7 @@ def check_device(device_mqtt):
 
         ipchange = requests.post("http://localhost:8000/devices/updateip", data=device_mqtt).status_code
         if ipchange != 200:
-            #print "Warning!: IP failed to change! "
+            print "Warning!: IP failed to change! "
     else:
         result = requests.post("http://localhost:8000/devices/create", data=device_mqtt).status_code
         #print "Device does not exists in system. Creating it."
