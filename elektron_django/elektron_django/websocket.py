@@ -15,7 +15,7 @@ import Queue
 q = Queue.Queue()
 
 def on_connect(client, userdata, flags, rc):
-   #print("Connected with result code "+str(rc))
+   print("Connected with result code "+str(rc))
 
    # Subscribing in on_connect() means that if we lose the connection and
    # reconnect then subscriptions will be renewed.
@@ -62,7 +62,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
 
     # the client connected
     def open(self):
-        #print ("New client connected")
+        print ("New client connected")
         self.write_message("You are connected")
         clients.append(self)
         tornado.ioloop.IOLoop.instance().add_timeout(timedelta(seconds=1), self.test)
@@ -88,13 +88,13 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
                 time.sleep(1)
                 self.write_message(message)
             except Exception as e:
-                #print "Exception in test write message: "
-                #print e
-                raise(e)
+                print "Exception in test write message: "
+                print e
+                #raise(e)
         except Exception as e:
-            #print "Exception in test write message 2: "
-            #print e
-            raise(e)
+            print "Exception in test write message 2: "
+            print e
+            #raise(e)
         else:
             tornado.ioloop.IOLoop.instance().add_timeout(timedelta(seconds=0.1), self.test)
 
@@ -111,19 +111,20 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
            #print  msg
 
         except Exception as e:
-            #print ("Exception in on_message:")
-            #print e
+            print ("Exception in on_message:")
+            print e
         #self.write_message(message)
 
     # client disconnected
     def on_close(self):
-        #print ("Client disconnected")
+        print ("Client disconnected")
         clients.remove(self)
 
 socket = tornado.web.Application([(r"/websocket", WebSocketHandler),])
 
-#print("Starting WebSocket")
-#print("Opening port 8888")
+print("\n")
+print("Starting WebSocket")
+print("Opening port 8888")
 socket.listen(8888)
 
 tornado.ioloop.IOLoop.instance().start()
