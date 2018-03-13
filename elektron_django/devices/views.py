@@ -170,7 +170,7 @@ class IndexView(generic.ListView):
                 pluged_devices.append(device)
         """
 
-        pluged_devices = Devices.objects.all().filter()
+        pluged_devices = Device.objects.all().filter()
 
         return JsonResponse({'devices': list(map(lambda x: x.serialize(), pluged_devices))})
 
