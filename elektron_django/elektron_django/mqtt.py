@@ -100,7 +100,7 @@ def on_message_device(client, userdata, msg):
             mqtt_data = check_data(mqtt_data)
 
     except Exception as e:
-        #print "Exception in on_message_device : " + str(e)
+        print "Exception in on_message_device : " + str(e)
         #raise
 
 """
@@ -119,10 +119,10 @@ def on_message(client, userdata, msg):
 """
 
 def on_subscribe(client, userdata,mid, granted_qos):
-   #print "userdata : " +str(userdata)
+   print "userdata : " +str(userdata)
 
 def on_publish(mosq, obj, mid):
-   #print("mid: " + str(mid))
+   print("mid: " + str(mid))
 
 class MqttClient(object):
     """docstring for MqttClient."""
