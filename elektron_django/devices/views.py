@@ -1026,6 +1026,7 @@ class ShutdownView(generic.View):
                     device.devicestate = DeviceState.objects.get(name="off")
                     device.last_state_date_off = datetime.datetime.now()
                     device.state_counter_off += 1
+                    device.save()
                     mqtt = MqttClient()
                     mqtt.publish(order, topic)
 
@@ -1213,6 +1214,12 @@ class DisableView(generic.View):
 
         return JsonResponse({'status':True})
 
+def percent(num1, num2):
+    num1 = float(num1)
+    num2 = float(num2)
+    percentage = '{0:.2f}'.format((num1 / num2 * 100))
+    return percentage
+
 class DeviceStatisticsView(generic.DetailView):
     model = Device
     """
@@ -1272,6 +1279,7 @@ class DeviceStatisticsView(generic.DetailView):
 
             last_data_query = Data.objects.all().filter(device= device['id'])
             last_data = list(last_data_query)[-1]
+            last_data_date = last_data.serialize()['date']
             last_data = int(last_data.serialize()['data_value'])
 
             last_state_date_on = device['last_state_date_on']
@@ -1281,6 +1289,8 @@ class DeviceStatisticsView(generic.DetailView):
 
             date_from = device['last_state_date_on']
             date_to = device['last_state_date_off']
+            if date_to < date_from:
+                date_to = datetime.datetime.now()
 
             data_query_avg_states = Data.objects.all().filter(device=device['id'], date__gte=date_from, date__lte=date_to).aggregate(data_avg_states=Avg('data_value'))
             data_avg_states = data_query_avg_states['data_avg_states']
@@ -1288,8 +1298,18 @@ class DeviceStatisticsView(generic.DetailView):
             data_query_sum_states = Data.objects.all().filter(device=device['id'], date__gte=date_from, date__lte=date_to).aggregate(data_sum_states=Sum('data_value'))
             data_sum_states = data_query_sum_states['data_sum_states']
 
+            all_devices_sum = Data.objects.all().aggregate(all_devices_sum=Sum('data_value'))
+
+            all_devices_sum = all_devices_sum["all_devices_sum"]
+            device_percent = (data_sum * 100) /  all_devices_sum
+
+            device_co2 = ((data_sum / 1000) * 35) / 100
+
+            total_co2 = ((all_devices_sum / 1000) * 35) / 100
+
             #return JsonResponse({'device': device, 'data_sum': data_sum, 'days_created': days, 'hours_created':hours, 'prom_days': prom_days, 'prom_hours':prom_hours, 'prom_total': data_avg })
-            return JsonResponse({'device': device, 'data_sum': data_sum, 'days_created': days, 'hours_created':hours, 'prom_total': data_avg, 'last_data':last_data, 'data_list_avg_states': data_avg_states, 'data_list_sum_states': data_sum_states })
+            return JsonResponse({'device': device, 'device_co2': device_co2, 'total_co2': total_co2, 'device_percent':device_percent ,'data_sum': data_sum, 'days_created': days, 'hours_created':hours, 'prom_total': data_avg, 'last_data': { 'value': last_data, 'date':last_data_date}, 'data_list_avg_states': data_avg_states, 'data_list_sum_states': data_sum_states })
+
 
         except Exception as e:
             print "Some error ocurred getting Device Data"

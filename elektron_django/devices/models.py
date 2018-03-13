@@ -71,8 +71,8 @@ class Device(models.Model):
             'label': self.label,
             'devicestate': self.devicestate.serialize(),
             'enabled': self.enabled,
-            'last_state_date_on': to_UTC(self.created),
-            'last_state_date_off': to_UTC(self.created),
+            'last_state_date_on': to_UTC(self.last_state_date_on),
+            'last_state_date_off': to_UTC(self.last_state_date_off),
             'state_counter_on': self.state_counter_on,
             'state_counter_off':  self.state_counter_off,
             'pluged':  self.pluged
