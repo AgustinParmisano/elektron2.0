@@ -24,4 +24,5 @@ urlpatterns = [
     url(r'^hours$', csrf_exempt(views.DataBetweenHoursPostView.as_view()), name='data_hours_post'),
     url(r'^offsetlimit/(?P<offset>\d+)/(?P<limit>\d+)/(?P<order>\d+)/$', csrf_exempt(views.GetDataOffsetLimit.as_view()), name='get_data_offset_limit'),
     url(r'^totaldata$', csrf_exempt(views.GetTotalData.as_view()), name='get_total_data'),
+    url(r'^totalwattstaxco2$', csrf_exempt(views.GetDataWattsTaxCo2.as_view()), name='get_total_watts_tax_co2'),
 ]

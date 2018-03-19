@@ -17,6 +17,15 @@ from django.conf import settings
 from django.db.models import Sum, Avg
 from django.core import serializers
 
+def watts_tax_co2_converter(watts):
+    co2_porcent = 35
+    total_co2 = ((watts / 1000) * co2_porcent) / 100
+
+    edelap_marzo18 = 0.002779432624113475
+    total_tax = watts * edelap_marzo18
+
+    return {'total_watts': watts, 'total_tax': total_tax, 'total_co2': total_co2}
+
 def to_localtime(date):
     utc = settings.UTC
     if utc < 0:
@@ -87,6 +96,21 @@ class DataPH(object):
             'data_value': self.data_value,
             'date' : self.date,
         }
+
+class GetDataWattsTaxCo2(generic.DetailView):
+
+    def get(self, request, *args, **kwargs):
+        try:
+            total_data =  Data.objects.all().aggregate(all_devices_sum=Sum('data_value'))
+            data = watts_tax_co2_converter(total_data["all_devices_sum"])
+
+            return JsonResponse({'total_watts': data["total_watts"],'total_tax': data["total_tax"],'total_co2': data["total_co2"]})
+
+        except Exception as e:
+            print "Some error ocurred getting GetDataWattsTaxCo2"
+            print "Exception: " + str(e)
+            raise
+            return HttpResponse(status=500)
 
 class DataDayPerHourView(generic.DetailView):
     model = Data
