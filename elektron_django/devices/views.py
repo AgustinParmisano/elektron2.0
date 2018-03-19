@@ -1266,13 +1266,13 @@ class DeviceStatisticsView(generic.DetailView):
             days, seconds = diff.days, diff.seconds
             hours = days * 24 + seconds // 3600
 
-            data_sum = data_sum_query['data_sum']
+            device_data_sum = data_sum_query['data_sum']
 
-            if data_sum == None:
-                data_sum = 0
+            if device_data_sum == None:
+                device_data_sum = 0
 
-            prom_hours = data_sum / hours
-            prom_days = data_sum / days
+            prom_hours = device_data_sum / hours
+            prom_days = device_data_sum / days
 
             data_avg_query = Data.objects.all().filter(device= device['id']).aggregate(data_avg=Avg('data_value'))
             data_avg = data_avg_query['data_avg']
@@ -1301,14 +1301,19 @@ class DeviceStatisticsView(generic.DetailView):
             all_devices_sum = Data.objects.all().aggregate(all_devices_sum=Sum('data_value'))
 
             all_devices_sum = all_devices_sum["all_devices_sum"]
-            device_percent = (data_sum * 100) /  all_devices_sum
+            device_percent = (device_data_sum * 100) /  all_devices_sum
 
-            device_co2 = ((data_sum / 1000) * 35) / 100
-
-            total_co2 = ((all_devices_sum / 1000) * 35) / 100
+            co2_porcent = 35
+            device_co2 = ((device_data_sum / 1000) * co2_porcent) / 100
+            
+            total_co2 = ((all_devices_sum / 1000) * co2_porcent) / 100
+            
+            edelap_marzo18 = 0.002779432624113475
+            device_tarifa = device_data_sum * edelap_marzo18
+            total_tarifa = all_devices_sum * edelap_marzo18
 
             #return JsonResponse({'device': device, 'data_sum': data_sum, 'days_created': days, 'hours_created':hours, 'prom_days': prom_days, 'prom_hours':prom_hours, 'prom_total': data_avg })
-            return JsonResponse({'device': device, 'device_co2': device_co2, 'total_co2': total_co2, 'device_percent':device_percent ,'data_sum': data_sum, 'days_created': days, 'hours_created':hours, 'prom_total': data_avg, 'last_data': { 'value': last_data, 'date':last_data_date}, 'data_list_avg_states': data_avg_states, 'data_list_sum_states': data_sum_states })
+            return JsonResponse({'device': device, 'device_tarifa':device_tarifa, 'total_tarifa':total_tarifa,  'device_co2': device_co2, 'total_co2': total_co2, 'device_percent':device_percent ,'device_data_sum': device_data_sum, 'all_data_sum': all_devices_sum, 'days_created': days, 'hours_created':hours, 'prom_total': data_avg, 'last_data': { 'value': last_data, 'date':last_data_date}, 'data_list_avg_states': data_avg_states, 'data_list_sum_states': data_sum_states })
 
 
         except Exception as e:
