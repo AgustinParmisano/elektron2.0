@@ -1383,8 +1383,10 @@ class StatisticsView(generic.DetailView):
                 if len(data_query) > 0:
                     last_data_query = Data.objects.all().filter(device= device['id'])
                     last_data = list(last_data_query)[-1]
+                    last_data_date = last_data.serialize()['date']
                     last_data = float(last_data.serialize()['data_value'])
-
+                else:
+                    last_data_date = ""
 
                 last_state_date_on = device['last_state_date_on']
                 last_state_date_off = device['last_state_date_off']
@@ -1393,16 +1395,24 @@ class StatisticsView(generic.DetailView):
 
                 date_from = device['last_state_date_on']
                 date_to = device['last_state_date_off']
-
+                if date_to < date_from:
+                    date_to = datetime.datetime.now()
+                    
                 data_query_avg_states = Data.objects.all().filter(device=device['id'], date__gte=date_from, date__lte=date_to).aggregate(data_avg_states=Avg('data_value'))
                 data_avg_states = data_query_avg_states['data_avg_states']
 
                 data_query_sum_states = Data.objects.all().filter(device=device['id'], date__gte=date_from, date__lte=date_to).aggregate(data_sum_states=Sum('data_value'))
                 data_sum_states = data_query_sum_states['data_sum_states']
 
-                #return JsonResponse({'device': device, 'data_sum': data_sum, 'days_created': days, 'hours_created':hours, 'prom_days': prom_days, 'prom_hours':prom_hours, 'prom_total': data_avg })
+                co2_porcent = 35
+                device_co2 = ((data_sum / 1000) * co2_porcent) / 100
+                total_co2 = ((data_sum / 1000) * co2_porcent) / 100
 
-                device_data = {'device': device, 'data_sum': data_sum, 'days_created': days, 'hours_created':hours, 'prom_total': data_avg, 'last_data':last_data, 'data_list_avg_states': data_avg_states, 'data_list_sum_states': data_sum_states }
+                edelap_marzo18 = 0.002779432624113475
+                device_tarifa = data_sum * edelap_marzo18
+                total_tarifa = data_sum * edelap_marzo18
+
+                device_data = {'device': device, 'data_sum': data_sum, 'device_tarifa':device_tarifa, 'total_tarifa':total_tarifa,  'device_co2': device_co2, 'total_co2': total_co2, 'days_created': days, 'hours_created':hours, 'prom_total': data_avg, 'last_data': { 'value': last_data, 'date':last_data_date}, 'data_list_avg_states': data_avg_states, 'data_list_sum_states': data_sum_states }
                 device_list.append(device_data)
 
             return JsonResponse({"devices": device_list})
