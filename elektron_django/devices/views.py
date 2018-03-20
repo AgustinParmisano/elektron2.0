@@ -23,6 +23,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from elektron_django.mqtt import MqttClient
 from django.db.models import Sum, Avg
+from django.core import serializers
 
 q = Queue.Queue()
 
@@ -1250,9 +1251,6 @@ class DeviceStatisticsView(generic.DetailView):
 
             device = device[0].serialize()
 
-            for data in data_query:
-                data_list.insert(0,data.serialize())
-
             data_sum_query = Data.objects.all().filter(device= device['id']).aggregate(data_sum=Sum('data_value'))
 
             date_from = device["created"]
@@ -1268,11 +1266,11 @@ class DeviceStatisticsView(generic.DetailView):
 
             device_data_sum = data_sum_query['data_sum']
 
-            if device_data_sum == None:
+            if data_sum == None or data_sum == 0:
                 device_data_sum = 0
-
-            prom_hours = device_data_sum / hours
-            prom_days = device_data_sum / days
+            else:
+                prom_hours = device_data_sum / hours
+                prom_days = device_data_sum / days
 
             data_avg_query = Data.objects.all().filter(device= device['id']).aggregate(data_avg=Avg('data_value'))
             data_avg = data_avg_query['data_avg']
@@ -1280,7 +1278,7 @@ class DeviceStatisticsView(generic.DetailView):
             last_data_query = Data.objects.all().filter(device= device['id'])
             last_data = list(last_data_query)[-1]
             last_data_date = last_data.serialize()['date']
-            last_data = int(last_data.serialize()['data_value'])
+            last_data = float(last_data.serialize()['data_value'])
 
             last_state_date_on = device['last_state_date_on']
             last_state_date_off = device['last_state_date_off']
@@ -1305,9 +1303,9 @@ class DeviceStatisticsView(generic.DetailView):
 
             co2_porcent = 35
             device_co2 = ((device_data_sum / 1000) * co2_porcent) / 100
-            
+
             total_co2 = ((all_devices_sum / 1000) * co2_porcent) / 100
-            
+
             edelap_marzo18 = 0.002779432624113475
             device_tarifa = device_data_sum * edelap_marzo18
             total_tarifa = all_devices_sum * edelap_marzo18
@@ -1357,9 +1355,6 @@ class StatisticsView(generic.DetailView):
 
                 device = device.serialize()
 
-                for data in data_query:
-                    data_list.insert(0,data.serialize())
-
                 data_sum_query = Data.objects.all().filter(device= device['id']).aggregate(data_sum=Sum('data_value'))
 
                 date_from = device["created"]
@@ -1375,11 +1370,11 @@ class StatisticsView(generic.DetailView):
 
                 data_sum = data_sum_query['data_sum']
 
-                if data_sum == None:
+                if data_sum == None or data_sum == 0:
                     data_sum = 0
-
-                prom_hours = data_sum / hours
-                prom_days = data_sum / days
+                else:
+                    prom_hours = data_sum / hours
+                    prom_days = data_sum / days
 
                 data_avg_query = Data.objects.all().filter(device= device['id']).aggregate(data_avg=Avg('data_value'))
                 data_avg = data_avg_query['data_avg']
@@ -1388,7 +1383,7 @@ class StatisticsView(generic.DetailView):
                 if len(data_query) > 0:
                     last_data_query = Data.objects.all().filter(device= device['id'])
                     last_data = list(last_data_query)[-1]
-                    last_data = int(last_data.serialize()['data_value'])
+                    last_data = float(last_data.serialize()['data_value'])
 
 
                 last_state_date_on = device['last_state_date_on']
