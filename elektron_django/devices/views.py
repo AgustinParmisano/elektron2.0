@@ -75,9 +75,14 @@ def to_localtime(date):
         date = date - timedelta(hours=abs(utc))
     return date
 
+def remove_data_nulls(data_list):
+    for data in data_list:
+        if data['data_value'] == None:
+            data['data_value'] = 0
+    return data_list
+
 def check_device(**kwargs):
-    print "-------------- KWARGS --------------"
-    print kwargs
+
     if not 'device_ip' in kwargs:
         return False
     else:
@@ -127,13 +132,12 @@ def check_device_mac(**kwargs):
     return kwargs
 
 def to_json(**kwargs):
-    print "kwargs to json"
-    print kwargs
 
     if len(kwargs) == 2:
-        print "hay que convertir a dict"
+        pass
+        #print "hay que convertir a dict"
     else:
-        print "hay que dejarlo igual"
+        #print "hay que dejarlo igual"
         return kwargs
 
 
@@ -220,6 +224,7 @@ class DeviceDataView(generic.DetailView):
                 data_list.insert(0,data.serialize())
 
             #print data_list
+            data_list = remove_data_nulls(data_list)
             return JsonResponse({'data': data_list})
 
         except Exception as e:
@@ -229,15 +234,15 @@ class DeviceDataView(generic.DetailView):
 
 
 class DeviceDataOffsetLimitView(generic.DetailView):
-    DEFAULT_OFFSET = 1
     DEFAULT_LIMIT = 20
     DEFAULT_ORDER = 1
+    DEFAULT_OFFSET = 1
 
     def get(self, request, *args, **kwargs):
         try:
             data_list = []
             offset = int(kwargs['offset'] if 'offset' in kwargs else self.DEFAULT_OFFSET) -1
-            limit = kwargs['limit'] if 'limit' in kwargs else self.DEFAULT_LIMIT
+            limit = int(kwargs['limit'] if 'limit' in kwargs else self.DEFAULT_LIMIT)
             order = kwargs['order'] if 'order' in kwargs else self.DEFAULT_ORDER
 
             device = kwargs["pk"]
@@ -248,7 +253,7 @@ class DeviceDataOffsetLimitView(generic.DetailView):
             for data in data_query:
                 data_list.insert(0,data.serialize())
 
-            return JsonResponse({'total_data': total_data,'data': data_list})
+            return JsonResponse({'total_data': total_data,'data': data_list, 'pages': total_data / (limit - offset)})
 
         except Exception as e:
             print "Some error ocurred getting Device Data"
@@ -299,6 +304,7 @@ class DeviceMacDataView(generic.DetailView):
                         data_list.insert(0,data.serialize())
 
                     #print data_list
+                    data_list = remove_data_nulls(data_list)
                     return JsonResponse({'data': data_list})
 
                 except Exception as e:
@@ -330,6 +336,7 @@ class DeviceMacDataView(generic.DetailView):
                         data_list.insert(0,data.serialize())
 
                     #print data_list
+                    data_list = remove_data_nulls(data_list)
                     return JsonResponse({'data': data_list})
 
                 except Exception as e:
@@ -428,6 +435,7 @@ class DeviceDataDayView(generic.DetailView):
 
 
             #print data_list
+            data_list = remove_data_nulls(data_list)
             return JsonResponse({'data': data_list})
 
         except Exception as e:
@@ -462,6 +470,7 @@ class DeviceDataMonthView(generic.DetailView):
 
 
             #print data_list
+            data_list = remove_data_nulls(data_list)
             return JsonResponse({'data': data_list})
 
         except Exception as e:
@@ -470,12 +479,18 @@ class DeviceDataMonthView(generic.DetailView):
             return HttpResponse(status=500)
 
 class DeviceDataBetweenDaysView(generic.DetailView):
-    model = Device
+    DEFAULT_OFFSET = 1
+    DEFAULT_LIMIT = 20
+    DEFAULT_ORDER = 1
 
     def get(self, request, *args, **kwargs):
 
         try:
             data_list = []
+            offset = int(kwargs['offset'] if 'offset' in kwargs else self.DEFAULT_OFFSET) -1
+            limit = kwargs['limit'] if 'limit' in kwargs else self.DEFAULT_LIMIT
+            order = kwargs['order'] if 'order' in kwargs else self.DEFAULT_ORDER
+
             device = kwargs["pk"]
 
             day1 = kwargs["day1"]
@@ -492,13 +507,14 @@ class DeviceDataBetweenDaysView(generic.DetailView):
             date_from = datetime.datetime.strptime(date_string1, "%d-%m-%Y").date()
             date_to = datetime.datetime.strptime(date_string2, "%d-%m-%Y").date()
 
-            data_query = Data.objects.all().filter(device=device, date__gte=date_from, date__lte=date_to)
+            data_query = Data.objects.all().filter(device=device, date__gte=date_from, date__lte=date_to)[offset:limit]
             data_query = list(data_query)
 
             for data in data_query:
                 data_list.insert(0,data.serialize())
 
             #print data_list
+            data_list = remove_data_nulls(data_list)
             return JsonResponse({'data': data_list})
 
         except Exception as e:
@@ -547,6 +563,7 @@ class DeviceDataBetweenDaysPerhourView(generic.DetailView):
                 date_to = date_to + timedelta(hours=1)
 
             #print data_list
+            data_list = remove_data_nulls(data_list)
             return JsonResponse({'data': data_list})
 
         except Exception as e:
@@ -594,7 +611,8 @@ class DeviceDataBetweenDaysPerdayView(generic.DetailView):
                 date_from = date_from + timedelta(hours=24)
                 date_to = date_to + timedelta(hours=24)
 
-            #print data_list
+            #print
+            data_list = remove_data_nulls(data_list)
             return JsonResponse({'data': data_list})
 
         except Exception as e:
@@ -631,6 +649,7 @@ class DeviceDataHourView(generic.DetailView):
                 data_list.insert(0,data.serialize())
 
             #print data_list
+            data_list = remove_data_nulls(data_list)
             return JsonResponse({'data': data_list})
 
         except Exception as e:
@@ -639,12 +658,18 @@ class DeviceDataHourView(generic.DetailView):
             return HttpResponse(status=500)
 
 class DeviceDataBetweenHoursView(generic.DetailView):
-    model = Device
+    DEFAULT_LIMIT = 20
+    DEFAULT_ORDER = 1
+    DEFAULT_OFFSET = 1
 
     def get(self, request, *args, **kwargs):
 
         try:
             data_list = []
+            offset = int(kwargs['offset'] if 'offset' in kwargs else self.DEFAULT_OFFSET) -1
+            limit = int(kwargs['limit'] if 'limit' in kwargs else self.DEFAULT_LIMIT)
+            order = kwargs['order'] if 'order' in kwargs else self.DEFAULT_ORDER
+
             device = kwargs["pk"]
 
             day1 = kwargs["day1"]
@@ -672,13 +697,150 @@ class DeviceDataBetweenHoursView(generic.DetailView):
                 data_list.insert(0,data.serialize())
 
             #print data_list
-            return JsonResponse({'data': data_list})
+            total_data = len(data_list)
+            data_list = data_list[offset:limit]
+
+            data_list = remove_data_nulls(data_list)
+            return JsonResponse({'data': data_list, 'total_data': total_data, 'pages': total_data / (limit - offset)})
 
         except Exception as e:
             print "Some error ocurred getting Between Hours Device Data"
             print "Exception: " + str(e)
             return HttpResponse(status=500)
 
+
+class DeviceDataBetweenHoursPerHourView(generic.DetailView):
+    DEFAULT_LIMIT = 20
+    DEFAULT_ORDER = 1
+    DEFAULT_OFFSET = 1
+
+    def get(self, request, *args, **kwargs):
+
+        try:
+            data_list = []
+            offset = int(kwargs['offset'] if 'offset' in kwargs else self.DEFAULT_OFFSET) -1
+            limit = int(kwargs['limit'] if 'limit' in kwargs else self.DEFAULT_LIMIT)
+            order = kwargs['order'] if 'order' in kwargs else self.DEFAULT_ORDER
+
+            device = kwargs["pk"]
+
+            day1 = kwargs["day1"]
+            month1 = kwargs["month1"]
+            year1 = kwargs["year1"]
+            hour1 = kwargs["hour1"]
+
+            day2 = kwargs["day2"]
+            month2 = kwargs["month2"]
+            year2 = kwargs["year2"]
+            hour2 = kwargs["hour2"]
+
+            datetime_string1 = day1 + "-" + month1 + "-" + year1 + " " + hour1 + ":" + "00"
+            datetime_string2 = day2 + "-" + month2 + "-" + year2 + " " + hour2 + ":" + "00"
+
+            date_from = datetime.datetime.strptime(datetime_string1, "%d-%m-%Y %H:%M")
+            date_to = datetime.datetime.strptime(datetime_string2, "%d-%m-%Y %H:%M")
+            date_from = to_localtime(date_from)
+            date_to = to_localtime(date_to)
+
+            date1 = date_from
+            date2 = date_to
+
+            diff = date2 - date1
+
+            days, seconds = diff.days, diff.seconds
+            hours = days * 24 + seconds // 3600
+
+            device_obj = Device.objects.get(pk=device)
+            date_to = date_from + timedelta(hours=1)
+            for hours_to in range(0,hours + 1):
+                data_query = Data.objects.all().filter(device=device, date__gte=date_from, date__lte=date_to).aggregate(data_perhoursum_hour=Sum('data_value'))
+                dph = DataPH(data_query["data_perhoursum_hour"],device_obj,date_to)
+                data_list.insert(0,dph.serialize())
+                date_from = date_from + timedelta(hours=1)
+                date_to = date_to + timedelta(hours=1)
+
+            #print data_list
+            data_list = remove_data_nulls(data_list)
+
+            total_data = len(data_list)
+            data_list = data_list[offset:limit]
+
+            return JsonResponse({'data': data_list, 'total_data': total_data, 'pages': total_data / (limit - offset)})
+
+        except Exception as e:
+            print "Some error ocurred getting Between Hours Device Data"
+            print "Exception: " + str(e)
+            return HttpResponse(status=500)
+
+
+
+class DeviceDataBetweenHoursPerDayView(generic.DetailView):
+    DEFAULT_LIMIT = 20
+    DEFAULT_ORDER = 1
+    DEFAULT_OFFSET = 1
+
+    def get(self, request, *args, **kwargs):
+
+        try:
+            data_list = []
+            offset = int(kwargs['offset'] if 'offset' in kwargs else self.DEFAULT_OFFSET) -1
+            limit = int(kwargs['limit'] if 'limit' in kwargs else self.DEFAULT_LIMIT)
+            order = kwargs['order'] if 'order' in kwargs else self.DEFAULT_ORDER
+
+            device = kwargs["pk"]
+
+            day1 = kwargs["day1"]
+            month1 = kwargs["month1"]
+            year1 = kwargs["year1"]
+            hour1 = kwargs["hour1"]
+
+            day2 = kwargs["day2"]
+            month2 = kwargs["month2"]
+            year2 = kwargs["year2"]
+            hour2 = kwargs["hour2"]
+
+            datetime_string1 = day1 + "-" + month1 + "-" + year1 + " " + hour1 + ":" + "00"
+            datetime_string2 = day2 + "-" + month2 + "-" + year2 + " " + hour2 + ":" + "00"
+
+            date_from = datetime.datetime.strptime(datetime_string1, "%d-%m-%Y %H:%M")
+            date_to = datetime.datetime.strptime(datetime_string2, "%d-%m-%Y %H:%M")
+            date_from = to_localtime(date_from)
+            date_to = to_localtime(date_to)
+
+            data_query = Data.objects.all().filter(device=device, date__gte=date_from, date__lte=date_to)
+            data_query = list(data_query)
+
+            date1 = date_from
+            date2 = date_to
+
+            diff = date2 - date1
+
+            days, seconds = diff.days, diff.seconds
+            hours = days * 24 + seconds // 3600
+
+            device_obj = Device.objects.get(pk=device)
+            date_to = date_from + timedelta(hours=1)
+            for hours_to in range(0,hours + 1):
+                data_query = Data.objects.all().filter(device=device, date__gte=date_from, date__lte=date_to).aggregate(data_perhoursum_hour=Sum('data_value'))
+                dph = DataPH(data_query["data_perhoursum_hour"],device_obj,date_to)
+                data_list.insert(0,dph.serialize())
+                date_from = date_from + timedelta(hours=1)
+                date_to = date_to + timedelta(hours=1)
+
+            #print data_list
+            data_list = remove_data_nulls(data_list)
+
+            total_data = len(data_list)
+
+            data_list = data_list[offset:limit]
+
+            return JsonResponse({'data': data_list, 'total_data': total_data, 'pages': total_data / (limit - offset)})
+
+        except Exception as e:
+            print "Some error ocurred getting Between Hours Device Data"
+            print "Exception: " + str(e)
+            raise
+            return HttpResponse(status=500)
 
 
 class DeviceLastDataView(generic.DetailView):
@@ -697,6 +859,7 @@ class DeviceLastDataView(generic.DetailView):
             for data in data_query:
                 data_list.insert(0,data.serialize())
 
+            data_list = remove_data_nulls(data_list)
             return JsonResponse({'data': data_list})
 
         except Exception as e:
@@ -758,6 +921,7 @@ class DeviceDataDayPerHourView(generic.DetailView):
                 date_from = date_from + timedelta(hours=1)
                 date_to = date_to + timedelta(hours=1)
 
+            data_list = remove_data_nulls(data_list)
             return JsonResponse({'data': data_list})
 
         except Exception as e:
@@ -802,6 +966,7 @@ class DeviceDataMonthPerHourView(generic.DetailView):
                 date_from = date_from + timedelta(hours=1)
                 date_to = date_to + timedelta(hours=1)
 
+            data_list = remove_data_nulls(data_list)
             return JsonResponse({'data': data_list})
 
         except Exception as e:
@@ -849,6 +1014,7 @@ class DeviceDataPerHourView(generic.DetailView):
                 date_from = date_from + timedelta(hours=1)
                 date_to = date_to + timedelta(hours=1)
 
+            data_list = remove_data_nulls(data_list)
             return JsonResponse({'data': data_list})
 
         except Exception as e:
@@ -884,6 +1050,7 @@ class DeviceDataMonthPerDayView(generic.DetailView):
                 date_from = date_from + timedelta(hours=24)
                 date_to = date_to + timedelta(hours=24)
 
+            data_list = remove_data_nulls(data_list)
             return JsonResponse({'data': data_list})
 
         except Exception as e:
@@ -934,6 +1101,8 @@ class DeviceDataPerDayView(generic.DetailView):
                 date_from = date_from + timedelta(hours=24)
                 date_to = date_to + timedelta(hours=24)
 
+
+            data_list = remove_data_nulls(data_list)
             return JsonResponse({'data': data_list})
 
         except Exception as e:
@@ -1397,7 +1566,7 @@ class StatisticsView(generic.DetailView):
                 date_to = device['last_state_date_off']
                 if date_to < date_from:
                     date_to = datetime.datetime.now()
-                    
+
                 data_query_avg_states = Data.objects.all().filter(device=device['id'], date__gte=date_from, date__lte=date_to).aggregate(data_avg_states=Avg('data_value'))
                 data_avg_states = data_query_avg_states['data_avg_states']
 

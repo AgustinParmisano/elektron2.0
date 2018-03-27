@@ -403,6 +403,7 @@ class DataTaskUpdateView(generic.View):
         except Exception as e:
                 print "Some error ocurred Updating DataTask"
                 print "Exception: " + str(e)
+                raise
                 return HttpResponse(status=500)
 
 class DateTimeTaskCreateView(generic.View):

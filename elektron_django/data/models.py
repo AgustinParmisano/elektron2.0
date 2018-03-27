@@ -18,6 +18,10 @@ def to_UTC(date):
     """
     return date
 
+def remove_null_data(data):
+    data = data if data != None else 0
+    return data
+
 class Data(models.Model):
     data_value = models.CharField(max_length=100, blank=True, default='0')
     date = models.DateTimeField(auto_now_add=True)
@@ -36,7 +40,7 @@ class Data(models.Model):
     def serialize(self):
         return {
             'id': self.id,
-            'data_value': self.data_value,
+            'data_value': remove_null_data(self.data_value),
             'date': to_UTC(self.date),
             'device': self.device.serialize()
         }

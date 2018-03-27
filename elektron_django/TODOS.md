@@ -1,11 +1,17 @@
 # TODOS Django Elektron:
 
+
 ## Recent:
+	- Paginar el http://elektron20.ddns.net:8000/devices/36/data/perday y perhour y entre los fecha y fecha o hora y hora porque van a devolver muchos datos y se va a tildar.
+	- Devolver en devices y en device (se puede agregar al serializador) un arreglo de los ultimos 20 datos medidos (el objeto data serializado no solo el valor)
+	- Ver que onda en http://elektron20.ddns.net:8000/devices/statistics dan mas del 100%
+	- Edición de datatask y datetimetasks error 500.
+	- Ver bien lo de enchufado y no enchufado.
+
 	- Ver si está obteniendo los promedios por hora y por día coherentes por dispositivos (watts / hora) y retorna coherentemente para el gráfico de barras de estadísticas
 	- Hay un error en obtener los datos del día: si estamos a menos de 1 hora del siguiente día no obtiene bien los datos del día.
 	- La IP del dispositivo puede cambiar y no se refleja en la iterfaz / servidor.
 	- Crear un modelo nuevo que guarde como LOGS las tareas ejecutados y su información.
-	- Armar 3 nuevos lo mas chicos posibles con el código viejo a ver si andan
 	- Hacer un configurador automático de las redes para mejor testeo
 
 ## Nodemcus:
