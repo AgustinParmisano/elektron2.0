@@ -8,11 +8,7 @@
 
 
 ## Recent:
-	- Ver que onda en http://elektron20.ddns.net:8000/devices/statistics dan mas del 100%
-	- Edición de datatask y datetimetasks error 500.
 	- Ver bien lo de enchufado y no enchufado.
-
-	- Ver si está obteniendo los promedios por hora y por día coherentes por dispositivos (watts / hora) y retorna coherentemente para el gráfico de barras de estadísticas
 	- Hay un error en obtener los datos del día: si estamos a menos de 1 hora del siguiente día no obtiene bien los datos del día.
 	- La IP del dispositivo puede cambiar y no se refleja en la iterfaz / servidor.
 	- Crear un modelo nuevo que guarde como LOGS las tareas ejecutados y su información.

@@ -1456,7 +1456,7 @@ class DeviceStatisticsView(generic.DetailView):
 
             device_data_sum = data_sum_query['data_sum']
 
-            if data_sum == None or data_sum == 0:
+            if device_data_sum == None or device_data_sum == 0:
                 device_data_sum = 0
             else:
                 prom_hours = device_data_sum / hours
@@ -1490,6 +1490,8 @@ class DeviceStatisticsView(generic.DetailView):
 
             all_devices_sum = all_devices_sum["all_devices_sum"]
             device_percent = (device_data_sum * 100) /  all_devices_sum
+
+            print("Device %s percent %s" % (device["label"], device_percent))
 
             co2_porcent = 35
             device_co2 = ((device_data_sum / 1000) * co2_porcent) / 100
@@ -1602,7 +1604,14 @@ class StatisticsView(generic.DetailView):
                 device_tarifa = data_sum * edelap_marzo18
                 total_tarifa = data_sum * edelap_marzo18
 
-                device_data = {'device': device, 'data_sum': data_sum, 'device_tarifa':device_tarifa, 'total_tarifa':total_tarifa,  'device_co2': device_co2, 'total_co2': total_co2, 'days_created': days, 'hours_created':hours, 'prom_total': data_avg, 'last_data': { 'value': last_data, 'date':last_data_date}, 'data_list_avg_states': data_avg_states, 'data_list_sum_states': data_sum_states }
+                all_devices_sum = Data.objects.all().aggregate(all_devices_sum=Sum('data_value'))
+
+                all_devices_sum = all_devices_sum["all_devices_sum"]
+                device_percent = (data_sum * 100) /  all_devices_sum
+
+                print("Device %s percent %s" % (device["label"], device_percent))
+
+                device_data = {'device': device, 'device_percent':device_percent, 'data_sum': data_sum, 'device_tarifa':device_tarifa, 'total_tarifa':total_tarifa,  'device_co2': device_co2, 'total_co2': total_co2, 'days_created': days, 'hours_created':hours, 'prom_total': data_avg, 'last_data': { 'value': last_data, 'date':last_data_date}, 'data_list_avg_states': data_avg_states, 'data_list_sum_states': data_sum_states }
                 device_list.append(device_data)
 
             return JsonResponse({"devices": device_list})
