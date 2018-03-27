@@ -158,7 +158,7 @@ class IndexView(generic.ListView):
 
         for device in devices:
             device_data = {"device":"","lastdata":""}
-            datehourago = datetime.datetime.now() - timedelta(minutes=15)
+            datehourago = datetime.datetime.now() - timedelta(minutes=60)
             data_query = Data.objects.all().filter(device=device, date__gte=datehourago)
             lastdata = Data.objects.all().filter(device=device)[0:20]
             if len(data_query) > 0:
@@ -166,7 +166,9 @@ class IndexView(generic.ListView):
                 device_obj = device.serialize()
                 for data in lastdata:
                     last_data_list.insert(0,data.serialize())
-                device_data = {"device":device_obj,"lastdata":last_data_list}
+                device_dict = device_obj
+                device_dict["lastdata"] = last_data_list
+                device_data = {"device":device_dict}
                 pluged_devices.append(device_data)
             else:
                 device.pluged = False
@@ -181,7 +183,6 @@ class IndexView(generic.ListView):
         for device in disabled_devices:
                 pluged_devices.append(device)
         """
-        print pluged_devices
         #pluged_devices = Device.objects.all().filter()
 
         return JsonResponse({'devices': pluged_devices})
@@ -201,8 +202,11 @@ class DetailView(generic.DetailView):
 
             #print data_list
             data_list = remove_data_nulls(data_list)[0:20]
+            device = Device.objects.get(id=kwargs["pk"]).serialize()
+            device['lastdata'] = data_list
 
-            return JsonResponse({'device': Device.objects.get(id=kwargs["pk"]).serialize(), 'lastdata': data_list})
+            return JsonResponse({'device': device})
+
         except Exception as e:
             print "Some error ocurred getting Single Device with id: " + str(kwargs["pk"])
             print "Exception: " + str(e)
