@@ -148,6 +148,7 @@ class IndexView(generic.ListView):
         """Return all devices."""
 
         pluged_devices = []
+        last_data_list = []
 
 
         stateoff = DeviceState.objects.get(name="off")
@@ -156,11 +157,17 @@ class IndexView(generic.ListView):
         devices = Device.objects.all().filter(devicestate=stateon, enabled=True)
 
         for device in devices:
-            datehourago = datetime.datetime.now() - timedelta(hours=1)
+            device_data = {"device":"","lastdata":""}
+            datehourago = datetime.datetime.now() - timedelta(minutes=15)
             data_query = Data.objects.all().filter(device=device, date__gte=datehourago)
+            lastdata = Data.objects.all().filter(device=device)[0:20]
             if len(data_query) > 0:
-                #pluged_devices.append(device)
                 device.pluged = True
+                device_obj = device.serialize()
+                for data in lastdata:
+                    last_data_list.insert(0,data.serialize())
+                device_data = {"device":device_obj,"lastdata":last_data_list}
+                pluged_devices.append(device_data)
             else:
                 device.pluged = False
             device.save()
@@ -174,10 +181,10 @@ class IndexView(generic.ListView):
         for device in disabled_devices:
                 pluged_devices.append(device)
         """
+        print pluged_devices
+        #pluged_devices = Device.objects.all().filter()
 
-        pluged_devices = Device.objects.all().filter()
-
-        return JsonResponse({'devices': list(map(lambda x: x.serialize(), pluged_devices))})
+        return JsonResponse({'devices': pluged_devices})
 
 class DetailView(generic.DetailView):
     model = Device
@@ -185,7 +192,17 @@ class DetailView(generic.DetailView):
     def get(self, request, *args, **kwargs):
         """Return the selected by id device."""
         try:
-            return JsonResponse({'device': Device.objects.get(id=kwargs["pk"]).serialize()})
+            data_list = []
+            data_query = Data.objects.all().filter(device=kwargs["pk"])
+            data_query = list(data_query)
+
+            for data in data_query:
+                data_list.insert(0,data.serialize())
+
+            #print data_list
+            data_list = remove_data_nulls(data_list)[0:20]
+
+            return JsonResponse({'device': Device.objects.get(id=kwargs["pk"]).serialize(), 'lastdata': data_list})
         except Exception as e:
             print "Some error ocurred getting Single Device with id: " + str(kwargs["pk"])
             print "Exception: " + str(e)
@@ -815,17 +832,17 @@ class DeviceDataBetweenHoursPerDayView(generic.DetailView):
 
             diff = date2 - date1
 
-            days, seconds = diff.days, diff.seconds
-            hours = days * 24 + seconds // 3600
+            days = diff.days
 
             device_obj = Device.objects.get(pk=device)
-            date_to = date_from + timedelta(hours=1)
-            for hours_to in range(0,hours + 1):
-                data_query = Data.objects.all().filter(device=device, date__gte=date_from, date__lte=date_to).aggregate(data_perhoursum_hour=Sum('data_value'))
-                dph = DataPH(data_query["data_perhoursum_hour"],device_obj,date_to)
+            date_to = date_from + timedelta(days=1)
+            for hours_to in range(0,days):
+                data_query = Data.objects.all().filter(device=device, date__gte=date_from, date__lte=date_to).aggregate(data_perdaysum_day=Sum('data_value'))
+                dph = DataPH(data_query["data_perdaysum_day"],device_obj,date_to)
                 data_list.insert(0,dph.serialize())
-                date_from = date_from + timedelta(hours=1)
-                date_to = date_to + timedelta(hours=1)
+                date_from = date_from + timedelta(hours=24)
+                date_to = date_to + timedelta(hours=24)
+
 
             #print data_list
             data_list = remove_data_nulls(data_list)

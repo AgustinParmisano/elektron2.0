@@ -1,9 +1,13 @@
 # TODOS Django Elektron:
 
+## URLS Nuevas:
+	- http://elektron20.ddns.net:8000/devices/43/data/08/02/2018/07/03/2018/1/50/1/
+	- http://elektron20.ddns.net:8000/devices/43/data/08/02/2018/10/07/03/2018/20/1/10/1/
+	- http://elektron20.ddns.net:8000/devices/43/data/08/02/2018/10/07/03/2018/20/perhour/1/10/1/
+	- http://elektron20.ddns.net:8000/devices/43/data/08/02/2018/10/07/03/2018/20/perday/1/10/1/
+
 
 ## Recent:
-	- Paginar el http://elektron20.ddns.net:8000/devices/36/data/perday y perhour y entre los fecha y fecha o hora y hora porque van a devolver muchos datos y se va a tildar.
-	- Devolver en devices y en device (se puede agregar al serializador) un arreglo de los ultimos 20 datos medidos (el objeto data serializado no solo el valor)
 	- Ver que onda en http://elektron20.ddns.net:8000/devices/statistics dan mas del 100%
 	- Edición de datatask y datetimetasks error 500.
 	- Ver bien lo de enchufado y no enchufado.
