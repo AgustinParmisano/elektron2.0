@@ -168,8 +168,7 @@ class IndexView(generic.ListView):
                     last_data_list.insert(0,data.serialize())
                 device_dict = device_obj
                 device_dict["lastdata"] = last_data_list
-                device_data = {"device":device_dict}
-                pluged_devices.append(device_data)
+                pluged_devices.append(device_dict)
             else:
                 device.pluged = False
             device.save()
