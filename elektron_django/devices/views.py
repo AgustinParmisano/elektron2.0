@@ -273,7 +273,7 @@ class DeviceDataOffsetLimitView(generic.DetailView):
             for data in data_query:
                 data_list.insert(0,data.serialize())
 
-            return JsonResponse({'total_data': total_data,'data': data_list, 'pages': total_data / (limit - offset)})
+            return JsonResponse({'total_data': total_data,'data': data_list, 'pages': total_data / (limit - offset) + 1})
 
         except Exception as e:
             print "Some error ocurred getting Device Data"
@@ -721,7 +721,7 @@ class DeviceDataBetweenHoursView(generic.DetailView):
             data_list = data_list[offset:limit]
 
             data_list = remove_data_nulls(data_list)
-            return JsonResponse({'data': data_list, 'total_data': total_data, 'pages': total_data / (limit - offset)})
+            return JsonResponse({'data': data_list, 'total_data': total_data, 'pages': total_data / (limit - offset) + 1})
 
         except Exception as e:
             print "Some error ocurred getting Between Hours Device Data"
@@ -785,7 +785,7 @@ class DeviceDataBetweenHoursPerHourView(generic.DetailView):
             total_data = len(data_list)
             data_list = data_list[offset:limit]
 
-            return JsonResponse({'data': data_list, 'total_data': total_data, 'pages': total_data / (limit - offset)})
+            return JsonResponse({'data': data_list, 'total_data': total_data, 'pages': total_data / (limit - offset) + 1})
 
         except Exception as e:
             print "Some error ocurred getting Between Hours Device Data"
@@ -854,7 +854,7 @@ class DeviceDataBetweenHoursPerDayView(generic.DetailView):
 
             data_list = data_list[offset:limit]
 
-            return JsonResponse({'data': data_list, 'total_data': total_data, 'pages': total_data / (limit - offset)})
+            return JsonResponse({'data': data_list, 'total_data': total_data, 'pages': total_data / (limit - offset) + 1})
 
         except Exception as e:
             print "Some error ocurred getting Between Hours Device Data"
