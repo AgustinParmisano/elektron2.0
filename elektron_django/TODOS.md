@@ -8,6 +8,7 @@
 
 
 ## Recent:
+	- Tasks: Cuantas veces se repitió
 	- Ver bien lo de enchufado y no enchufado.
 	- Hay un error en obtener los datos del día: si estamos a menos de 1 hora del siguiente día no obtiene bien los datos del día.
 	- La IP del dispositivo puede cambiar y no se refleja en la iterfaz / servidor.

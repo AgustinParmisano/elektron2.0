@@ -72,6 +72,7 @@ class Task(models.Model):
     set_repeats = models.IntegerField(default=1)
     repeats = models.IntegerField(default=1)
     last_run = models.DateTimeField(default=timezone.now())
+    repetitions_done = models.IntegerField(default=0)
 
     class Meta:
         ordering = ('created',)
@@ -102,6 +103,7 @@ class DateTimeTask(Task):
             'repeats': self.repeats,
             'last_run': aux,
             'repeat_criteria': self.repeat_criteria,
+            'repetitions_done': self.repetitions_done,
         }
 
 class DataTask(Task):
@@ -123,4 +125,5 @@ class DataTask(Task):
             'repeats': self.repeats,
             'last_run': aux,
             'comparator': self.comparator,
+            'repetitions_done': self.repetitions_done,
         }

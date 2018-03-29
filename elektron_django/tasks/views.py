@@ -352,6 +352,7 @@ class DataTaskCreateView(generic.View):
                             datatask.device = device
                             datatask.comparator = task["comparator"]
                             datatask.repeats = task["repeats"]
+                            datatask.repetitions_done = task["repetitions_done"]
                             datatask.set_repeats = task["set_repeats"]
                             datatask.last_run = task["last_run"]
 
@@ -387,6 +388,7 @@ class DataTaskUpdateView(generic.View):
                         datatask.data_value = task["data_value"]
                         datatask.taskstate = task["taskstate"]
                         datatask.repeats = task["repeats"]
+                        datatask.repetitions_done = task["repetitions_done"]
                         datatask.set_repeats = task["set_repeats"]
                         datatask.taskfunction = task["taskfunction"]
                         datatask.owner = task["owner"]
@@ -430,6 +432,7 @@ class DateTimeTaskCreateView(generic.View):
                         datetimetask.datetime = task["datetime"]
                         datetimetask.set_datetime = task["set_datetime"]
                         datetimetask.repeats = task["repeats"]
+                        datetimetask.repetitions_done = task["repetitions_done"]
                         datetimetask.set_repeats = task["set_repeats"]
                         datetimetask.repeat_criteria = task["repeat_criteria"]
                         datetimetask.owner = task["owner"]
@@ -505,6 +508,7 @@ class DateTimeTaskUpdateView(generic.View):
                         datetimetask.datetime = task["datetime"]
                         datetimetask.set_datetime = task["set_datetime"]
                         datetimetask.repeats = task["repeats"]
+                        datetimetask.repetitions_done = task["repetitions_done"]
                         datetimetask.set_repeats = task["set_repeats"]
                         datetimetask.repeat_criteria = task["repeat_criteria"]
                         datetimetask.owner = task["owner"]
@@ -703,6 +707,7 @@ class DateTimeTaskUpdateStateView(generic.View):
                 datetimetask.created = datetimetask.created
                 datetimetask.description = datetimetask.description
                 datetimetask.label = datetimetask.label
+                datetimetask.repetitions_done = task["repetitions_done"]
                 datetimetask_serialized = datetimetask
                 datetimetask.taskfunction = datetimetask.taskfunction
                 datetimetask.owner = datetimetask.owner
@@ -734,6 +739,7 @@ class DataTaskUpdateStateView(generic.View):
                 datatask.created = datatask.created
                 datatask.description = datatask.description
                 datatask.label = datatask.label
+                datatask.repetitions_done = task["repetitions_done"]
                 datatask_serialized = datatask
                 datatask.taskfunction = datatask.taskfunction
                 datatask.owner = datatask.owner

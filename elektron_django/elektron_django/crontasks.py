@@ -12,6 +12,7 @@ class CronTask(object):
         self.device = kwargs["device"]
         self.devicedata = []
         self.repeats = kwargs["repeats"]
+        self.repetitions_done = kwargs["repetitions_done"]
         self.last_run =  kwargs["last_run"]
         self.state = "1" #ready
         self.creation = kwargs["creation"]
@@ -32,6 +33,7 @@ class DateTimeTask(CronTask):
             if self.datetime < datetime.now():
                     print "Excecuting task " + self.name
                     self.repeats = self.repeats - 1
+                    self.repetitions_done = self.repetitions_done + 1
                     taskhandler.execute_task_function(self)
         else:
             self.state = "2" #done
@@ -42,7 +44,7 @@ class DateTimeTask(CronTask):
         if self.repeat_criteria == 0:
             self.datetime = self.datetime + timedelta(hours=24) #repeats per day
         else:
-            self.datetime = self.datetime + timedelta(hours=1)
+            self.datetime = self.datetime + timedelta(hours=1) #repeats per hour
         self.task_data = {'id':self.id,'taskstate':self.state, 'repeats':self.repeats, 'last_run':self.last_run, 'datetime':self.datetime}
         print self.datetime
 
@@ -62,6 +64,7 @@ class DataTask(CronTask):
                 if self.last_run < self.devicedata["date"]:
                     print "Excecuting task " + self.name
                     self.repeats = self.repeats - 1
+                    self.repetitions_done = self.repetitions_done + 1
                     if self.comparator > 0:
                         if self.devicedata["data_value"] > self.datacomp:
                             taskhandler.execute_task_function(self)

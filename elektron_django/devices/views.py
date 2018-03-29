@@ -193,14 +193,14 @@ class DetailView(generic.DetailView):
         """Return the selected by id device."""
         try:
             data_list = []
-            data_query = Data.objects.all().filter(device=kwargs["pk"])
+            data_query = Data.objects.all().filter(device=kwargs["pk"])[0:20]
             data_query = list(data_query)
 
             for data in data_query:
                 data_list.insert(0,data.serialize())
 
-            #print data_list
-            data_list = remove_data_nulls(data_list)[0:20]
+            print len(data_list)
+            data_list = remove_data_nulls(data_list)
             device = Device.objects.get(id=kwargs["pk"]).serialize()
             device['lastdata'] = data_list
 
@@ -1465,12 +1465,21 @@ class DeviceStatisticsView(generic.DetailView):
             data_avg = data_avg_query['data_avg']
 
             last_data_query = Data.objects.all().filter(device= device['id'])
-            last_data = list(last_data_query)[-1]
-            last_data_date = last_data.serialize()['date']
-            last_data = float(last_data.serialize()['data_value'])
 
-            last_state_date_on = device['last_state_date_on']
-            last_state_date_off = device['last_state_date_off']
+            if len(list(last_data_query)) > 0:
+                last_data = list(last_data_query)[-1]
+                last_data_date = last_data.serialize()['date']
+                last_data = float(last_data.serialize()['data_value'])
+            else:
+                last_data = 0
+                last_data_date = ""
+
+            state_period_from = device['last_state_date_on']
+            state_period_to = device['last_state_date_off']
+
+            if state_period_to < state_period_from:
+                state_period_to = datetime.datetime.now()
+
             state_counter_on = device['state_counter_on']
             state_counter_off = device['state_counter_off']
 
@@ -1490,8 +1499,6 @@ class DeviceStatisticsView(generic.DetailView):
             all_devices_sum = all_devices_sum["all_devices_sum"]
             device_percent = (device_data_sum * 100) /  all_devices_sum
 
-            print("Device %s percent %s" % (device["label"], device_percent))
-
             co2_porcent = 35
             device_co2 = ((device_data_sum / 1000) * co2_porcent) / 100
 
@@ -1502,7 +1509,7 @@ class DeviceStatisticsView(generic.DetailView):
             total_tarifa = all_devices_sum * edelap_marzo18
 
             #return JsonResponse({'device': device, 'data_sum': data_sum, 'days_created': days, 'hours_created':hours, 'prom_days': prom_days, 'prom_hours':prom_hours, 'prom_total': data_avg })
-            return JsonResponse({'device': device, 'device_tarifa':device_tarifa, 'total_tarifa':total_tarifa,  'device_co2': device_co2, 'total_co2': total_co2, 'device_percent':device_percent ,'device_data_sum': device_data_sum, 'all_data_sum': all_devices_sum, 'days_created': days, 'hours_created':hours, 'prom_total': data_avg, 'last_data': { 'value': last_data, 'date':last_data_date}, 'data_list_avg_states': data_avg_states, 'data_list_sum_states': data_sum_states })
+            return JsonResponse({'device': device, 'device_tarifa':device_tarifa, 'total_tarifa':total_tarifa,  'device_co2': device_co2, 'total_co2': total_co2, 'device_percent':device_percent ,'device_data_sum': device_data_sum, 'all_data_sum': all_devices_sum, 'days_created': days, 'hours_created':hours, 'prom_total': data_avg, 'last_data': { 'value': last_data, 'date':last_data_date}, 'data_list_avg_states': data_avg_states, 'data_list_sum_states': data_sum_states, 'state_period_from':state_period_from, 'state_period_to':state_period_to })
 
 
         except Exception as e:
@@ -1579,8 +1586,12 @@ class StatisticsView(generic.DetailView):
                 else:
                     last_data_date = ""
 
-                last_state_date_on = device['last_state_date_on']
-                last_state_date_off = device['last_state_date_off']
+                state_period_from = device['last_state_date_on']
+                state_period_to = device['last_state_date_off']
+
+                if state_period_to < state_period_from:
+                    state_period_to = datetime.datetime.now()
+
                 state_counter_on = device['state_counter_on']
                 state_counter_off = device['state_counter_off']
 
@@ -1610,7 +1621,7 @@ class StatisticsView(generic.DetailView):
 
                 print("Device %s percent %s" % (device["label"], device_percent))
 
-                device_data = {'device': device, 'device_percent':device_percent, 'data_sum': data_sum, 'device_tarifa':device_tarifa, 'total_tarifa':total_tarifa,  'device_co2': device_co2, 'total_co2': total_co2, 'days_created': days, 'hours_created':hours, 'prom_total': data_avg, 'last_data': { 'value': last_data, 'date':last_data_date}, 'data_list_avg_states': data_avg_states, 'data_list_sum_states': data_sum_states }
+                device_data = {'device': device, 'device_percent':device_percent, 'data_sum': data_sum, 'device_tarifa':device_tarifa, 'total_tarifa':total_tarifa,  'device_co2': device_co2, 'total_co2': total_co2, 'days_created': days, 'hours_created':hours, 'prom_total': data_avg, 'last_data': { 'value': last_data, 'date':last_data_date}, 'data_list_avg_states': data_avg_states, 'data_list_sum_states': data_sum_states, 'state_period_from':state_period_from, 'state_period_to':state_period_to }
                 device_list.append(device_data)
 
             return JsonResponse({"devices": device_list})
