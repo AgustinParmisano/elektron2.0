@@ -707,7 +707,7 @@ class DateTimeTaskUpdateStateView(generic.View):
                 datetimetask.created = datetimetask.created
                 datetimetask.description = datetimetask.description
                 datetimetask.label = datetimetask.label
-                datetimetask.repetitions_done = task["repetitions_done"]
+                datetimetask.repetitions_done = datetimetask.repetitions_done
                 datetimetask_serialized = datetimetask
                 datetimetask.taskfunction = datetimetask.taskfunction
                 datetimetask.owner = datetimetask.owner
@@ -739,7 +739,7 @@ class DataTaskUpdateStateView(generic.View):
                 datatask.created = datatask.created
                 datatask.description = datatask.description
                 datatask.label = datatask.label
-                datatask.repetitions_done = task["repetitions_done"]
+                datatask.repetitions_done = datatask.repetitions_done
                 datatask_serialized = datatask
                 datatask.taskfunction = datatask.taskfunction
                 datatask.owner = datatask.owner
