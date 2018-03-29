@@ -63,13 +63,13 @@ class TaskHandler(object):
                 for srdt in sorted_ready_datatasks:
                     print "Proccesing DataTask: " + srdt["label"]
                     print " "
-                    datatask = DataTask({"id":srdt["id"], "name":srdt["label"], "description":srdt["description"],"device":srdt["device"],"repeats":srdt["repeats"],"creation":srdt["created"],"tfunction":srdt["taskfunction"],"data":srdt["data_value"],"last_run":srdt["last_run"],"comparator":srdt["comparator"]})
+                    datatask = DataTask({"id":srdt["id"], "name":srdt["label"], "description":srdt["description"],"device":srdt["device"],"repeats":srdt["repeats"],"repetitions_done":srdt["repetitions_done"],"creation":srdt["created"],"tfunction":srdt["taskfunction"],"data":srdt["data_value"],"last_run":srdt["last_run"],"comparator":srdt["comparator"]})
                     self.tasks_q.put(datatask)
 
                 for srdtt in sorted_ready_datetimetasks:
                     print "Proccesing DateTimeTask: " + srdtt["label"]
                     print " "
-                    datetimetask = DateTimeTask({"id":srdtt["id"], "name":srdtt["label"], "description":srdtt["description"],"device":srdtt["device"],"repeats":srdtt["repeats"],"repeat_criteria":srdtt["repeat_criteria"],"creation":srdtt["created"],"tfunction":srdtt["taskfunction"],"datetime":srdtt["datetime"],"last_run":srdtt["last_run"]})
+                    datetimetask = DateTimeTask({"id":srdtt["id"], "name":srdtt["label"], "description":srdtt["description"],"device":srdtt["device"],"repeats":srdtt["repeats"],"repetitions_done":srdtt["repetitions_done"],"repeat_criteria":srdtt["repeat_criteria"],"creation":srdtt["created"],"tfunction":srdtt["taskfunction"],"datetime":srdtt["datetime"],"last_run":srdtt["last_run"]})
                     self.tasks_q.put(datetimetask)
 
                 return self.tasks_q
@@ -135,7 +135,7 @@ class TaskHandler(object):
             print task.tfunction["name"] + " " + task.device["label"]
 
             #task_data = {'id':task.id,'taskstate':task.state, 'repeats':task.repeats}
-            device_data = {'device_ip': task.device["device_ip"], 'device_mac': task.device["device_mac"], 'devicestate': task.device["devicestate"]['id'], 'label': task.device["label"], 'repeats': task.repeats, 'owner': 'root'}
+            device_data = {'device_ip': task.device["device_ip"], 'device_mac': task.device["device_mac"], 'devicestate': task.device["devicestate"]['id'], 'label': task.device["label"], 'repeats': task.repeats,'repetitions_done':task.repetitions_done, 'owner': 'root'}
             function_exec_res = self.session.post("http://" + self.server_ip + ":" + self.server_port + "/devices/" + str(task.device["id"]) + "/"+ task.tfunction["name"], data=device_data)
 
             if function_exec_res.status_code == 200:

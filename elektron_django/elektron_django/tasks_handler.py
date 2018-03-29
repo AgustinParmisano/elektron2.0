@@ -127,7 +127,7 @@ def execute_datatask_function(task, server_ip, server_port, session):
     if task_function["name"] == "shutdown":
         print task_function["name"] + " " + task_device["label"]
         print "Enviar msg al servidor para apagar el dispostivo"
-        task_data = {'taskstate':'2', 'taskfunction': + task_function["id"], 'label': task["label"], 'description': task["description"], 'data_value': task["data_value"], 'device_mac': task_device["device_mac"], 'owner': 'root' }
+        task_data = {'taskstate':'2', 'taskfunction': + task_function["id"], 'label': task["label"], 'repetitions_done':task['repetitions_done'] 'description': task["description"], 'data_value': task["data_value"], 'device_mac': task_device["device_mac"], 'owner': 'root' }
         device_data = {'device_ip': task_device["device_ip"], 'device_mac': task_device["device_mac"], 'devicestate': task_device["devicestate"]['id'], 'label': task_device["label"], 'owner': 'root'}
         function_exec_res = session.post("http://" + server_ip + ":" + server_port + "/devices/" + str(task_device["id"]) + "/shutdown", data=device_data)
 
@@ -139,7 +139,7 @@ def execute_datatask_function(task, server_ip, server_port, session):
     if task_function["name"] == "turnon":
         print task_function["name"] + " " + task_device["label"]
         print "Enviar msg al servidor para prender el dispostivo"
-        task_data = {'taskstate':'2', 'taskfunction': + task_function["id"], 'label': task["label"], 'description': task["description"], 'data_value': task["data_value"], 'device_mac': task_device["device_mac"], 'owner': 'root' }
+        task_data = {'taskstate':'2', 'taskfunction': + task_function["id"], 'label': task["label"], 'repetitions_done':task['repetitions_done'] 'description': task["description"], 'data_value': task["data_value"], 'device_mac': task_device["device_mac"], 'owner': 'root' }
         device_data = {'device_ip': task_device["device_ip"], 'device_mac': task_device["device_mac"], 'devicestate': task_device["devicestate"]['id'], 'label': task_device["label"], 'owner': 'root'}
         function_exec_res = session.post("http://" + server_ip + ":" + server_port + "/devices/" + str(task["id"]) + "/turnon", data=device_data)
         if function_exec_res.status_code == 200:
@@ -161,7 +161,7 @@ def execute_datetimetask_function(task, server_ip, server_port, session):
     if task_function["name"] == "shutdown":
         print task_function["name"] + " " + task_device["label"]
         print "Enviar msg al servidor para apagar el dispostivo"
-        task_data = {'taskstate':'2', 'taskfunction': + task_function["id"], 'label': task["label"], 'description': task["description"], 'datetime': task["datetime"], 'device_mac': task_device["device_mac"], 'owner': 'root' }
+        task_data = {'taskstate':'2', 'taskfunction': + task_function["id"], 'label': task["label"], 'repetitions_done':task['repetitions_done'] 'description': task["description"], 'datetime': task["datetime"], 'device_mac': task_device["device_mac"], 'owner': 'root' }
         device_data = {'device_ip': task_device["device_ip"], 'device_mac': task_device["device_mac"], 'devicestate': task_device["devicestate"]['id'], 'label': task_device["label"], 'owner': 'root'}
         function_exec_res = session.post("http://" + server_ip + ":" + server_port + "/devices/" + str(task_device["id"]) + "/shutdown", data=device_data)
 
@@ -173,7 +173,7 @@ def execute_datetimetask_function(task, server_ip, server_port, session):
     if task_function["name"] == "turnon":
         print task_function["name"] + " " + task_device["label"]
         print "Enviar msg al servidor para prender el dispostivo"
-        task_data = {'taskstate':'2', 'taskfunction': + task_function["id"], 'label': task["label"], 'description': task["description"], 'datetime': task["datetime"], 'device_mac': task_device["device_mac"], 'owner': 'root' }
+        task_data = {'taskstate':'2', 'taskfunction': + task_function["id"], 'label': task["label"], 'repetitions_done':task['repetitions_done'] 'description': task["description"], 'datetime': task["datetime"], 'device_mac': task_device["device_mac"], 'owner': 'root' }
         device_data = {'device_ip': task_device["device_ip"], 'device_mac': task_device["device_mac"], 'devicestate': task_device["devicestate"]['id'], 'label': task_device["label"], 'owner': 'root'}
         function_exec_res = session.post("http://" + server_ip + ":" + server_port + "/devices/" + str(task["id"]) + "/turnon", data=device_data)
 
