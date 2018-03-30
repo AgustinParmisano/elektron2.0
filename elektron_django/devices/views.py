@@ -157,15 +157,16 @@ class IndexView(generic.ListView):
         devices = Device.objects.all().filter(devicestate=stateon, enabled=True)
 
         for device in devices:
+            last_data_list = []
             device_data = {"device":"","lastdata":""}
             datehourago = datetime.datetime.now() - timedelta(minutes=60)
             data_query = Data.objects.all().filter(device=device, date__gte=datehourago)
-            lastdata = Data.objects.all().filter(device=device)[0:20]
+            lastdata = Data.objects.all().filter(device=device).order_by('-id')[0:20]
             if len(data_query) > 0:
                 device.pluged = True
                 device_obj = device.serialize()
                 for data in lastdata:
-                    last_data_list.insert(0,data.serialize())
+                    last_data_list.append(data.serialize())
                 device_dict = device_obj
                 device_dict["lastdata"] = last_data_list
                 pluged_devices.append(device_dict)
@@ -193,13 +194,12 @@ class DetailView(generic.DetailView):
         """Return the selected by id device."""
         try:
             data_list = []
-            data_query = Data.objects.all().filter(device=kwargs["pk"])[0:20]
+            data_query = Data.objects.all().filter(device=kwargs["pk"]).order_by('-id')[0:20]
             data_query = list(data_query)
 
             for data in data_query:
-                data_list.insert(0,data.serialize())
+                data_list.append(data.serialize())
 
-            print len(data_list)
             data_list = remove_data_nulls(data_list)
             device = Device.objects.get(id=kwargs["pk"]).serialize()
             device['lastdata'] = data_list
