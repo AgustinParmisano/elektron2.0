@@ -28,6 +28,10 @@ class DateTimeTask(CronTask):
         self.repeat_criteria = kwargs["repeat_criteria"]
 
     def execute(self, taskhandler):
+        try:
+            self.datetime = self.datetime.split('.')[0]
+        except Exception as e:
+            pass    
         self.datetime = datetime.strptime(self.datetime, '%Y-%m-%dT%H:%M:%S')
         if self.repeats > 0 and self.state == "1":
             if self.datetime < datetime.now():

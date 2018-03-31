@@ -509,7 +509,8 @@ class DateTimeTaskUpdateView(generic.View):
                 taskfunction = TaskFunction.objects.get(pk=task["taskfunction"])
                 owner = User.objects.get(pk=1) #User editions of tasks need to be revised
                 task_datetime = task["datetime"]
-                task_datetime = datetime.datetime.strptime(str(task_datetime), "%Y-%m-%d %H:%M:%S.%f")
+                task_datetime = task_datetime.split(".")[0]
+                task_datetime = datetime.datetime.strptime(str(task_datetime), "%Y-%m-%d %H:%M:%S")
 
                 if task:
                     try:
