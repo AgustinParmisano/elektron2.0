@@ -62,9 +62,12 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
 
     # the client connected
     def open(self):
-        print ("New client connected")
-        self.write_message("You are connected")
-        clients.append(self)
+        if self not in clients:
+            print ("New client connected")
+            self.write_message("You are connected")
+            clients.append(self)
+        print "Clients: " + str(len(clients))
+        print clients
         tornado.ioloop.IOLoop.instance().add_timeout(timedelta(seconds=1), self.test)
 
     def test(self):
@@ -81,8 +84,8 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
             msg["data_value"] = message["data_value"]
             msg["data_datetime"] = message["last_data_time"]
             message = msg
-            #print "Sending device message to WebInterface"
-            #print message
+            print "Sending device message to WebInterface"
+            print message
 
             try:
                 time.sleep(1)
@@ -90,7 +93,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
             except Exception as e:
                 print "Exception in test write message: "
                 print e
-                #raise(e)
+                raise
         except Exception as e:
             print "Exception in test write message 2: "
             print e
@@ -117,8 +120,11 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
 
     # client disconnected
     def on_close(self):
-        print ("Client disconnected")
-        clients.remove(self)
+        if self in clients:
+            print ("Client disconnected")
+            clients.remove(self)
+        print "Clients: " + str(len(clients))
+        print clients
 
 socket = tornado.web.Application([(r"/websocket", WebSocketHandler),])
 
