@@ -285,7 +285,7 @@ import requests
 
     - Update DateTimeTask:
     ```
-    data = {'taskstate':'1', 'taskfunction':'1', 'label':'datetimtask2', 'description':'taks is done', 'owner':'root', 'datatime':datetime, 'device_mac':'11:11:11:11','repeats':'5','repeat_criteria':'1'}
+    data = {'taskstate':'1', 'taskfunction':'1', 'label':'datetimtask2', 'description':'taks is done', 'owner':'root', 'datetime':datetime, 'device_mac':'11:11:11:11','repeats':'5','repeat_criteria':'1'}
     r = requests.post("http://localhost:8000/tasks/datetimetasks/<datetimetask_id>/update", data=data)
     r.text
     r.url
