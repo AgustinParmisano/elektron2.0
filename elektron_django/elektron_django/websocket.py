@@ -12,7 +12,8 @@ import time
 import requests
 import Queue
 
-q = Queue.Queue()
+q = Queue.Queue() #MQTT message Queue
+clients = [] #Websockets clients
 
 def on_connect(client, userdata, flags, rc):
    print("Connected with result code "+str(rc))
@@ -20,13 +21,17 @@ def on_connect(client, userdata, flags, rc):
    # Subscribing in on_connect() means that if we lose the connection and
    # reconnect then subscriptions will be renewed.
    #client.subscribe("sensors/new_sensor")
-   client.subscribe("sensors/new_data")
+   client.subscribe("data_to_web")
 
 def on_message(client, userdata, msg):
    data_json = ast.literal_eval(msg.payload)
    data_json["last_data_time"] = str(datetime.datetime.now())
-   q.put(data_json)
 
+   if len(clients) > 0:
+       q.put(data_json)
+   else:
+       #print q
+       q.queue.clear()
 
 class MqttClient(object):
     """docstring for MqttClient."""
@@ -44,15 +49,12 @@ class MqttClient(object):
         self.on_connect = func
 
     def publish(message, topic):
-         #print("Sending %s " % (message))
+         ##print("Sending %s " % (message))
          publish.single(str(topic), message, hostname="localhost")
          return "Sending msg: %d " % (message)
 
 mqtt = MqttClient()
 mqtt.client.loop_start()
-
-#Websockets clients
-clients = []
 
 class WebSocketHandler(tornado.websocket.WebSocketHandler):
     tt = datetime.datetime.now()
@@ -68,9 +70,9 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
             clients.append(self)
         print "Clients: " + str(len(clients))
         print clients
-        tornado.ioloop.IOLoop.instance().add_timeout(timedelta(seconds=1), self.test)
+        tornado.ioloop.IOLoop.instance().add_timeout(timedelta(seconds=1), self.ws_msg_loop)
 
-    def test(self):
+    def ws_msg_loop(self):
         try:
             #n = random.randint(0,100)
             #message = {"data": n}
@@ -84,22 +86,23 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
             msg["data_value"] = message["data_value"]
             msg["data_datetime"] = message["last_data_time"]
             message = msg
-            print "Sending device message to WebInterface"
-            print message
 
             try:
-                time.sleep(1)
-                self.write_message(message)
+                #time.sleep(1)
+                for c in clients:
+                    #print "Sending device message to WebInterface for client: " + str(c)
+                    #print message
+                    c.write_message(message)
             except Exception as e:
-                print "Exception in test write message: "
+                print "Exception in ws_msg_loop write message: "
                 print e
                 raise
         except Exception as e:
-            print "Exception in test write message 2: "
+            print "Exception in ws_msg_loop write message 2: "
             print e
             #raise(e)
         else:
-            tornado.ioloop.IOLoop.instance().add_timeout(timedelta(seconds=0.1), self.test)
+            tornado.ioloop.IOLoop.instance().add_timeout(timedelta(seconds=0.1), self.ws_msg_loop)
 
     # the client sent the message
     def on_message(self, message):
@@ -107,11 +110,11 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         try:
            msg = json.loads(message.payload)
            data_json = {}
-           print "MESSAGE FROM WEB SOCKET"
-           print "MSG TYPE"
-           print type(msg)
-           print "MSG DATA"
-           print  msg
+           #print "MESSAGE FROM WEB SOCKET"
+           #print "MSG TYPE"
+           #print type(msg)
+           #print "MSG DATA"
+           #print  msg
 
         except Exception as e:
             #print ("Exception in on_message:")
