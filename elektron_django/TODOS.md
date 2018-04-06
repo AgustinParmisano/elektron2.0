@@ -8,10 +8,10 @@
 
 
 ## Recent:
-	- Login: investigar cómo es bien con REST y AngularJS (tal vez es mandar un token o cookie)
+	- Login: investigar bien cómo es con REST y AngularJS (tal vez es mandar un token o cookie)
 	- Ver lo de Seguridad en los Nodemcus
 	- Hay un error en obtener los datos del día: si estamos a menos de 1 hora del siguiente día no obtiene bien los datos del día.
-	- La IP del dispositivo puede cambiar y no se refleja en la iterfaz / servidor.
+	- La IP del dispositivo puede cambiar y no se refleja en la interfaz / servidor.
 	- Crear un modelo nuevo que guarde como LOGS las tareas ejecutados y su información.
 	- Hacer un configurador automático de las redes para mejor testeo
 

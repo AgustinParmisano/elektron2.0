@@ -64,44 +64,55 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
 
     # the client connected
     def open(self):
-        print("Client {} is trying to connect. ".format(str(self)))
-        if self not in clients:
-            print ("New client connected")
-            self.write_message("You are connected")
-            clients.append(self)
-        print "Clients: " + str(len(clients))
-        print clients
-        tornado.ioloop.IOLoop.instance().add_timeout(timedelta(seconds=1), self.ws_msg_loop)
+        try:
+            print("Client {} is trying to connect. ".format(str(self)))
+            if self not in clients:
+                print ("New client connected")
+                #self.write_message("You are connected")
+                clients.append(self)
+                print "Clients: " + str(len(clients))
+                print clients
+                tornado.ioloop.IOLoop.instance().add_timeout(timedelta(seconds=1), self.ws_msg_loop)
+        except Exception as e:
+            print("Exception in open: {}".format(str(e)))
+            raise
 
     def ws_msg_loop(self):
+        print("Starting ws_msg_loop!")
         try:
             #n = random.randint(0,100)
             #message = {"data": n}
-            message = str(q.get())
+            if len(clients) > 0:
+                message = str(q.get())
 
-            message = ast.literal_eval(json.dumps(message))
-            message = ast.literal_eval(message)
-            msg = {}
-            msg["device_ip"] = message["device_ip"]
-            msg["device_mac"] = message["device_mac"]
-            msg["data_value"] = message["data_value"]
-            msg["data_datetime"] = message["last_data_time"]
-            message = msg
+                message = ast.literal_eval(json.dumps(message))
+                message = ast.literal_eval(message)
+                msg = {}
 
-            try:
+                msg["device_ip"] = message["device_ip"]
+                msg["device_mac"] = message["device_mac"]
+                msg["data_value"] = message["data_value"]
+                msg["data_datetime"] = message["last_data_time"]
+                message = msg
+
                 #time.sleep(1)
                 for c in clients:
-                    #print "Sending device message to WebInterface for client: " + str(c)
-                    #print message
-                    c.write_message(message)
-            except Exception as e:
-                print "Exception in ws_msg_loop write message: "
-                print e
-                raise
+                    try:
+                        #print "Sending device message to WebInterface for client: " + str(c)
+                        #print message
+                        print "CLIENT"
+                        print c
+                        c.write_message(message)
+                    except Exception as e:
+                        print("Exception in ws_msg_loop trying to write message for client {}: ".format(c))
+                        clients.remove(c)
+                        #raise
+            else:
+                pass
         except Exception as e:
-            print "Exception in ws_msg_loop write message 2: "
+            print "Exception in ws_msg_loop : "
             print e
-            #raise(e)
+            #raise
         else:
             tornado.ioloop.IOLoop.instance().add_timeout(timedelta(seconds=0.1), self.ws_msg_loop)
 
@@ -130,11 +141,17 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
 
     # client disconnected
     def on_close(self):
-        if self in clients:
-            print ("Client disconnected")
-            clients.remove(self)
-        print "Clients: " + str(len(clients))
-        print clients
+        try:
+            if self in clients:
+                print ("Client disconnected")
+                clients.remove(self)
+                print "Clients: " + str(len(clients))
+                print clients
+            else:
+                print("Clients: {}".format(clients))
+        except Exception as e:
+            print("Exception in on_close: {}".format(str(e)))
+            raise
 
 socket = tornado.web.Application([(r"/websocket", WebSocketHandler),])
 
