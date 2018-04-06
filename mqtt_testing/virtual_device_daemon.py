@@ -92,7 +92,7 @@ class DeviceManager(object):
 
 host_ip = raw_input("Host ip (f.e. localhost): ") or "localhost"
 topic = raw_input("Topic (f.e. sensors/new_data): ") or "sensors/new_data"
-devicesfile = raw_input("Devices File: ") or "devices.txt"
+devicesfile = raw_input("Devices File: ") or "/home/debian/elektron/elektron2.0/mqtt_testing/devices.txt"
 
 dm = DeviceManager(topic, host_ip)
 

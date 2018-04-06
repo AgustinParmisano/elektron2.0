@@ -64,6 +64,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
 
     # the client connected
     def open(self):
+        print("Client {} is trying to connect. ".format(str(self)))
         if self not in clients:
             print ("New client connected")
             self.write_message("You are connected")

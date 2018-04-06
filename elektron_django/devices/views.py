@@ -147,14 +147,13 @@ class IndexView(generic.ListView):
     def get(self, request, *args, **kwargs):
         """Return all devices."""
 
-        pluged_devices = []
+        devices_list = []
         last_data_list = []
-
 
         stateoff = DeviceState.objects.get(name="off")
         stateon = DeviceState.objects.get(name="on")
         #devices = list(map(lambda x: x.serialize(), Device.objects.all().filter(devicestate=stateon, enabled=True)))
-        devices = Device.objects.all().filter(devicestate=stateon, enabled=True)
+        devices = Device.objects.all()#.filter(devicestate=stateon, enabled=True)
 
         for device in devices:
             last_data_list = []
@@ -162,6 +161,7 @@ class IndexView(generic.ListView):
             datehourago = datetime.datetime.now() - timedelta(minutes=60)
             data_query = Data.objects.all().filter(device=device, date__gte=datehourago)
             lastdata = Data.objects.all().filter(device=device).order_by('-id')[0:20]
+            serialized_device = device.serialize()
             if len(data_query) > 0:
                 device.pluged = True
                 device_obj = device.serialize()
@@ -169,23 +169,12 @@ class IndexView(generic.ListView):
                     last_data_list.append(data.serialize())
                 device_dict = device_obj
                 device_dict["lastdata"] = last_data_list
-                pluged_devices.append(device_dict)
             else:
                 device.pluged = False
             device.save()
+            devices_list.append(serialized_device)
 
-        """
-        off_devices = Device.objects.all().filter(devicestate=stateoff)
-        for device in off_devices:
-                pluged_devices.append(device)
-
-        disabled_devices = Device.objects.all().filter(enabled=False)
-        for device in disabled_devices:
-                pluged_devices.append(device)
-        """
-        #pluged_devices = Device.objects.all().filter()
-
-        return JsonResponse({'devices': pluged_devices})
+        return JsonResponse({'devices': devices_list})
 
 class DetailView(generic.DetailView):
     model = Device
