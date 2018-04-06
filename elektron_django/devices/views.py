@@ -164,14 +164,12 @@ class IndexView(generic.ListView):
             serialized_device = device.serialize()
             if len(data_query) > 0:
                 device.pluged = True
-                device_obj = device.serialize()
                 for data in lastdata:
                     last_data_list.append(data.serialize())
-                device_dict = device_obj
-                device_dict["lastdata"] = last_data_list
             else:
                 device.pluged = False
             device.save()
+            serialized_device["lastdata"] = last_data_list
             devices_list.append(serialized_device)
 
         return JsonResponse({'devices': devices_list})
