@@ -32,6 +32,42 @@ def on_message(client, userdata, msg):
 
    q.put(data_json)
 
+class AESCipher(object):
+
+    def __init__(self, key):
+        self.bs = 32
+        self.key = hashlib.sha256(key.encode()).digest()
+
+    def encrypt(self, raw):
+        raw = self._pad(raw)
+        iv = Random.new().read(AES.block_size)
+        cipher = AES.new(self.key, AES.MODE_CBC, iv)
+        return base64.b64encode(iv + cipher.encrypt(raw))
+
+    def decrypt(self, enc):
+        enc = base64.b64decode(enc)
+        iv = enc[:AES.block_size]
+        cipher = AES.new(self.key, AES.MODE_CBC, iv)
+        return self._unpad(cipher.decrypt(enc[AES.block_size:])).decode('utf-8')
+
+    def _pad(self, s):
+        return s + (self.bs - len(s) % self.bs) * chr(self.bs - len(s) % self.bs)
+
+    @staticmethod
+    def _unpad(s):
+        return s[:-ord(s[len(s)-1:])]
+
+key = "1234567890ABCDEF"
+key += sys.argv[0] #SSID PASSWORD FOR SALT KEY ENCRYPTION
+cipher=AESCipher(key)
+
+def encrypt_aes256(msg):
+    try:
+        msg_aes256 = cipher.encrypt(msg)
+        return msg_aes256
+    except Exception as e:
+        print("Exception i encrypt_aes256: {}".format(str(e)))
+        raise
 
 class MqttClient(object):
     """docstring for MqttClient."""
@@ -87,6 +123,9 @@ class DeviceManager(object):
         print str(device)
         mac_topic = str(device.device_mac)[-5:]
         #self.topic = "sensors/"+ str(mac_topic) + "/new_data"
+
+        device = encrypt_aes256(str(device))
+
         self.mqtt.publish(str(device),self.topic)
         print "\n"
 

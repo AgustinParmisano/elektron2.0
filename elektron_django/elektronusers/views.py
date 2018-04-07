@@ -15,7 +15,9 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 from django.contrib.sessions.backends.db import SessionStore
+from django.contrib.auth.decorators import login_required
 
+@method_decorator(login_required, name='dispatch')
 class IndexView(generic.ListView):
     model = ElektronUser
 
@@ -53,12 +55,16 @@ class LoginView(FormView):
                 request.session['username'] = user_object.username
                 print "request.session: " + str(request.session['username'])
                 message = {"key":"value"}
-                return JsonResponse({'user': user_object.username})
+                response = JsonResponse({'user': user_object.username})
+                print("response.cookies")
+                print(dir(response.cookies))
+                return response
                 #response = HttpResponse(msg=message,status=200)
                 #response.set_cookie('name','pepe',7) #key,value,days_expire
                 #return response
         print "User or password does not match"
         return HttpResponse(status=500)
+        #return HttpResponseRedirect(settings.LOGIN_URL)
 
 class LogoutView(generic.DetailView):
 

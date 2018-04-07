@@ -6,37 +6,50 @@ import json
 import ast
 import requests
 import Queue
+import sys
 
 qmsg = Queue.Queue()
-"""
-def remove_duplicated_msg(mqtt_data):
-    #print  "mqtt_data"
-    #print  mqtt_data
 
-    if qmsg.qsize() > 10:
-        qmsg.get()
+class AESCipher(object):
 
-    if mqtt_data != None and mqtt_data != "" and mqtt_data not in qmsg.queue:
-        qmsg.put(mqtt_data)
-        qmsg.get()
-        del mqtt_data["data_id"]
+    def __init__(self, key):
+        self.bs = 32
+        self.key = hashlib.sha256(key.encode()).digest()
 
-        return mqtt_data
-"""
+    def encrypt(self, raw):
+        raw = self._pad(raw)
+        iv = Random.new().read(AES.block_size)
+        cipher = AES.new(self.key, AES.MODE_CBC, iv)
+        return base64.b64encode(iv + cipher.encrypt(raw))
+
+    def decrypt(self, enc):
+        enc = base64.b64decode(enc)
+        iv = enc[:AES.block_size]
+        cipher = AES.new(self.key, AES.MODE_CBC, iv)
+        return self._unpad(cipher.decrypt(enc[AES.block_size:])).decode('utf-8')
+
+    def _pad(self, s):
+        return s + (self.bs - len(s) % self.bs) * chr(self.bs - len(s) % self.bs)
+
+    @staticmethod
+    def _unpad(s):
+        return s[:-ord(s[len(s)-1:])]
+
+key = "1234567890ABCDEF"
+key += sys.argv[0] #SSID PASSWORD FOR SALT KEY ENCRYPTION
+cipher=AESCipher(key)
+
+def decrypt_aes256(encypted_msg):
+    try:
+        msg_aes256 = cipher.decrypt(encypted_msg)
+        return msg_aes256
+    except Exception as e:
+        print("Exception i decrypt_aes256: {}".format(str(e)))
+        raise
 
 def msg_ws(msg):
     resp = publish.single("data_to_web", msg, hostname="localhost")
     return resp
-
-"""
-def create_new_device(device_mqtt):
-    #print("Creating new device in server")
-    #print device_mqtt
-    device_data = device_mqtt #{'device_ip': '10.0.0.3', 'device_mac': '22:22:22:22', 'devicestate': 1, 'label': 'horno'}
-    #print "device_data.text"
-    #print device_data.text
-    r = requests.post("http://localhost:8000/devices/", data=device_data)
-"""
 
 def check_data(mqtt_data):
     #print "Sending MQTT Data to Server: "
@@ -86,6 +99,9 @@ def on_message_device(client, userdata, msg):
     #print(msg.topic+" "+str(msg.payload))
 
     try:
+
+        msg = decrypt_aes256(msg)
+
         mqtt_data = ast.literal_eval(str(msg.payload)) #json.loads(str(msg.payload))
         #mqtt_data # = remove_duplicated_msg(mqtt_data)
         device_ok = check_device(mqtt_data)
@@ -102,21 +118,6 @@ def on_message_device(client, userdata, msg):
     except Exception as e:
         print "Exception in on_message_device : " + str(e)
         #raise
-
-"""
-def on_message(client, userdata, msg):
-   #print("msg.topic: " + msg.topic+" msg.payload "+str(msg.payload))
-
-   list = json.loads(msg.payload)
-   data_json = {}
-
-   for key,value in list.iteritems():
-       data_json[key] = value
-       #print ("")
-       #print key, value
-       #print "data_json"
-       #print data_json
-"""
 
 def on_subscribe(client, userdata,mid, granted_qos):
    print "userdata : " +str(userdata)

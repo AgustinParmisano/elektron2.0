@@ -140,12 +140,21 @@ def to_json(**kwargs):
         #print "hay que dejarlo igual"
         return kwargs
 
-
+#@method_decorator(login_required, name='dispatch')
 class IndexView(generic.ListView):
     model = Device
 
     def get(self, request, *args, **kwargs):
         """Return all devices."""
+
+        print("REQUEST: ")
+        print dir(request.session)
+        print("REQUEST USER: ")
+        print(request.user)
+        
+        if request.user.is_authenticated():
+            print("USER ID: ")
+            print(user.id) #the user is loggedin
 
         devices_list = []
         last_data_list = []
