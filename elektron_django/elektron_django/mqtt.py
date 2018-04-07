@@ -7,6 +7,11 @@ import ast
 import requests
 import Queue
 import sys
+import base64
+import hashlib
+from Crypto import Random
+from Crypto.Cipher import AES
+
 
 qmsg = Queue.Queue()
 
@@ -36,12 +41,16 @@ class AESCipher(object):
         return s[:-ord(s[len(s)-1:])]
 
 key = "1234567890ABCDEF"
-key += sys.argv[0] #SSID PASSWORD FOR SALT KEY ENCRYPTION
+key += sys.argv[1] #SSID PASSWORD FOR SALT KEY ENCRYPTION
+print key
 cipher=AESCipher(key)
 
 def decrypt_aes256(encypted_msg):
     try:
+        encypted_msg = encypted_msg.decode("utf-8")
         msg_aes256 = cipher.decrypt(encypted_msg)
+        print("MSG decrypted TYPE: {}".format(type(msg_aes256)))
+        print("MSG decrypted STR: {}".format(str(msg_aes256)))
         return msg_aes256
     except Exception as e:
         print("Exception i decrypt_aes256: {}".format(str(e)))
@@ -99,11 +108,15 @@ def on_message_device(client, userdata, msg):
     #print(msg.topic+" "+str(msg.payload))
 
     try:
-
+        msg = str(msg.payload)
+        msg = msg.encode('utf-8').strip()
+        print("MSG: {}".format(msg))
         msg = decrypt_aes256(msg)
+        print("MSG DECRYPTED: {}".format(str(msg)))
 
-        mqtt_data = ast.literal_eval(str(msg.payload)) #json.loads(str(msg.payload))
+        mqtt_data = ast.literal_eval(str(msg)) #json.loads(str(msg.payload))
         #mqtt_data # = remove_duplicated_msg(mqtt_data)
+
         device_ok = check_device(mqtt_data)
 
         #print "device_ok"
@@ -117,7 +130,7 @@ def on_message_device(client, userdata, msg):
 
     except Exception as e:
         print "Exception in on_message_device : " + str(e)
-        #raise
+        raise
 
 def on_subscribe(client, userdata,mid, granted_qos):
    print "userdata : " +str(userdata)

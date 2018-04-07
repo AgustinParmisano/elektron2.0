@@ -13,6 +13,11 @@ import requests
 import Queue
 from virtual_device_creator import Device
 import time
+import base64
+import hashlib
+from Crypto import Random
+from Crypto.Cipher import AES
+
 
 q = Queue.Queue()
 
@@ -58,7 +63,7 @@ class AESCipher(object):
         return s[:-ord(s[len(s)-1:])]
 
 key = "1234567890ABCDEF"
-key += sys.argv[0] #SSID PASSWORD FOR SALT KEY ENCRYPTION
+key += sys.argv[1] #SSID PASSWORD FOR SALT KEY ENCRYPTION
 cipher=AESCipher(key)
 
 def encrypt_aes256(msg):
