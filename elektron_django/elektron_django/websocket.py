@@ -71,14 +71,13 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
                 #self.write_message("You are connected")
                 clients.append(self)
                 print "Clients: " + str(len(clients))
-                print clients
                 tornado.ioloop.IOLoop.instance().add_timeout(timedelta(seconds=1), self.ws_msg_loop)
         except Exception as e:
             print("Exception in open: {}".format(str(e)))
             raise
 
     def ws_msg_loop(self):
-        print("Starting ws_msg_loop!")
+        #print("Starting ws_msg_loop!")
         try:
             #n = random.randint(0,100)
             #message = {"data": n}
@@ -100,12 +99,10 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
                     try:
                         #print "Sending device message to WebInterface for client: " + str(c)
                         #print message
-                        print "CLIENT"
-                        print c
                         c.write_message(message)
                     except Exception as e:
                         print("Exception in ws_msg_loop trying to write message for client {}: ".format(c))
-                        clients.remove(c)
+                        #clients.remove(c)
                         #raise
             else:
                 pass
