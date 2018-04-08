@@ -151,7 +151,7 @@ class IndexView(generic.ListView):
         print dir(request.session)
         print("REQUEST USER: ")
         print(request.user)
-        
+
         if request.user.is_authenticated():
             print("USER ID: ")
             print(user.id) #the user is loggedin
@@ -1449,6 +1449,11 @@ class DeviceStatisticsView(generic.DetailView):
             days, seconds = diff.days, diff.seconds
             hours = days * 24 + seconds // 3600
 
+            if hours < 1:
+                hours = 1
+            if days < 1:
+                days =1
+
             device_data_sum = data_sum_query['data_sum']
 
             if device_data_sum == None or device_data_sum == 0:
@@ -1561,6 +1566,11 @@ class StatisticsView(generic.DetailView):
 
                 days, seconds = diff.days, diff.seconds
                 hours = days * 24 + seconds // 3600
+
+                if hours < 1:
+                    hours = 1
+                if days < 1:
+                    days = 1
 
                 data_sum = data_sum_query['data_sum']
 
