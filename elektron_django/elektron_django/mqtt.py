@@ -54,7 +54,7 @@ def decrypt_aes256(encypted_msg):
         return msg_aes256
     except Exception as e:
         print("Exception i decrypt_aes256: {}".format(str(e)))
-        raise
+        #raise
 
 def msg_ws(msg):
     resp = publish.single("data_to_web", msg, hostname="localhost")
@@ -130,7 +130,7 @@ def on_message_device(client, userdata, msg):
 
     except Exception as e:
         print "Exception in on_message_device : " + str(e)
-        raise
+        #raise
 
 def on_subscribe(client, userdata,mid, granted_qos):
    print "userdata : " +str(userdata)
