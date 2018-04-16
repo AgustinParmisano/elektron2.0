@@ -111,8 +111,13 @@ def on_message_device(client, userdata, msg):
         msg = str(msg.payload)
         msg = msg.encode('utf-8').strip()
         print("MSG: {}".format(msg))
-        msg = decrypt_aes256(msg)
-        print("MSG DECRYPTED: {}".format(str(msg)))
+        if str("data_value") in str(msg):
+            print("Warning!: Message {} is raw! Need to encrypt with AES256 for more security!".format(str(msg)))
+            pass
+        else:
+            print("Warning!: Message {} is encrypted with AES256 ! Decryting message . . .".format(str(msg)))
+            msg = decrypt_aes256(msg)
+            print("MSG DECRYPTED: {}".format(str(msg)))
 
         mqtt_data = ast.literal_eval(str(msg)) #json.loads(str(msg.payload))
         #mqtt_data # = remove_duplicated_msg(mqtt_data)

@@ -8,6 +8,7 @@
 
 
 ## Recent:
+	- Poner total watts en URLS Nuevas: Ej: http://elektron20.ddns.net:8000/devices/43/data/08/02/2018/10/07/03/2018/20/perday/1/10/1/
 	- Login: investigar bien cómo es con REST y AngularJS (tal vez es mandar un token o cookie)
 	- Ver lo de Seguridad en los Nodemcus: Cifrado con AES256
 	- Hay un error en obtener los datos del día: si estamos a menos de 1 hora del siguiente día no obtiene bien los datos del día.
