@@ -1,5 +1,10 @@
 # TODOS Django Elektron:
 
+## Testing Usabilidad Web:
+	- En monitor si se scrollea para abajo se vuelve para arriba solo
+	- Si estás en alguna de las pantallas de websocket y se apaga un componente no te dice que se apagó pero no trae mas datos (porque está apagada)
+	- En el index poner componentes encendidos no los conectados
+
 ## URLS Nuevas:
 	- http://elektron20.ddns.net:8000/devices/43/data/08/02/2018/07/03/2018/1/50/1/
 	- http://elektron20.ddns.net:8000/devices/43/data/08/02/2018/10/07/03/2018/20/1/10/1/
@@ -8,6 +13,7 @@
 
 
 ## Recent:
+	- Solucionar Error con SQLITE de locks
 	- Poner total watts en URLS Nuevas: Ej: http://elektron20.ddns.net:8000/devices/43/data/08/02/2018/10/07/03/2018/20/perday/1/10/1/
 	- Login: investigar bien cómo es con REST y AngularJS (tal vez es mandar un token o cookie)
 	- Ver lo de Seguridad en los Nodemcus: Cifrado con AES256

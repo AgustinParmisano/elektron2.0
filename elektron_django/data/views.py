@@ -714,6 +714,7 @@ class CreateView(generic.View):
                 new_device["device_ip"] = result["device_ip"]
                 new_device["device_mac"] = result["device_mac"]
                 new_device["label"] = result["label"]
+                new_device["date"] = request["datetime"]
                 try:
                     new_device['devicestate'] = DeviceState.objects.get(id=result['devicestate'])
                 except Exception as e:

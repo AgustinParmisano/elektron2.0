@@ -87,11 +87,12 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
                 message = ast.literal_eval(json.dumps(message))
                 message = ast.literal_eval(message)
                 msg = {}
-
+                #print(message)
                 msg["device_ip"] = message["device_ip"]
                 msg["device_mac"] = message["device_mac"]
                 msg["data_value"] = message["data_value"]
                 msg["data_datetime"] = message["last_data_time"]
+                msg["device_label"] = message["label"]
                 message = msg
 
                 #time.sleep(1)

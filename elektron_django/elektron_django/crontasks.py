@@ -31,7 +31,7 @@ class DateTimeTask(CronTask):
         try:
             self.datetime = self.datetime.split('.')[0]
         except Exception as e:
-            pass    
+            pass
         self.datetime = datetime.strptime(self.datetime, '%Y-%m-%dT%H:%M:%S')
         if self.repeats > 0 and self.state == "1":
             if self.datetime < datetime.now():
@@ -39,6 +39,8 @@ class DateTimeTask(CronTask):
                     self.repeats = self.repeats - 1
                     self.repetitions_done = self.repetitions_done + 1
                     taskhandler.execute_task_function(self)
+                    #taskhandler.update_task_state(self)
+
         else:
             self.state = "2" #done
             taskhandler.update_task_state(self)

@@ -12,7 +12,6 @@ import hashlib
 from Crypto import Random
 from Crypto.Cipher import AES
 
-
 qmsg = Queue.Queue()
 
 class AESCipher(object):
@@ -49,8 +48,8 @@ def decrypt_aes256(encypted_msg):
     try:
         encypted_msg = encypted_msg.decode("utf-8")
         msg_aes256 = cipher.decrypt(encypted_msg)
-        print("MSG decrypted TYPE: {}".format(type(msg_aes256)))
-        print("MSG decrypted STR: {}".format(str(msg_aes256)))
+        #print("MSG decrypted TYPE: {}".format(type(msg_aes256)))
+        #print("MSG decrypted STR: {}".format(str(msg_aes256)))
         return msg_aes256
     except Exception as e:
         print("Exception i decrypt_aes256: {}".format(str(e)))
@@ -60,12 +59,41 @@ def msg_ws(msg):
     resp = publish.single("data_to_web", msg, hostname="localhost")
     return resp
 
+
+tryed = datetime.datetime.now()
+global data_block
+data_block = []
+
+def save_data_block(mqtt_data):
+    #print "Sending MQTT Data to Server: "
+    global tryed
+    data_block.append(mqtt_data)
+    now = datetime.datetime.now()
+    print("DATA BLOCK LEN: {}".format(len(data_block)))
+    print("TRYED: {}".format(now > tryed))
+    if len(data_block) > 10 or (now > tryed):
+        tryed = tryed + datetime.timedelta(seconds=30)
+
+        print("Saving Block Data: {}".format(str(data_block)))
+        while len(data_block) > 0:
+            data = data_block.pop()
+            time.sleep(0.5)
+            requests.post("http://localhost:8000/data/create", data=data)
+            print("Data Saved!: {}".format(str(data)))
+
+
+    return True
+
+"""
 def check_data(mqtt_data):
     #print "Sending MQTT Data to Server: "
     #print mqtt_data
-    result = requests.post("http://localhost:8000/data/create", data=mqtt_data)
+    #result = requests.post("http://localhost:8000/data/create", data=mqtt_data)
+
+    result = save_data_block(data_block)
     ##print result
     return result
+"""
 
 def check_device(device_mqtt):
     device = requests.post("http://localhost:8000/devices/mac", data=device_mqtt)
@@ -73,13 +101,14 @@ def check_device(device_mqtt):
     if device.status_code == 200:
         #print "Device does exists in system. Checking if its enabled."
         is_enabled = json.loads(device.content)["device"]["enabled"]
+        label = json.loads(device.content)["device"]["label"]
         #print "is_enabled"
         #print is_enabled
         if is_enabled:
             #print "Device " + json.loads(device.content)["device"]["label"] + " is enabled"
-            result = 0
+            result = (0,label)
         else:
-            result = 1
+            result = (1,label)
 
         ipchange = requests.post("http://localhost:8000/devices/updateip", data=device_mqtt).status_code
         if ipchange != 200:
@@ -88,9 +117,9 @@ def check_device(device_mqtt):
         result = requests.post("http://localhost:8000/devices/create", data=device_mqtt).status_code
         #print "Device does not exists in system. Creating it."
         if result == 200:
-            result = True
+            result = (0,"created")
         else:
-            result = False
+            result = (1,"error")
 
     return result
 
@@ -115,9 +144,9 @@ def on_message_device(client, userdata, msg):
             print("Warning!: Message {} is raw! Need to encrypt with AES256 for more security!".format(str(msg)))
             pass
         else:
-            print("Warning!: Message {} is encrypted with AES256 ! Decryting message . . .".format(str(msg)))
+            #print("Warning!: Message {} is encrypted with AES256 ! Decryting message . . .".format(str(msg)))
             msg = decrypt_aes256(msg)
-            print("MSG DECRYPTED: {}".format(str(msg)))
+            #print("MSG DECRYPTED: {}".format(str(msg)))
 
         mqtt_data = ast.literal_eval(str(msg)) #json.loads(str(msg.payload))
         #mqtt_data # = remove_duplicated_msg(mqtt_data)
@@ -127,11 +156,13 @@ def on_message_device(client, userdata, msg):
         #print "device_ok"
         #print device_ok
 
-        if device_ok == 0:
+        if device_ok[0] == 0:
             mqtt_data = ast.literal_eval(json.dumps(mqtt_data))
             message = str(mqtt_data)
             msg_ws(message)
-            mqtt_data = check_data(mqtt_data)
+            mqtt_data["date"] = datetime.datetime.now()
+            mqtt_data["device_label"] = device_ok[1]
+            result = save_data_block(mqtt_data)
 
     except Exception as e:
         print "Exception in on_message_device : " + str(e)

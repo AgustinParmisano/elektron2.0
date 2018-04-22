@@ -147,41 +147,51 @@ class IndexView(generic.ListView):
     def get(self, request, *args, **kwargs):
         """Return all devices."""
 
-        print("REQUEST: ")
-        print dir(request.session)
-        print("REQUEST USER: ")
-        print(request.user)
+        try:
+            """
+            print("REQUEST: ")
+            print dir(request.session)
+            print("REQUEST USER: ")
+            print(request.user)
 
-        if request.user.is_authenticated():
-            print("USER ID: ")
-            print(user.id) #the user is loggedin
+            if request.user.is_authenticated():
+                print("USER ID: ")
+                print(user.id) #the user is loggedin
+            """
 
-        devices_list = []
-        last_data_list = []
-
-        stateoff = DeviceState.objects.get(name="off")
-        stateon = DeviceState.objects.get(name="on")
-        #devices = list(map(lambda x: x.serialize(), Device.objects.all().filter(devicestate=stateon, enabled=True)))
-        devices = Device.objects.all()#.filter(devicestate=stateon, enabled=True)
-
-        for device in devices:
+            devices_list = []
             last_data_list = []
-            device_data = {"device":"","lastdata":""}
-            datehourago = datetime.datetime.now() - timedelta(minutes=60)
-            data_query = Data.objects.all().filter(device=device, date__gte=datehourago)
-            lastdata = Data.objects.all().filter(device=device).order_by('-id')[0:20]
-            serialized_device = device.serialize()
-            if len(data_query) > 0:
-                device.pluged = True
-                for data in lastdata:
-                    last_data_list.append(data.serialize())
-            else:
-                device.pluged = False
-            device.save()
-            serialized_device["lastdata"] = last_data_list
-            devices_list.append(serialized_device)
 
-        return JsonResponse({'devices': devices_list})
+            stateoff = DeviceState.objects.get(name="off")
+            stateon = DeviceState.objects.get(name="on")
+            #devices = list(map(lambda x: x.serialize(), Device.objects.all().filter(devicestate=stateon, enabled=True)))
+            devices = Device.objects.all()#.filter(devicestate=stateon, enabled=True)
+
+            for device in devices:
+                last_data_list = []
+                device_data = {"device":"","lastdata":""}
+                datehourago = datetime.datetime.now() - timedelta(minutes=60)
+                data_query = Data.objects.all().filter(device=device, date__gte=datehourago)
+                lastdata = Data.objects.all().filter(device=device).order_by('-id')[0:20]
+                serialized_device = device.serialize()
+
+                if len(data_query) > 0:
+                    device.pluged = True
+                    for data in lastdata:
+                        last_data_list.append(data.serialize())
+                else:
+                    device.pluged = False
+
+                device.save()
+                device_ready = True if ((str(device.devicestate.name) == "on") and device.enabled and device.pluged ) else False
+                serialized_device["ready"] = device_ready
+                serialized_device["lastdata"] = last_data_list
+                devices_list.append(serialized_device)
+
+            return JsonResponse({'devices': devices_list})
+        except Exception as e:
+            print("Exception in devices or index view: {}".format(str(e)))
+
 
 class DetailView(generic.DetailView):
     model = Device
@@ -190,17 +200,26 @@ class DetailView(generic.DetailView):
         """Return the selected by id device."""
         try:
             data_list = []
-            data_query = Data.objects.all().filter(device=kwargs["pk"]).order_by('-id')[0:20]
+            data_query = Data.objects.all().filter(device=device, date__gte=datehourago)
+            lastdata = Data.objects.all().filter(device=kwargs["pk"]).order_by('-id')[0:20]
             data_query = list(data_query)
+            device = Device.objects.get(id=kwargs["pk"])
 
-            for data in data_query:
-                data_list.append(data.serialize())
+            if len(data_query) > 0:
+                device.pluged = True
+                for data in lastdata:
+                    data_list.append(data.serialize())
+            else:
+                device.pluged = False
+            device.save()
 
             data_list = remove_data_nulls(data_list)
-            device = Device.objects.get(id=kwargs["pk"]).serialize()
-            device['lastdata'] = data_list
+            serialized_device = device.serialize()
+            serialized_device['lastdata'] = data_list
+            device_ready = True if ((str(device.devicestate.name) == "on") and device.enabled and device.pluged ) else False
+            serialized_device["ready"] = device_ready
 
-            return JsonResponse({'device': device})
+            return JsonResponse({'device': serialized_device})
 
         except Exception as e:
             print "Some error ocurred getting Single Device with id: " + str(kwargs["pk"])
