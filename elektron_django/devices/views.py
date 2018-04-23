@@ -24,6 +24,7 @@ from django.utils.decorators import method_decorator
 from elektron_django.mqtt import MqttClient
 from django.db.models import Sum, Avg
 from django.core import serializers
+import time
 
 q = Queue.Queue()
 
@@ -200,10 +201,11 @@ class DetailView(generic.DetailView):
         """Return the selected by id device."""
         try:
             data_list = []
-            data_query = Data.objects.all().filter(device=device, date__gte=datehourago)
-            lastdata = Data.objects.all().filter(device=kwargs["pk"]).order_by('-id')[0:20]
-            data_query = list(data_query)
             device = Device.objects.get(id=kwargs["pk"])
+            datehourago = datetime.datetime.now() - timedelta(minutes=60)
+            data_query = Data.objects.all().filter(device=device, date__gte=datehourago)
+            lastdata = Data.objects.all().filter(device=device).order_by('-id')[0:20]
+            data_query = list(data_query)
 
             if len(data_query) > 0:
                 device.pluged = True
@@ -224,6 +226,7 @@ class DetailView(generic.DetailView):
         except Exception as e:
             print "Some error ocurred getting Single Device with id: " + str(kwargs["pk"])
             print "Exception: " + str(e)
+            raise
             return HttpResponse(status=500)
 
 
@@ -1452,42 +1455,10 @@ class DeviceStatisticsView(generic.DetailView):
             device = Device.objects.all().filter(id=device)
             data_query = Data.objects.all().filter(device=device)
             data_query = list(data_query)
-
             device = device[0].serialize()
 
-            data_sum_query = Data.objects.all().filter(device= device['id']).aggregate(data_sum=Sum('data_value'))
-
-            date_from = device["created"]
-            date_to = datetime.datetime.now()
-
-            date1 = date_from
-            date2 = date_to
-
-            diff = date2 - date1
-
-            days, seconds = diff.days, diff.seconds
-            hours = days * 24 + seconds // 3600
-
-            if hours < 1:
-                hours = 1
-            if days < 1:
-                days =1
-
-            device_data_sum = data_sum_query['data_sum']
-
-            if device_data_sum == None or device_data_sum == 0:
-                device_data_sum = 0
-            else:
-                prom_hours = device_data_sum / hours
-                prom_days = device_data_sum / days
-
-            data_avg_query = Data.objects.all().filter(device= device['id']).aggregate(data_avg=Avg('data_value'))
-            data_avg = data_avg_query['data_avg']
-
-            last_data_query = Data.objects.all().filter(device= device['id'])
-
-            if len(list(last_data_query)) > 0:
-                last_data = list(last_data_query)[-1]
+            if len(list(data_query)) > 0:
+                last_data = list(data_query)[-1]
                 last_data_date = last_data.serialize()['date']
                 last_data = float(last_data.serialize()['data_value'])
             else:
@@ -1508,28 +1479,60 @@ class DeviceStatisticsView(generic.DetailView):
             if date_to < date_from:
                 date_to = datetime.datetime.now()
 
-            data_query_avg_states = Data.objects.all().filter(device=device['id'], date__gte=date_from, date__lte=date_to).aggregate(data_avg_states=Avg('data_value'))
-            data_avg_states = data_query_avg_states['data_avg_states']
+            data_list_period = []
+            for data in list(data_query):
+                data_list.append(float(data.data_value))
+                if (data.date >= date_from) and (data.date < date_to):
+                    data_list_period.append(float(data.data_value))
 
-            data_query_sum_states = Data.objects.all().filter(device=device['id'], date__gte=date_from, date__lte=date_to).aggregate(data_sum_states=Sum('data_value'))
-            data_sum_states = data_query_sum_states['data_sum_states']
+            data_sum = sum(data_list)
+            data_avg = reduce(lambda x, y: x + y, data_list) / len(data_list)
+
+            date_from = device["created"]
+            date_to = datetime.datetime.now()
+
+            date1 = date_from
+            date2 = date_to
+
+            diff = date2 - date1
+
+            days, seconds = diff.days, diff.seconds
+            hours = days * 24 + seconds // 3600
+
+            if hours < 1:
+                hours = 1
+            if days < 1:
+                days =1
+
+            data_sum_states = sum(data_list_period)
+            if len(data_list_period) > 0:
+                data_avg_states = reduce(lambda x, y: x + y, data_list_period) / len(data_list_period)
+            else:
+                data_query_avg_states = Data.objects.all().filter(device=device['id'], date__gte=date_from, date__lte=date_to).aggregate(data_avg_states=Avg('data_value'))
+                data_avg_states = data_query_avg_states['data_avg_states']
+
+            if data_sum == None or data_sum == 0:
+                data_sum = 0
+            else:
+                prom_hours = data_sum / hours
+                prom_days = data_sum / days
 
             all_devices_sum = Data.objects.all().aggregate(all_devices_sum=Sum('data_value'))
 
             all_devices_sum = all_devices_sum["all_devices_sum"]
-            device_percent = (device_data_sum * 100) /  all_devices_sum
+            device_percent = (data_sum * 100) /  all_devices_sum
 
             co2_porcent = 35
-            device_co2 = ((device_data_sum / 1000) * co2_porcent) / 100
+            device_co2 = ((data_sum / 1000) * co2_porcent) / 100
 
             total_co2 = ((all_devices_sum / 1000) * co2_porcent) / 100
 
             edelap_marzo18 = 0.002779432624113475
-            device_tarifa = device_data_sum * edelap_marzo18
+            device_tarifa = data_sum * edelap_marzo18
             total_tarifa = all_devices_sum * edelap_marzo18
 
             #return JsonResponse({'device': device, 'data_sum': data_sum, 'days_created': days, 'hours_created':hours, 'prom_days': prom_days, 'prom_hours':prom_hours, 'prom_total': data_avg })
-            return JsonResponse({'device': device, 'device_tarifa':device_tarifa, 'total_tarifa':total_tarifa,  'device_co2': device_co2, 'total_co2': total_co2, 'device_percent':device_percent ,'device_data_sum': device_data_sum, 'all_data_sum': all_devices_sum, 'days_created': days, 'hours_created':hours, 'prom_total': data_avg, 'last_data': { 'value': last_data, 'date':last_data_date}, 'data_list_avg_states': data_avg_states, 'data_list_sum_states': data_sum_states, 'state_period_from':state_period_from, 'state_period_to':state_period_to })
+            return JsonResponse({'device': device, 'device_tarifa':device_tarifa, 'total_tarifa':total_tarifa,  'device_co2': device_co2, 'total_co2': total_co2, 'device_percent':device_percent ,'device_data_sum': data_sum, 'all_data_sum': all_devices_sum, 'days_created': days, 'hours_created':hours, 'prom_total': data_avg, 'last_data': { 'value': last_data, 'date':last_data_date}, 'data_list_avg_states': data_avg_states, 'data_list_sum_states': data_sum_states, 'state_period_from':state_period_from, 'state_period_to':state_period_to })
 
 
         except Exception as e:
@@ -1561,8 +1564,12 @@ class StatisticsView(generic.DetailView):
 
         try:
             device_list = []
+            start_time = time.time()
 
             devices = Device.objects.all()
+
+            all_devices_sum = Data.objects.all().aggregate(all_devices_sum=Sum('data_value'))
+            all_devices_sum = all_devices_sum["all_devices_sum"]
 
             for device in devices:
 
@@ -1573,7 +1580,15 @@ class StatisticsView(generic.DetailView):
 
                 device = device.serialize()
 
-                data_sum_query = Data.objects.all().filter(device= device['id']).aggregate(data_sum=Sum('data_value'))
+                #start_time_device = time.time()
+
+                last_data = None
+                if len(data_query) > 0:
+                    last_data = list(data_query)[-1]
+                    last_data_date = last_data.serialize()['date']
+                    last_data = float(last_data.serialize()['data_value'])
+                else:
+                    last_data_date = ""
 
                 date_from = device["created"]
                 date_to = datetime.datetime.now()
@@ -1591,26 +1606,6 @@ class StatisticsView(generic.DetailView):
                 if days < 1:
                     days = 1
 
-                data_sum = data_sum_query['data_sum']
-
-                if data_sum == None or data_sum == 0:
-                    data_sum = 0
-                else:
-                    prom_hours = data_sum / hours
-                    prom_days = data_sum / days
-
-                data_avg_query = Data.objects.all().filter(device= device['id']).aggregate(data_avg=Avg('data_value'))
-                data_avg = data_avg_query['data_avg']
-
-                last_data = None
-                if len(data_query) > 0:
-                    last_data_query = Data.objects.all().filter(device= device['id'])
-                    last_data = list(last_data_query)[-1]
-                    last_data_date = last_data.serialize()['date']
-                    last_data = float(last_data.serialize()['data_value'])
-                else:
-                    last_data_date = ""
-
                 state_period_from = device['last_state_date_on']
                 state_period_to = device['last_state_date_off']
 
@@ -1625,30 +1620,46 @@ class StatisticsView(generic.DetailView):
                 if date_to < date_from:
                     date_to = datetime.datetime.now()
 
-                data_query_avg_states = Data.objects.all().filter(device=device['id'], date__gte=date_from, date__lte=date_to).aggregate(data_avg_states=Avg('data_value'))
-                data_avg_states = data_query_avg_states['data_avg_states']
+                data_list_period = []
+                for data in list(data_query):
+                    data_list.append(float(data.data_value))
+                    if (data.date >= date_from) and (data.date < date_to):
+                        data_list_period.append(float(data.data_value))
 
-                data_query_sum_states = Data.objects.all().filter(device=device['id'], date__gte=date_from, date__lte=date_to).aggregate(data_sum_states=Sum('data_value'))
-                data_sum_states = data_query_sum_states['data_sum_states']
+                data_sum = sum(data_list)
+                data_avg = reduce(lambda x, y: x + y, data_list) / len(data_list)
+
+                data_sum_states = sum(data_list_period)
+                if len(data_list_period) > 0:
+                    data_avg_states = reduce(lambda x, y: x + y, data_list_period) / len(data_list_period)
+                else:
+                    data_query_avg_states = Data.objects.all().filter(device=device['id'], date__gte=date_from, date__lte=date_to).aggregate(data_avg_states=Avg('data_value'))
+                    data_avg_states = data_query_avg_states['data_avg_states']
+
+                if data_sum == None or data_sum == 0:
+                    data_sum = 0
+                else:
+                    prom_hours = data_sum / hours
+                    prom_days = data_sum / days
 
                 co2_porcent = 35
                 device_co2 = ((data_sum / 1000) * co2_porcent) / 100
-                total_co2 = ((data_sum / 1000) * co2_porcent) / 100
+                total_co2 = ((all_devices_sum / 1000) * co2_porcent) / 100
 
                 edelap_marzo18 = 0.002779432624113475
                 device_tarifa = data_sum * edelap_marzo18
-                total_tarifa = data_sum * edelap_marzo18
+                total_tarifa = all_devices_sum * edelap_marzo18
 
-                all_devices_sum = Data.objects.all().aggregate(all_devices_sum=Sum('data_value'))
-
-                all_devices_sum = all_devices_sum["all_devices_sum"]
                 device_percent = (data_sum * 100) /  all_devices_sum
 
-                print("Device %s percent %s" % (device["label"], device_percent))
+                device_data = {'device': device, 'device_percent':device_percent, 'device_data_sum': data_sum, 'device_tarifa':device_tarifa, 'total_tarifa':total_tarifa,  'device_co2': device_co2, 'total_co2': total_co2, 'days_created': days, 'hours_created':hours, 'prom_total': data_avg, 'last_data': { 'value': last_data, 'date':last_data_date}, 'data_list_avg_states': data_avg_states, 'data_list_sum_states': data_sum_states, 'state_period_from':state_period_from, 'state_period_to':state_period_to, 'all_data_sum':all_devices_sum }
 
-                device_data = {'device': device, 'device_percent':device_percent, 'data_sum': data_sum, 'device_tarifa':device_tarifa, 'total_tarifa':total_tarifa,  'device_co2': device_co2, 'total_co2': total_co2, 'days_created': days, 'hours_created':hours, 'prom_total': data_avg, 'last_data': { 'value': last_data, 'date':last_data_date}, 'data_list_avg_states': data_avg_states, 'data_list_sum_states': data_sum_states, 'state_period_from':state_period_from, 'state_period_to':state_period_to }
                 device_list.append(device_data)
+                #elapsed_time_device = time.time() - start_time_device
+                #print("ELAPSED TIME {} FOR DEVICE {}".format(str(elapsed_time_device), device["label"]))
 
+            elapsed_time = time.time() - start_time
+            print("ELAPSED TIME {} ALL DEVICES ".format(str(elapsed_time)))
             return JsonResponse({"devices": device_list})
 
         except Exception as e:

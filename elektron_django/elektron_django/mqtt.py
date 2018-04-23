@@ -69,15 +69,15 @@ def save_data_block(mqtt_data):
     global tryed
     data_block.append(mqtt_data)
     now = datetime.datetime.now()
-    print("DATA BLOCK LEN: {}".format(len(data_block)))
-    print("TRYED: {}".format(now > tryed))
+    #print("DATA BLOCK LEN: {}".format(len(data_block)))
+    #print("TRYED: {}".format(now > tryed))
     if len(data_block) > 10 or (now > tryed):
         tryed = tryed + datetime.timedelta(seconds=30)
 
-        print("Saving Block Data: {}".format(str(data_block)))
+        #print("Saving Block Data: {}".format(str(data_block)))
         while len(data_block) > 0:
             data = data_block.pop()
-            time.sleep(0.5)
+            time.sleep(0.1)
             requests.post("http://localhost:8000/data/create", data=data)
             print("Data Saved!: {}".format(str(data)))
 
@@ -102,6 +102,8 @@ def check_device(device_mqtt):
         #print "Device does exists in system. Checking if its enabled."
         is_enabled = json.loads(device.content)["device"]["enabled"]
         label = json.loads(device.content)["device"]["label"]
+        ip = json.loads(device.content)["device"]["device_ip"]
+
         #print "is_enabled"
         #print is_enabled
         if is_enabled:
@@ -110,9 +112,11 @@ def check_device(device_mqtt):
         else:
             result = (1,label)
 
-        ipchange = requests.post("http://localhost:8000/devices/updateip", data=device_mqtt).status_code
-        if ipchange != 200:
-            print "Warning!: IP failed to change! "
+        #print("Device MQTT IP {} device system ip {}".format(device_mqtt['device_ip'], ip))
+        if device_mqtt['device_ip'] != ip:
+            ipchange = requests.post("http://localhost:8000/devices/updateip", data=device_mqtt).status_code
+            if ipchange != 200:
+                print "Warning!: IP failed to change! "
     else:
         result = requests.post("http://localhost:8000/devices/create", data=device_mqtt).status_code
         #print "Device does not exists in system. Creating it."
