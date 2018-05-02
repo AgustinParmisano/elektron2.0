@@ -24,12 +24,14 @@ def on_connect(client, userdata, flags, rc):
    client.subscribe("data_to_web")
 
 def on_message(client, userdata, msg):
-   data_json = ast.literal_eval(msg.payload)
-   data_json["last_data_time"] = str(datetime.datetime.now())
+    print msg.payload
+    #{'device_label': u'Lampara bajo cons', 'data_value': '19.77', 'device_ip': '192.168.0.4', 'label': 'Elektron', 'date': datetime.datetime(2018, 4, 23,18, 20, 23, 655959), 'device_mac': '60:01:94:06:85:45'}
+    data_json = ast.literal_eval(msg.payload)
+    data_json["last_data_time"] = str(datetime.datetime.now())
 
-   if len(clients) > 0:
+    if len(clients) > 0:
        q.put(data_json)
-   else:
+    else:
        #print q
        q.queue.clear()
 
@@ -104,7 +106,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
                     except Exception as e:
                         print("Exception in ws_msg_loop trying to write message for client {}: ".format(c))
                         #clients.remove(c)
-                        #raise
+                        raise
             else:
                 pass
         except Exception as e:

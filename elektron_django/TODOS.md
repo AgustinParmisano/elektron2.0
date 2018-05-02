@@ -1,9 +1,7 @@
 # TODOS Django Elektron:
 
 ## Testing Usabilidad Web:
-	- En monitor si se scrollea para abajo se vuelve para arriba solo
 	- Si estás en alguna de las pantallas de websocket y se apaga un componente no te dice que se apagó pero no trae mas datos (porque está apagada)
-	- En el index poner componentes encendidos no los conectados
 
 ## URLS Nuevas:
 	- http://elektron20.ddns.net:8000/devices/43/data/08/02/2018/07/03/2018/1/50/1/

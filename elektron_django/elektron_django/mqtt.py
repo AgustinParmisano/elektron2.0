@@ -154,7 +154,8 @@ def on_message_device(client, userdata, msg):
 
         mqtt_data = ast.literal_eval(str(msg)) #json.loads(str(msg.payload))
         #mqtt_data # = remove_duplicated_msg(mqtt_data)
-
+        print "--------------mqtt_data--------------"
+        print mqtt_data
         device_ok = check_device(mqtt_data)
 
         #print "device_ok"
@@ -162,10 +163,12 @@ def on_message_device(client, userdata, msg):
 
         if device_ok[0] == 0:
             mqtt_data = ast.literal_eval(json.dumps(mqtt_data))
+            #mqtt_data["date"] = datetime.datetime.now()
+            mqtt_data["label"] = device_ok[1]
             message = str(mqtt_data)
+            print "--------------message--------------"
+            print message
             msg_ws(message)
-            mqtt_data["date"] = datetime.datetime.now()
-            mqtt_data["device_label"] = device_ok[1]
             result = save_data_block(mqtt_data)
 
     except Exception as e:
