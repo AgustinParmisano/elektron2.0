@@ -71,7 +71,7 @@ def save_data_block(mqtt_data):
     now = datetime.datetime.now()
     #print("DATA BLOCK LEN: {}".format(len(data_block)))
     #print("TRYED: {}".format(now > tryed))
-    if len(data_block) > 10 or (now > tryed):
+    if len(data_block) > 1 or (now > tryed):
         tryed = tryed + datetime.timedelta(seconds=30)
 
         #print("Saving Block Data: {}".format(str(data_block)))

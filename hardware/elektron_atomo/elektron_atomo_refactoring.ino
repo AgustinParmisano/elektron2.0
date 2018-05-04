@@ -43,7 +43,7 @@ int c_min = 0;
 int c_max = 30;
 
 //For analog read
-double valorVoltajeSensor;
+double valorVoltajeSensor, sensor_read;
 
 float ruido;
 
@@ -93,6 +93,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     Serial.print("Message arrived [");
     Serial.println(topic);
     Serial.print("] ");
+
     for (int i = 0; i < length; i++) {
       char receivedChar = (char)payload[i];
       Serial.print("MSG RECEIVED!!!!!!!!!!  ");
@@ -105,34 +106,6 @@ void callback(char* topic, byte* payload, unsigned int length) {
         digitalWrite(rele, LOW);
         device_state = 1;
       }
-      if (receivedChar == '2')
-        Serial.println("Retrieve Data Forced");
-      if (device_state == 1) {
-        func_read_current_sensor();
-        if(apparentPower > 1000) {
-          apparentPower = 0;
-        }
-        char data[150];
-
-        //String payload = "{\"ip\":\"" + localip + "\",\"time\":\"" + currtime + "\",\"name\":\"" + elektronname + "\",\"data\":\"" + apparentPower + "\"}";
-        String payload = "{\"device_ip\":\"" + localip + "\",\"device_mac\":\"" + mac + "\",\"label\":\"" + elektronname + "\",\"data_value\":\"" + apparentPower + "\"}";
-        payload.toCharArray(data, (payload.length() + 1));
-        delay(1000);
-
-        String mini_mac;
-        //mini_mac = mac.substring(11);
-        mini_mac = mac.substring(mac.length() - 5);
-
-        Serial.print("MINI MAC: ");
-        Serial.println(mini_mac);
-
-        Serial.print("Data to publish to client by callack:");
-        Serial.print(data);
-        String topic = "sensors/new_data";
-        char topic_char[50];
-        topic.toCharArray(topic_char, (topic.length() + 1));
-        client.publish(topic_char, data);
-        }
 
     }
     Serial.println();
@@ -141,27 +114,27 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
 int reconnection_tries = 0;
 void reconnect() {
+  String mini_mac;
+  String clientId = "ESP8266Client-";
+  char topic_char[50];
+
   // Loop until we're reconnected
   while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
     // Create a random client ID
-    String clientId = "ESP8266Client-";
     clientId += String(random(0xffff), HEX);
+
     // Attempt to connect
     if (client.connect(clientId.c_str())) {
       Serial.println("connected");
       // ... and subscribe to topic
-      String mini_mac;
       //mini_mac = mac.substring(11);
       mini_mac = mac.substring(mac.length() - 5);
-      char topic_char[50];
       String topic = "elektron/" + mini_mac + "/new_order";
       topic.toCharArray(topic_char, (topic.length() + 1));
       client.subscribe(topic_char);
       Serial.println("Subscribing to mini mac based topic: ");
       Serial.println(topic_char);
-
-
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -185,10 +158,8 @@ int wait = 5;
 void setup() {
   Serial.begin(9600);
 
-
   pinMode(rele, OUTPUT);
   digitalWrite(rele, HIGH);
-  //client.publish("sensors/new_data", "Relay OFF");
   delay(5000);
   digitalWrite(rele, LOW);
 
@@ -245,13 +216,14 @@ void setup() {
     }
   }
   //If not connects to AP set up its own, start web mode 1
-  if (setup_retries < 3){
+
+  if (setup_retries < 1){
     setup_retries += 1;
     Serial.println("Connect timed out, retrying setup");
     delay(1000);
     setup();
   }
-  Serial.println("Connect timed out, setup retries > 3, opening AP");
+  Serial.println("Connect timed out, opening AP");
   setupAP();
 }
 
@@ -282,6 +254,7 @@ void launchWeb(int webtype) {
   IPAddress ip = WiFi.localIP();
   localip = String(ip[0]) + '.' + String(ip[1]) + '.' + String(ip[2]) + '.' + String(ip[3]);
   mac = WiFi.macAddress();
+
   if (localip != "0.0.0.0") {
     Serial.println("Local IP is NOT 0.0.0.0 so show main page: web mode 0 (connecting to configured SSID AP and start web server)");
     createWebServer(0);
@@ -296,41 +269,45 @@ void launchWeb(int webtype) {
   // Start the server
   server.begin();
   Serial.println("Server started");
-
 }
+
 bool ok = false; //False until mqtt server is on and connected correctly with the device
 void mqtt_start() {
-  Serial.println("Starting MQTT On Device Client");
-  Serial.print("MQTT BROKER IP (STRING): ");
-  Serial.println(mqtt_server);
+  char topic_char[50];
   char mqtt_server_char[50];
+  String mini_mac;
+
+  Serial.println("Starting MQTT On Device Client");
+
   mqtt_server.toCharArray(mqtt_server_char, 50);
-  Serial.print("MQTT BROKER IP (CHAR): ");
+
+  Serial.print("MQTT BROKER IP: ");
   Serial.println(mqtt_server_char);
+
   client.setServer(mqtt_server_char, 1883);
   client.setCallback(callback);
-  String mini_mac;
-  //mini_mac = mac.substring(11);
   mini_mac = mac.substring(mac.length() - 5);
-  char topic_char[50];
+
   String topic = "elektron/" + mini_mac + "/new_order";
   topic.toCharArray(topic_char, (topic.length() + 1));
   client.subscribe(topic_char);
+
   Serial.println("Subscribing to mini mac based topic: ");
   Serial.println(topic_char);
   //client.publish("sensors/new_data", "Relay OFF");
+
   if (!client.connected()) {
     reconnect();
   }
+
   IPAddress ip = WiFi.localIP();
   localip = String(ip[0]) + '.' + String(ip[1]) + '.' + String(ip[2]) + '.' + String(ip[3]);
   Serial.print("Local IP: ");
   Serial.println(localip);
   client.loop();
+
   ok = true;
 }
-
-
 
 //function to start AP mode
 void setupAP(void) {
@@ -497,7 +474,6 @@ void createWebServer(int webtype)
   }
 }
 
-
 void func_disconnect() {
   //Disconnect from configured SSID AP and setup owns AP again web mode 1
   content = "<!DOCTYPE HTML>\r\n<html>";
@@ -523,7 +499,6 @@ void func_cleareeprom() {
   Serial.println("eeprom cleared...");
 }
 
-
 void func_configuration_mode() {
   Serial.println("CONFIGURING SSID CONNECTION");
   Serial.println("CONFIGURING SSID CONNECTION STARTING");
@@ -542,9 +517,76 @@ void func_configuration_mode() {
 }
 
 float func_read_current_sensor() {
-  Serial.println("func_read_current_sensor");
-  data = analogRead(C_SENSOR1);
-  return(data);
+  //Serial.println("func_read_current_sensor");
+  i = 0;
+  for (int x = 0; x < samplenumber + 1; x++) {
+    sensor_read = analogRead(C_SENSOR1);
+    val = map(sensor_read, 0, 1024, 0, 512);
+    valorVoltajeSensor = val;
+    float intensidadMinima=0;
+    float intensidadMaxima=0;
+
+    //Summing counter
+    i++;
+    //Voltage at ADC
+    Vadc = valorVoltajeSensor * ADCvoltsperdiv;
+    //Remove voltage divider offset
+    Vsens = Vadc - VDoffset;
+
+    if (Vsens>intensidadMaxima) intensidadMaxima=Vsens;
+    if (Vsens<intensidadMinima) intensidadMinima=Vsens;
+    Vsens = (intensidadMaxima - intensidadMinima) / 2 - ruido;
+    //Serial.print("VSENS: ");
+    //Serial.println(Vsens);
+    //Current transformer scale to find Imains
+    Imains = Vsens;
+
+    //Calculates Voltage divider offset.
+    sum1i++; sumVadc = sumVadc + Vadc;
+    if (sum1i >= 1000) {
+      VDoffset = sumVadc / sum1i;
+      sum1i = 0;
+      sumVadc = 0.0;
+    }
+
+    //Root-mean-square method current
+    //1) square current values
+    sqI = Imains * Imains;
+    //2) sum
+    sumI = sumI + sqI;
+
+    if (i >= samplenumber)
+    {
+      i = 0;
+      //Calculation of the root of the mean of the current squared (rms)
+      Irms = factorA * sqrt(sumI / samplenumber) + Ioffset;
+      if (Irms < 0.05) {
+        Irms = 0;
+      }
+
+      //Calculation of the root of the mean of the voltage squared (rms)
+      apparentPower = Irms * SetV;
+      Serial.print(" A0: ");
+      Serial.print(sensor_read);
+      Serial.print(" A0 MAPPED: ");
+      Serial.print(valorVoltajeSensor);
+      Serial.print(" Watios: ");
+      Serial.print(apparentPower);
+      Serial.print(" Voltaje: ");
+      Serial.print(SetV);
+      Serial.print(" Amperios: ");
+      Serial.print(Irms, 4 );
+      Serial.print(" status: ");
+      Serial.print(r1);
+      Serial.print(" c_max: ");
+      Serial.print(c_max);
+      Serial.println();
+
+      //Reset values ready for next sample.
+      sumI = 0.0;
+    }
+  }
+  return(apparentPower);
 }
 
 float power_data = 0;
@@ -558,20 +600,22 @@ Metro sensor_metro = Metro(1000);
 int divs = 1;
 int pub_status;
 
-
 void loop() {
   if (first_time == 1) {
       digitalWrite(rele, HIGH);
-      device_state = 0;
+      device_state = 1;
   }
+
   server.handleClient();
   if (ok == true) {
     if(sensor_metro.check()) {
       sensor_state = !sensor_state;
       client.loop();
-      //Serial.print("Device State is (1: on; 0: off): ");
-      //Serial.println(device_state);
-      if ((device_state == 1) || (first_time == 1)){
+      /*Serial.print("Device State is (1: on; 0: off): ");
+      Serial.println(device_state);
+      Serial.print("Device first_time: ");
+      Serial.println(first_time);*/
+      if (device_state == 1) {
         char data[150];
 
         String topic = "sensors/new_data";
@@ -581,12 +625,12 @@ void loop() {
 
         if (first_time == 0) {
 
-            power_data = func_read_current_sensor();
+            power_data += func_read_current_sensor();
             divs += 1;
           //delay(1);
           if (currentMillis - previousMillis >= interval) {
             previousMillis = currentMillis;
-            power_data = power_data / 4;
+            power_data = power_data / divs;
             if (power_data > 5000) {
               power_data = 0;
             }

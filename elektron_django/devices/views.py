@@ -171,11 +171,12 @@ class IndexView(generic.ListView):
             for device in devices:
                 last_data_list = []
                 device_data = {"device":"","lastdata":""}
-                datehourago = datetime.datetime.now() - timedelta(minutes=60)
-                data_query = Data.objects.all().filter(device=device, date__gte=datehourago)
+                ago = datetime.datetime.now() - timedelta(minutes=10)
+                data_query = Data.objects.all().filter(device=device, date__gte=ago)
                 lastdata = Data.objects.all().filter(device=device).order_by('-id')[0:20]
                 serialized_device = device.serialize()
 
+                print(len(data_query)) 
                 if len(data_query) > 0:
                     device.pluged = True
                     for data in lastdata:
