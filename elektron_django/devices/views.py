@@ -176,7 +176,7 @@ class IndexView(generic.ListView):
                 lastdata = Data.objects.all().filter(device=device).order_by('-id')[0:20]
                 serialized_device = device.serialize()
 
-                print(len(data_query)) 
+                print(len(data_query))
                 if len(data_query) > 0:
                     device.pluged = True
                     for data in lastdata:
@@ -601,7 +601,7 @@ class DeviceDataBetweenDaysPerhourView(generic.DetailView):
                 date_from = date_from + timedelta(hours=1)
                 date_to = date_to + timedelta(hours=1)
 
-            #print data_list
+            print data_list
             data_list = remove_data_nulls(data_list)
             return JsonResponse({'data': data_list})
 
@@ -735,9 +735,12 @@ class DeviceDataBetweenHoursView(generic.DetailView):
             for data in data_query:
                 data_list.insert(0,data.serialize())
 
-            #print data_list
+            print "data_list:"
+            print data_list
+
             total_data = len(data_list)
             data_list = data_list[offset:limit]
+
 
             data_list = remove_data_nulls(data_list)
             return JsonResponse({'data': data_list, 'total_data': total_data, 'pages': total_data / (limit - offset) + 1})
@@ -789,26 +792,30 @@ class DeviceDataBetweenHoursPerHourView(generic.DetailView):
             days, seconds = diff.days, diff.seconds
             hours = days * 24 + seconds // 3600
 
+            data_sum_period = 0
             device_obj = Device.objects.get(pk=device)
             date_to = date_from + timedelta(hours=1)
             for hours_to in range(0,hours + 1):
                 data_query = Data.objects.all().filter(device=device, date__gte=date_from, date__lte=date_to).aggregate(data_perhoursum_hour=Sum('data_value'))
                 dph = DataPH(data_query["data_perhoursum_hour"],device_obj,date_to)
                 data_list.insert(0,dph.serialize())
+                dph_value = dph.serialize()['data_value']
+                if dph_value:
+                    data_sum_period += dph_value
                 date_from = date_from + timedelta(hours=1)
                 date_to = date_to + timedelta(hours=1)
 
-            #print data_list
             data_list = remove_data_nulls(data_list)
 
             total_data = len(data_list)
             data_list = data_list[offset:limit]
 
-            return JsonResponse({'data': data_list, 'total_data': total_data, 'pages': total_data / (limit - offset) + 1})
+            return JsonResponse({'data': data_list, 'total_data': total_data, 'data_sum_period': data_sum_period, 'pages': total_data / (limit - offset) + 1})
 
         except Exception as e:
             print "Some error ocurred getting Between Hours Device Data"
             print "Exception: " + str(e)
+            raise
             return HttpResponse(status=500)
 
 
@@ -858,10 +865,15 @@ class DeviceDataBetweenHoursPerDayView(generic.DetailView):
 
             device_obj = Device.objects.get(pk=device)
             date_to = date_from + timedelta(days=1)
+
+            data_sum_period = 0
             for hours_to in range(0,days):
                 data_query = Data.objects.all().filter(device=device, date__gte=date_from, date__lte=date_to).aggregate(data_perdaysum_day=Sum('data_value'))
                 dph = DataPH(data_query["data_perdaysum_day"],device_obj,date_to)
                 data_list.insert(0,dph.serialize())
+                dph_value = dph.serialize()['data_value']
+                if dph_value:
+                    data_sum_period += dph_value
                 date_from = date_from + timedelta(hours=24)
                 date_to = date_to + timedelta(hours=24)
 
@@ -873,7 +885,7 @@ class DeviceDataBetweenHoursPerDayView(generic.DetailView):
 
             data_list = data_list[offset:limit]
 
-            return JsonResponse({'data': data_list, 'total_data': total_data, 'pages': total_data / (limit - offset) + 1})
+            return JsonResponse({'data': data_list, 'total_data': total_data, 'data_sum_period': data_sum_period, 'pages': total_data / (limit - offset) + 1})
 
         except Exception as e:
             print "Some error ocurred getting Between Hours Device Data"
@@ -1628,7 +1640,10 @@ class StatisticsView(generic.DetailView):
                         data_list_period.append(float(data.data_value))
 
                 data_sum = sum(data_list)
-                data_avg = reduce(lambda x, y: x + y, data_list) / len(data_list)
+                if len(data_list) > 0:
+                    data_avg = reduce(lambda x, y: x + y, data_list) / len(data_list)
+                else:
+                    data_avg = 0
 
                 data_sum_states = sum(data_list_period)
                 if len(data_list_period) > 0:
