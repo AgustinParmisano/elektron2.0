@@ -1188,27 +1188,44 @@ class DeviceDelete(DeleteView):
 class CreateView(generic.View):
 
     def post(self, request, *args, **kwargs):
-        result = check_device(**request.POST)
+        #result = check_device(**request.POST)
+        request = request.POST
+        print request
+        device = Device()
+        owner = User.objects.get(username='root')
 
-        if result:
-            try:
-                device = Device.objects.get(device_mac=str(result["device_mac"]))
-                device.device_ip = device["device_ip"]
-                device.label = device["label"]
-                device.devicestate = device["devicestate"]
+        try:
+            devicestate = DeviceState.objects.get(name="off")
+        except Exception as e:
+            devicestate =  DeviceState()
+            devicestate.name = "off"
+            devicestate.decription = "device is off"
+            devicestate.save()
+            devicestate =  DeviceState()
+            devicestate.name = "on"
+            devicestate.decription = "device is on"
+            devicestate.save()
+            devicestate = DeviceState.objects.get(name="off")
 
-            except Device.DoesNotExist:
-                try:
-                    if result["data_value"]:
-                        del result["data_value"]
-                except Exception as e:
-                    pass
-                device = Device(**result)
+        try:
+            device_mac = str(request["device_mac"]).encode("utf-8")
+            print device_mac
+            #device = Device.objects.get(device_mac=device_mac)
+            device.device_mac = device_mac
+            device.device_ip = request["device_ip"]
+            device.label = request["label"]
+            print devicestate
+            device.devicestate = devicestate
+            device.owner = owner
             device.save()
 
+            return JsonResponse({'status':True})
 
-        return JsonResponse({'status':True})
-
+        except Exception as e:
+            print "Some error ocurred Creting Device"
+            print "Exception: " + str(e)
+            raise
+            return HttpResponse(status=500)
 
 class UpdateView(generic.View):
 
