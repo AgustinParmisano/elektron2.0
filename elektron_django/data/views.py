@@ -19,7 +19,10 @@ from django.core import serializers
 
 def watts_tax_co2_converter(watts):
     co2_porcent = 35
-    total_co2 = ((watts / 1000) * co2_porcent) / 100
+    if watts > 0:
+        total_co2 = ((watts / 1000) * co2_porcent) / 100
+    else:
+        total_co2 = 0
 
     edelap_marzo18 = 0.002779432624113475
     total_tax = watts * edelap_marzo18

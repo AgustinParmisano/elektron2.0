@@ -80,7 +80,7 @@ class TaskHandler(object):
 
         except Exception as e:
             print "Exception in Get Task From Server: " + str(e)
-            raise
+            #raise
             return False
 
     def get_task_device_data(self,task):

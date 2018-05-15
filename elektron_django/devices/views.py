@@ -69,11 +69,13 @@ def to_UTC(date):
     return date
 
 def to_localtime(date):
+    """
     utc = settings.UTC
     if utc < 0:
         date = date + timedelta(hours=abs(utc))
     elif(utc >= 0):
         date = date - timedelta(hours=abs(utc))
+    """
     return date
 
 def remove_data_nulls(data_list):
@@ -795,6 +797,8 @@ class DeviceDataBetweenHoursPerHourView(generic.DetailView):
             data_sum_period = 0
             device_obj = Device.objects.get(pk=device)
             date_to = date_from + timedelta(hours=1)
+
+
             for hours_to in range(0,hours + 1):
                 data_query = Data.objects.all().filter(device=device, date__gte=date_from, date__lte=date_to).aggregate(data_perhoursum_hour=Sum('data_value'))
                 dph = DataPH(data_query["data_perhoursum_hour"],device_obj,date_to)

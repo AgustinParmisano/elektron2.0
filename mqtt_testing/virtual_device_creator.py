@@ -68,8 +68,8 @@ class Device(object):
             randata = random.randint(0,100)
         self.set_data_value(randata)
         return self.data_value
-
-opt = input("1 For New Device, 0 to exit: ")
+"""
+opt = 0 #input("1 For New Device, 0 to exit: ")
 
 file = open("devices.txt","a")
 
@@ -83,3 +83,4 @@ while opt != 0:
     opt = input("1 For New Device, 0 to exit: ")
 
 file.close()
+"""
