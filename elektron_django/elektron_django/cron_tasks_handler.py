@@ -104,8 +104,6 @@ class TaskHandler(object):
                 task_creation_date = str(i) + "/" + task_creation_date
 
             device_data_get = self.session.get("http://" + self.server_ip + ":" + self.server_port + "/devices/"+ str(task.device["id"]) +"/data/"+str(task_creation_date))
-            print("device_data_get")
-            print(device_data_get)
 
             if device_data_get.status_code == 200:
                 device_data = json.loads(device_data_get.text)
@@ -136,13 +134,18 @@ class TaskHandler(object):
         print "Running Task " + task.name + " Functions . . . "
         print " "
         try:
-            print("Executing: " + str(task.id) + " " + str(task.name))
+            #print("Executing: " + str(task.id) + " " + str(task.name))
 
-            print task.tfunction["name"] + " " + task.device["label"]
+            #print task.tfunction["name"] + " " + task.device["label"]
 
             #task_data = {'id':task.id,'taskstate':task.state, 'repeats':task.repeats}
             device_data = {'device_ip': task.device["device_ip"], 'device_mac': task.device["device_mac"], 'devicestate': task.device["devicestate"]['id'], 'label': task.device["label"], 'repeats': task.repeats,'repetitions_done':task.repetitions_done, 'owner': 'root'}
+            print("Device ID: " + str(task.device["id"]) + " Task Function: " + str(task.tfunction["name"]))
+            print("http://" + self.server_ip + ":" + self.server_port + "/devices/" + str(task.device["id"]) + "/"+ task.tfunction["name"])
             function_exec_res = self.session.post("http://" + self.server_ip + ":" + self.server_port + "/devices/" + str(task.device["id"]) + "/"+ task.tfunction["name"], data=device_data)
+            time.sleep(1)
+            function_exec_res = self.session.post("http://" + self.server_ip + ":" + self.server_port + "/devices/" + str(task.device["id"]) + "/"+ task.tfunction["name"], data=device_data)
+            print("Function Execution Response: {}".format(function_exec_res))
 
             if function_exec_res.status_code == 200:
                 self.update_task_state(task)

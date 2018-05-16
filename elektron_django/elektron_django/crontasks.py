@@ -31,11 +31,12 @@ class DateTimeTask(CronTask):
         try:
             self.datetime = self.datetime.split('.')[0]
         except Exception as e:
+            print("Exception in executa datetime tas {} : {}".format(self.name, str(e)))
             pass
         self.datetime = datetime.strptime(self.datetime, '%Y-%m-%dT%H:%M:%S')
         if self.repeats > 0 and self.state == "1":
             if self.datetime < datetime.now():
-                    print "Excecuting task " + self.name
+                    print "!!!!!!!Excecuting task!!!!!!!!! " + self.name
                     self.repeats = self.repeats - 1
                     self.repetitions_done = self.repetitions_done + 1
                     taskhandler.execute_task_function(self)
@@ -71,11 +72,8 @@ class DataTask(CronTask):
                     print "Excecuting task " + self.name
                     self.repeats = self.repeats - 1
                     self.repetitions_done = self.repetitions_done + 1
-                    print(self.devicedata["data_value"])
-                    print(self.datacomp)
                     if self.comparator > 0:
                         if float(self.devicedata["data_value"]) > float(self.datacomp):
-                            print("Data es greater than comparator")
                             taskhandler.execute_task_function(self)
                     if self.comparator < 0:
                         if float(self.devicedata["data_value"]) < float(self.datacomp):

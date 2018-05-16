@@ -105,18 +105,18 @@ def check_device(device_mqtt):
         ip = json.loads(device.content)["device"]["device_ip"]
         state = json.loads(device.content)["device"]["devicestate"]["name"]
 
-        print "Device State"
-        print state
+        #print "Device State"
+        #print state
         if device_mqtt['state'] == str(0):
-            print "Device is On"
+            #print "Device is On"
             device_state = "on"
         if device_mqtt['state'] == str(1):
-            print "Device is Off"
+            #print "Device is Off"
             device_state = "off"
 
         is_ok = False
         if is_enabled and device_state == "on":
-            print "Device is On and Enabled"
+            #print "Device is On and Enabled"
             is_ok = True
 
         #print "is_enabled"
@@ -127,7 +127,7 @@ def check_device(device_mqtt):
         else:
             result = (1,label)
 
-        print("Device MQTT state {} device system state {}".format(device_state, state))
+        #print("Device MQTT state {} device system state {}".format(device_state, state))
         if device_mqtt['ip'] != ip:
             ipchange = requests.post("http://localhost:8000/devices/updateip", data=device_mqtt).status_code
             if ipchange != 200:
@@ -164,7 +164,7 @@ def on_message_device(client, userdata, msg):
     try:
         msg = str(msg.payload)
         msg = msg.encode('utf-8').strip()
-        print("MSG: {}".format(msg))
+        #print("MSG: {}".format(msg))
         if str("data_value") in str(msg):
             print("Warning!: Message {} is raw! Need to encrypt with AES256 for more security!".format(str(msg)))
             pass
@@ -175,8 +175,8 @@ def on_message_device(client, userdata, msg):
 
         mqtt_data = ast.literal_eval(str(msg)) #json.loads(str(msg.payload))
         #mqtt_data # = remove_duplicated_msg(mqtt_data)
-        print "--------------mqtt_data--------------"
-        print mqtt_data
+        #print "--------------mqtt_data--------------"
+        #print mqtt_data
         device_ok = check_device(mqtt_data)
 
         #print "device_ok"
@@ -187,13 +187,13 @@ def on_message_device(client, userdata, msg):
             #mqtt_data["date"] = datetime.datetime.now()
             mqtt_data["label"] = device_ok[1]
             message = str(mqtt_data)
-            print "--------------message--------------"
-            print message
+            #print "--------------message--------------"
+            #print message
             msg_ws(message)
             result = save_data_block(mqtt_data)
 
     except Exception as e:
-        print "Exception in on_message_devicEEEEEEEE : " + str(e)
+        print "Exception in on_message_device : " + str(e)
         raise
 
 def on_subscribe(client, userdata,mid, granted_qos):
