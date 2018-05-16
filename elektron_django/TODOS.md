@@ -2,6 +2,10 @@
 
 
 ## Recent:
+	- Cuando se edita una task pierde la cantidad de repeticiones realizadas
+	- Editar DateTimeTask No funciona (cambiando device por lo menos, parece que el frontend manda otro device q el seleccionado)
+	- Las tareas por valor no andan
+	- Las tareas por datetime guardan mal la hora al crearlas
 	- Login: investigar bien cómo es con REST y AngularJS (tal vez es mandar un token o cookie)
 	- Ver lo de Seguridad en los Nodemcus: Cifrado con AES256
 	- Hay un error en obtener los datos del día: si estamos a menos de 1 hora del siguiente día no obtiene bien los datos del día.

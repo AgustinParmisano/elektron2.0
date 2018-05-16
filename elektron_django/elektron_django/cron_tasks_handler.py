@@ -19,19 +19,23 @@ class TaskHandler(object):
         self.tasks_q = Queue()
 
     def run_handler(self):
-        print " "
-        print "Running Task Hanlder . . . "
-        print " "
+        try:
+            print " "
+            print "Running Task Hanlder . . . "
+            print " "
 
-        self.authenticate_daemon()
+            self.authenticate_daemon()
 
-        while True:
-            time.sleep(1)
-            self.get_tasks_from_server()
-            if not self.tasks_q.empty():
-                self.execute_tasks()
-            else:
-                print("No Ready Tasks!")
+            while True:
+                time.sleep(1)
+                self.get_tasks_from_server()
+                if not self.tasks_q.empty():
+                    self.execute_tasks()
+                else:
+                    print("No Ready Tasks!")
+        except Exception as e:
+            print("Excpetion in run_handler: {}".format(str(e)))
+            time.sleep(5)
 
     def authenticate_daemon(self):
         print " "
@@ -100,6 +104,8 @@ class TaskHandler(object):
                 task_creation_date = str(i) + "/" + task_creation_date
 
             device_data_get = self.session.get("http://" + self.server_ip + ":" + self.server_port + "/devices/"+ str(task.device["id"]) +"/data/"+str(task_creation_date))
+            print("device_data_get")
+            print(device_data_get)
 
             if device_data_get.status_code == 200:
                 device_data = json.loads(device_data_get.text)
@@ -157,4 +163,9 @@ port = "8000"
 print "Starting Task Handler Daemon . . ."
 
 th = TaskHandler(remote_ip, port)
-th.run_handler()
+
+try:
+    th.run_handler()
+except Exception as e:
+    print("Excpetion in run_handler: {}".format(str(e)))
+    time.sleep(5)

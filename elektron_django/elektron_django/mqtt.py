@@ -103,20 +103,41 @@ def check_device(device_mqtt):
         is_enabled = json.loads(device.content)["device"]["enabled"]
         label = json.loads(device.content)["device"]["label"]
         ip = json.loads(device.content)["device"]["device_ip"]
+        state = json.loads(device.content)["device"]["devicestate"]["name"]
+
+        print "Device State"
+        print state
+        if device_mqtt['state'] == str(0):
+            print "Device is On"
+            device_state = "on"
+        if device_mqtt['state'] == str(1):
+            print "Device is Off"
+            device_state = "off"
+
+        is_ok = False
+        if is_enabled and device_state == "on":
+            print "Device is On and Enabled"
+            is_ok = True
 
         #print "is_enabled"
         #print is_enabled
-        if is_enabled:
+        if is_ok:
             #print "Device " + json.loads(device.content)["device"]["label"] + " is enabled"
             result = (0,label)
         else:
             result = (1,label)
 
-        #print("Device MQTT IP {} device system ip {}".format(device_mqtt['device_ip'], ip))
-        if device_mqtt['device_ip'] != ip:
+        print("Device MQTT state {} device system state {}".format(device_state, state))
+        if device_mqtt['ip'] != ip:
             ipchange = requests.post("http://localhost:8000/devices/updateip", data=device_mqtt).status_code
             if ipchange != 200:
                 print "Warning!: IP failed to change! "
+
+        if device_state != state:
+            ipchange = requests.post("http://localhost:8000/devices/updatestate", data=device_mqtt).status_code
+            if ipchange != 200:
+                print "Warning!: State failed to change! "
+
     else:
         result = requests.post("http://localhost:8000/devices/create", data=device_mqtt).status_code
         #print "Device does not exists in system. Creating it."
@@ -172,8 +193,8 @@ def on_message_device(client, userdata, msg):
             result = save_data_block(mqtt_data)
 
     except Exception as e:
-        print "Exception in on_message_device : " + str(e)
-        #raise
+        print "Exception in on_message_devicEEEEEEEE : " + str(e)
+        raise
 
 def on_subscribe(client, userdata,mid, granted_qos):
    print "userdata : " +str(userdata)

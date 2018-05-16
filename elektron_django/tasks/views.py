@@ -5,6 +5,7 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.template import loader
 import datetime
+from datetime import timedelta
 from .models import Task, DateTimeTask, DataTask, TaskState, TaskFunction
 from devices.models import Device
 from elektronusers.models import User as ElektronUser
@@ -12,6 +13,18 @@ from django.views import generic
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from django.conf import settings
+
+def to_localtime(date):
+    utc = settings.UTC
+    """
+    if utc < 0:
+        date = date + timedelta(hours=abs(utc))
+    elif(utc >= 0):
+        date = date - timedelta(hours=abs(utc))
+    """
+    date = date - timedelta(hours=abs(utc))
+    return date
 
 def check_device_mac(**kwargs):
     if not 'device_mac' in kwargs:
@@ -449,6 +462,9 @@ class DateTimeTaskCreateView(generic.View):
                 task_datetime = datetime.datetime.strptime(task['datetime'], "%a, %d %b %Y %H:%M:%S %Z")
                 print("+++++++++DATETIME CONVERTED++++++++")
                 print(str(task_datetime))
+                task_datetime = to_localtime(task_datetime)
+                print("+++++++++DATETIME LOCALTIMED++++++++")
+                print(str(task_datetime))
 
                 if task:
                     try:
@@ -524,7 +540,8 @@ class DateTimeTaskUpdateView(generic.View):
         try:
 
             result = check_device_mac(**request.POST)
-
+            print("POST: ")
+            print(request.POST)
             if result:
                 device = Device.objects.get(device_mac=result["device_mac"])
                 task = request.POST#check_task(**request.POST)
@@ -535,6 +552,9 @@ class DateTimeTaskUpdateView(generic.View):
                 taskstate = TaskState.objects.get(pk=task["taskstate"])
                 task_datetime = datetime.datetime.strptime(task['datetime'], "%a, %d %b %Y %H:%M:%S %Z")
                 print("+++++++++DATETIME CONVERTED++++++++")
+                print(str(task_datetime))
+                task_datetime = to_localtime(task_datetime)
+                print("+++++++++DATETIME LOCALTIMED++++++++")
                 print(str(task_datetime))
 
                 if task:

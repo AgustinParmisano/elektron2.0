@@ -71,14 +71,17 @@ class DataTask(CronTask):
                     print "Excecuting task " + self.name
                     self.repeats = self.repeats - 1
                     self.repetitions_done = self.repetitions_done + 1
+                    print(self.devicedata["data_value"])
+                    print(self.datacomp)
                     if self.comparator > 0:
-                        if self.devicedata["data_value"] > self.datacomp:
+                        if float(self.devicedata["data_value"]) > float(self.datacomp):
+                            print("Data es greater than comparator")
                             taskhandler.execute_task_function(self)
                     if self.comparator < 0:
-                        if self.devicedata["data_value"] < self.datacomp:
+                        if float(self.devicedata["data_value"]) < float(self.datacomp):
                             taskhandler.execute_task_function(self)
                     if self.comparator == 0:
-                        if self.devicedata["data_value"] == self.datacomp:
+                        if float(self.devicedata["data_value"]) == float(self.datacomp):
                             taskhandler.execute_task_function(self)
         else:
             self.state = "2" #done

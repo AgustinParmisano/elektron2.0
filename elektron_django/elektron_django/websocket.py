@@ -89,9 +89,11 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
                 message = ast.literal_eval(json.dumps(message))
                 message = ast.literal_eval(message)
                 msg = {}
+                #print("SENDING WEBSOCKET MESSAGE:")
                 #print(message)
-                msg["device_ip"] = message["device_ip"]
-                msg["device_mac"] = message["device_mac"]
+                msg["device_ip"] = message["ip"]
+                msg["device_mac"] = message["mac"]
+                msg["device_state"] = message["state"]
                 msg["data_value"] = message["data_value"]
                 msg["data_datetime"] = message["last_data_time"]
                 msg["device_label"] = message["label"]
@@ -112,7 +114,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         except Exception as e:
             print "Exception in ws_msg_loop : "
             print e
-            #raise
+            raise
         else:
             tornado.ioloop.IOLoop.instance().add_timeout(timedelta(seconds=0.1), self.ws_msg_loop)
 

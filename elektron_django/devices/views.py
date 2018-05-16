@@ -240,7 +240,7 @@ class DeviceByMac(generic.DetailView):
         """Return a Device by MAC"""
         result = request.POST
         try:
-            device_mac = str(result["device_mac"]).encode("utf-8")
+            device_mac = str(result["mac"]).encode("utf-8")
             device = Device.objects.get(device_mac=str(device_mac)).serialize()
 
             return JsonResponse({'device': device})
@@ -1212,11 +1212,11 @@ class CreateView(generic.View):
             devicestate = DeviceState.objects.get(name="off")
 
         try:
-            device_mac = str(request["device_mac"]).encode("utf-8")
+            device_mac = str(request["mac"]).encode("utf-8")
             print device_mac
             #device = Device.objects.get(device_mac=device_mac)
             device.device_mac = device_mac
-            device.device_ip = request["device_ip"]
+            device.device_ip = request["ip"]
             device.label = request["label"]
             print devicestate
             device.devicestate = devicestate
@@ -1407,14 +1407,45 @@ class UpdateIpView(generic.View):
 
         try:
 
-            device_mac = request.POST["device_mac"]
-            new_ip = request.POST['device_ip']
+            device_mac = request.POST["mac"]
+            new_ip = request.POST['ip']
             device = Device.objects.get(device_mac=device_mac)
             device.device_ip = new_ip
 
 
         except Device.DoesNotExist:
-            print "Some error ocurred shutting downd Single Device with id: " + str(kwargs["pk"])
+            print "Some error ocurred Changing Device IP with id: " + str(kwargs["pk"])
+            print "No such device"
+            print "Exception: " + str(e)
+            return HttpResponse(status=500)
+
+        device.save()
+
+        return JsonResponse({'status':True})
+
+class UpdateStateView(generic.View):
+
+    def post(self, request, *args, **kwargs):
+
+        try:
+
+            device_mac = request.POST["mac"]
+            new_state = request.POST['state']
+
+            print new_state
+            if int(str(new_state)) == 0:
+                print("Changing device state to on")
+                new_state = DeviceState.objects.get(name="on")
+            elif int(str(new_state)) == 1:
+                print("Changing device state to off")
+                new_state = DeviceState.objects.get(name="off")
+
+            device = Device.objects.get(device_mac=device_mac)
+            device.devicestate = new_state
+            print device.devicestate
+
+        except Device.DoesNotExist:
+            print "Some error ocurred Change Device State with id: " + str(kwargs["pk"])
             print "No such device"
             print "Exception: " + str(e)
             return HttpResponse(status=500)

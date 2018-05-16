@@ -707,15 +707,16 @@ class CreateView(generic.View):
     def post(self, request, *args, **kwargs):
         data = Data()
 
-        result = check_device(**request.POST)
+        result = request.POST
 
         if result:
+            print("CREATING DATA")
             try:
-                device = Device.objects.get(device_mac=result["device_mac"])
+                device = Device.objects.get(device_mac=result["mac"])
             except Device.DoesNotExist:
                 new_device = {}
-                new_device["device_ip"] = result["device_ip"]
-                new_device["device_mac"] = result["device_mac"]
+                new_device["device_ip"] = result["ip"]
+                new_device["device_mac"] = result["mac"]
                 new_device["label"] = result["label"]
                 new_device["date"] = request["datetime"]
                 try:

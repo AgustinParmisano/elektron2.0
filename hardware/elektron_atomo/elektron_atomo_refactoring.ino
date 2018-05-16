@@ -20,7 +20,6 @@ String esid;
 String apiurl;
 String mqtt_server;                 //!!!!!!!!!!!!!!!!!!!!!
 
-
 ESP8266WebServer server(80);
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -80,12 +79,17 @@ int val;
 int device_state = 0;
 int first_time = 1;
 int setup_retries = 0;
+float power_data = 0;
+int pub_status;
 
 boolean mqtt_state = false;
 Metro mqtt_metro = Metro(10);
 
 
 void callback(char* topic, byte* payload, unsigned int length) {
+  char data[300];
+  char topic_char[50];
+
   if(mqtt_metro.check()) {
 
     mqtt_state = !mqtt_state;
@@ -98,13 +102,40 @@ void callback(char* topic, byte* payload, unsigned int length) {
       char receivedChar = (char)payload[i];
       Serial.print("MSG RECEIVED!!!!!!!!!!  ");
       Serial.println(receivedChar);
+
+      //Shutdown device
       if (receivedChar == '1') {
+        Serial.println("Shutdown Device");
         digitalWrite(rele, HIGH);
-        device_state = 0;
-      }
-      if (receivedChar == '0') {
-        digitalWrite(rele, LOW);
         device_state = 1;
+        power_data = 0;
+        String payload = "{\"ip\":\"" + localip + "\",\"mac\":\"" + mac + "\",\"label\":\"" + elektronname + "\",\"data_value\":\"" + power_data + "\",\"state\":\"" + device_state + "\"}";
+        payload.toCharArray(data, (payload.length() + 1));
+
+        pub_status = client.publish(topic_char, data);
+        Serial.println("PUB STATUS");
+        Serial.println(pub_status);
+
+        while (pub_status == 0) {
+          Serial.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+          Serial.println("Decive MQTT STOPPED PUBLISHING DATA!!!");
+          Serial.println("RECONNECTING TO MQTT SERVER BROKER");
+          Serial.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+          mqtt_start();
+          pub_status = client.publish(topic_char, data);
+          Serial.println("PUB STATUS");
+          Serial.println(pub_status);
+          delay(1000);
+          reconnect();
+        }
+
+      }
+
+      //Turn on device
+      if (receivedChar == '0') {
+        Serial.println("Turnon Device");
+        digitalWrite(rele, LOW);
+        device_state = 0;
       }
 
     }
@@ -119,6 +150,9 @@ void reconnect() {
   char topic_char[50];
 
   // Loop until we're reconnected
+  Serial.println("Checking MQTT connection...");
+  Serial.println(client.connected());
+
   while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
     // Create a random client ID
@@ -132,10 +166,13 @@ void reconnect() {
       mini_mac = mac.substring(mac.length() - 5);
       String topic = "elektron/" + mini_mac + "/new_order";
       topic.toCharArray(topic_char, (topic.length() + 1));
+
       client.subscribe(topic_char);
       Serial.println("Subscribing to mini mac based topic: ");
       Serial.println(topic_char);
+
     } else {
+
       Serial.print("failed, rc=");
       Serial.print(client.state());
       Serial.println(" try again in 5 seconds");
@@ -161,7 +198,7 @@ void setup() {
   pinMode(rele, OUTPUT);
   digitalWrite(rele, HIGH);
   delay(5000);
-  digitalWrite(rele, LOW);
+  //digitalWrite(rele, LOW);
 
   EEPROM.begin(512);
   delay(10);
@@ -169,6 +206,8 @@ void setup() {
   Serial.println();
   Serial.println();
   Serial.println("Startup");
+  device_state = 1;
+  first_time = 1;
 
   // read eeprom for ssid and pass
   Serial.println("Reading EEPROM ssid");
@@ -589,7 +628,6 @@ float func_read_current_sensor() {
   return(apparentPower);
 }
 
-float power_data = 0;
 
 unsigned long previousMillis = 0;        // will store last time LED was updated
 const long interval = 5000;           // interval at which to blink (milliseconds)
@@ -598,60 +636,94 @@ boolean sensor_state = false;
 Metro sensor_metro = Metro(1000);
 
 int divs = 1;
-int pub_status;
 
 void loop() {
-  if (first_time == 1) {
-      digitalWrite(rele, HIGH);
-      device_state = 1;
-  }
 
   server.handleClient();
+
   if (ok == true) {
     if(sensor_metro.check()) {
-      sensor_state = !sensor_state;
       client.loop();
-      /*Serial.print("Device State is (1: on; 0: off): ");
-      Serial.println(device_state);
-      Serial.print("Device first_time: ");
-      Serial.println(first_time);*/
-      if (device_state == 1) {
-        char data[150];
+      String topic = "sensors/new_data";
+      char topic_char[50];
+      char data[300];
+      topic.toCharArray(topic_char, (topic.length() + 1));
+      unsigned long currentMillis = millis();
 
-        String topic = "sensors/new_data";
-        char topic_char[50];
-        topic.toCharArray(topic_char, (topic.length() + 1));
-        unsigned long currentMillis = millis();
+      if (first_time == 1){
+        power_data = 0;
+        device_state = 1;
+        String payload = "{\"ip\":\"" + localip + "\",\"mac\":\"" + mac + "\",\"label\":\"" + elektronname + "\",\"data_value\":\"" + power_data + "\",\"state\":\"" + device_state + "\"}";
+        payload.toCharArray(data, (payload.length() + 1));
+
+        pub_status = client.publish(topic_char, data);
+        Serial.println("PUB STATUS");
+        Serial.println(pub_status);
+
+
+
+        first_time = 0;
+        digitalWrite(rele, HIGH);
+
+        while (pub_status == 0) {
+          Serial.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+          Serial.println("Decive MQTT STOPPED PUBLISHING DATA!!!");
+          Serial.println("RECONNECTING TO MQTT SERVER BROKER");
+          Serial.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+          mqtt_start();
+          pub_status = client.publish(topic_char, data);
+          Serial.println("PUB STATUS");
+          Serial.println(pub_status);
+          delay(1000);
+          reconnect();
+        }
+
+
+      }
+
+      if (device_state == 0) {
+
 
         if (first_time == 0) {
 
             power_data += func_read_current_sensor();
             divs += 1;
           //delay(1);
+
           if (currentMillis - previousMillis >= interval) {
             previousMillis = currentMillis;
             power_data = power_data / divs;
             if (power_data > 5000) {
               power_data = 0;
             }
-            String payload = "{\"device_ip\":\"" + localip + "\",\"device_mac\":\"" + mac + "\",\"label\":\"" + elektronname + "\",\"data_value\":\"" + power_data + "\"}";
+
+            //String payload = "{\"device_ip\":\"" + localip + "\",\"device_mac\":\"" + mac + "\",\"label\":\"" + "AAAAAAAA" + "\",\"data_value\":\"" + power_data + "\"}";
+            String payload = "{\"ip\":\"" + localip + "\",\"mac\":\"" + mac + "\",\"label\":\"" + elektronname + "\",\"data_value\":\"" + power_data + "\",\"state\":\"" + device_state + "\"}";
             payload.toCharArray(data, (payload.length() + 1));
 
-            Serial.print("Data to publish to client by loop:");
-            Serial.println(data);
-            Serial.println("-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-");
 
             pub_status = client.publish(topic_char, data);
+            Serial.println("PUB STATUS");
+            Serial.println(pub_status);
+
+
             while (pub_status == 0) {
               Serial.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
               Serial.println("Decive MQTT STOPPED PUBLISHING DATA!!!");
               Serial.println("RECONNECTING TO MQTT SERVER BROKER");
               Serial.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
               mqtt_start();
-              reconnect();
-              delay(1000);
               pub_status = client.publish(topic_char, data);
+              Serial.println("PUB STATUS");
+              Serial.println(pub_status);
+              delay(1000);
+              reconnect();
             }
+
+            Serial.print("Data to publish to client by loop:");
+            Serial.println(data);
+            Serial.println("-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-");
+
 
             divs = 1;
           }
