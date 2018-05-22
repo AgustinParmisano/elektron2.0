@@ -78,6 +78,7 @@ def save_data_block(mqtt_data):
         while len(data_block) > 0:
             data = data_block.pop()
             time.sleep(0.1)
+
             requests.post("http://localhost:8000/data/create", data=data)
             print("Data Saved!: {}".format(str(data)))
 

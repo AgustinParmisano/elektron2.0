@@ -16,6 +16,9 @@ from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 from django.contrib.sessions.backends.db import SessionStore
 from django.contrib.auth.decorators import login_required
+import jwt
+import ast
+import json
 
 @method_decorator(login_required, name='dispatch')
 class IndexView(generic.ListView):
@@ -37,6 +40,8 @@ class DetailView(generic.DetailView):
             print "Exception: " + str(e)
             return HttpResponse(status=500)
 
+
+'''
 class LoginView(FormView):
 
     def post(self, request, *args, **kwargs):
@@ -58,6 +63,9 @@ class LoginView(FormView):
                 response = JsonResponse({'user': user_object.username})
                 print("response.cookies")
                 print(dir(response.cookies))
+
+                encoded = jwt.encode({'user': user_object}, 'secret', algorithm='HS256')
+
                 return response
                 #response = HttpResponse(msg=message,status=200)
                 #response.set_cookie('name','pepe',7) #key,value,days_expire
@@ -65,6 +73,53 @@ class LoginView(FormView):
         print "User or password does not match"
         return HttpResponse(status=500)
         #return HttpResponseRedirect(settings.LOGIN_URL)
+'''
+
+class LoginView(FormView):
+
+    def post(self, request, *args, **kwargs):
+        print request.body
+        print type(request.body)
+
+        if not request.body:
+            return HttpResponse({'Error': "Please provide username/password"}, status="400")
+
+        data = ast.literal_eval(request.body)
+        print(data)
+        username = data['email']
+        password = data['password']
+
+        try:
+            #user = ElektronUser.objects.get(username=username, password=password)
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                if user.is_active:
+                    user = ElektronUser.objects.get(username=username)
+                    request.session.set_expiry(86400) #sets the exp. value of the session
+                    login(request, user) #the user is now logged inelse:
+                    print "User "+ user.username +" login success!"
+                    print "request.user: " + str(request.session)
+                    print "autenticated: " + str(request.user.is_authenticated())
+                    print user.username
+                    request.session['username'] = user.username
+                    print "request.session: " + str(request.session['username'])
+                    message = {"key":"value"}
+
+        except Exception as e:
+            print("Exception in login {}".format(str(e)))
+            return HttpResponse({'Error': "Invalid username/password"}, status="400")
+
+        if user:
+
+            payload = {
+                'id': user.id,
+                'username': user.username,
+            }
+            jwt_token = {'token': jwt.encode(payload, "SECRET_KEY")}
+
+            return HttpResponse(json.dumps(jwt_token), status=200, content_type="application/json")
+        else:
+            return HttpResponse(json.dumps({'Error': "Invalid credentials"}),status=400,content_type="application/json")
 
 class LogoutView(generic.DetailView):
 

@@ -21,6 +21,7 @@ def to_UTC(date):
 def remove_null_data(data):
     data = data if data != None else 0
     data = float(data)
+    data = float("{:.2f}".format(float(data)))
     return data
 
 class Data(models.Model):

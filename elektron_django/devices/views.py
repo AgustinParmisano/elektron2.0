@@ -25,6 +25,7 @@ from elektron_django.mqtt import MqttClient
 from django.db.models import Sum, Avg
 from django.core import serializers
 import time
+import json
 
 q = Queue.Queue()
 
@@ -151,48 +152,42 @@ class IndexView(generic.ListView):
         """Return all devices."""
 
         try:
-            """
-            print("REQUEST: ")
-            print dir(request.session)
-            print("REQUEST USER: ")
-            print(request.user)
+            r = request.META.get('HTTP_AUTHORIZATION')
+            if not r:
+                return HttpResponse(status=500)
+            else:
 
-            if request.user.is_authenticated():
-                print("USER ID: ")
-                print(user.id) #the user is loggedin
-            """
-
-            devices_list = []
-            last_data_list = []
-
-            stateoff = DeviceState.objects.get(name="off")
-            stateon = DeviceState.objects.get(name="on")
-            #devices = list(map(lambda x: x.serialize(), Device.objects.all().filter(devicestate=stateon, enabled=True)))
-            devices = Device.objects.all()#.filter(devicestate=stateon, enabled=True)
-
-            for device in devices:
+                devices_list = []
                 last_data_list = []
-                device_data = {"device":"","lastdata":""}
-                ago = datetime.datetime.now() - timedelta(minutes=10)
-                data_query = Data.objects.all().filter(device=device, date__gte=ago)
-                lastdata = Data.objects.all().filter(device=device).order_by('-id')[0:20]
-                serialized_device = device.serialize()
 
-                print(len(data_query))
-                if len(data_query) > 0:
-                    device.pluged = True
-                    for data in lastdata:
-                        last_data_list.append(data.serialize())
-                else:
-                    device.pluged = False
+                stateoff = DeviceState.objects.get(name="off")
+                stateon = DeviceState.objects.get(name="on")
+                #devices = list(map(lambda x: x.serialize(), Device.objects.all().filter(devicestate=stateon, enabled=True)))
+                devices = Device.objects.all()#.filter(devicestate=stateon, enabled=True)
 
-                device.save()
-                device_ready = True if ((str(device.devicestate.name) == "on") and device.enabled and device.pluged ) else False
-                serialized_device["ready"] = device_ready
-                serialized_device["lastdata"] = last_data_list
-                devices_list.append(serialized_device)
+                for device in devices:
+                    last_data_list = []
+                    device_data = {"device":"","lastdata":""}
+                    ago = datetime.datetime.now() - timedelta(minutes=10)
+                    data_query = Data.objects.all().filter(device=device, date__gte=ago)
+                    lastdata = Data.objects.all().filter(device=device).order_by('-id')[0:20]
+                    serialized_device = device.serialize()
 
-            return JsonResponse({'devices': devices_list})
+                    print(len(data_query))
+                    if len(data_query) > 0:
+                        device.pluged = True
+                        for data in lastdata:
+                            last_data_list.append(data.serialize())
+                    else:
+                        device.pluged = False
+
+                    device.save()
+                    device_ready = True if ((str(device.devicestate.name) == "on") and device.enabled and device.pluged ) else False
+                    serialized_device["ready"] = device_ready
+                    serialized_device["lastdata"] = last_data_list
+                    devices_list.append(serialized_device)
+
+                return JsonResponse({'devices': devices_list})
         except Exception as e:
             print("Exception in devices or index view: {}".format(str(e)))
 
@@ -597,8 +592,8 @@ class DeviceDataBetweenDaysPerhourView(generic.DetailView):
             device_obj = Device.objects.get(pk=device)
             date_to = date_from + timedelta(hours=1)
             for hours_to in range(0,hours + 1):
-                data_query = Data.objects.all().filter(device=device, date__gte=date_from, date__lte=date_to).aggregate(data_perhoursum_hour=Sum('data_value'))
-                dph = DataPH(data_query["data_perhoursum_hour"],device_obj,date_to)
+                data_query = Data.objects.all().filter(device=device, date__gte=date_from, date__lte=date_to).aggregate(data_perhouravg_hour=Avg('data_value'))
+                dph = DataPH(data_query["data_perhouravg_hour"],device_obj,date_to)
                 data_list.insert(0,dph.serialize())
                 date_from = date_from + timedelta(hours=1)
                 date_to = date_to + timedelta(hours=1)
@@ -612,7 +607,7 @@ class DeviceDataBetweenDaysPerhourView(generic.DetailView):
             print "Exception: " + str(e)
             return HttpResponse(status=500)
 
-
+'''
 class DeviceDataBetweenDaysPerdayView(generic.DetailView):
     model = Device
 
@@ -645,6 +640,10 @@ class DeviceDataBetweenDaysPerdayView(generic.DetailView):
 
             device_obj = Device.objects.get(pk=device)
             date_to = date_from + timedelta(days=1)
+
+
+
+
             for hours_to in range(0,days):
                 data_query = Data.objects.all().filter(device=device, date__gte=date_from, date__lte=date_to).aggregate(data_perdaysum_day=Sum('data_value'))
                 dph = DataPH(data_query["data_perdaysum_day"],device_obj,date_to)
@@ -660,8 +659,59 @@ class DeviceDataBetweenDaysPerdayView(generic.DetailView):
             print "Some error ocurred getting Between Days Per Day Device Data"
             print "Exception: " + str(e)
             return HttpResponse(status=500)
+'''
 
+#NO SE USA
+class DeviceDataBetweenDaysPerdayView(generic.DetailView):
 
+    def get(self, request, *args, **kwargs):
+
+        try:
+            data_list = []
+            device = kwargs["pk"]
+
+            day1 = kwargs["day1"]
+            month1 = kwargs["month1"]
+            year1 = kwargs["year1"]
+
+            day2 = kwargs["day2"]
+            month2 = kwargs["month2"]
+            year2 = kwargs["year2"]
+
+            datetime_string1 = day1 + "-" + month1 + "-" + year1 + " " + "00" + ":" + "00"
+            datetime_string2 = day2 + "-" + month2 + "-" + year2 + " " + "23" + ":" + "59"
+
+            date_from = datetime.datetime.strptime(datetime_string1, "%d-%m-%Y %H:%M")
+            date_to = datetime.datetime.strptime(datetime_string2, "%d-%m-%Y %H:%M")
+
+            date1 = date_from
+            date2 = date_to
+
+            diff = date2 - date1
+
+            days, seconds = diff.days, diff.seconds
+            hours = days * 24 + seconds // 3600
+
+            device_obj = Device.objects.get(pk=device)
+            date_to = date_from + timedelta(hours=1)
+
+            for hours_to in range(0,hours + 1):
+                data_query = Data.objects.all().filter(device=device, date__gte=date_from, date__lte=date_to).aggregate(data_perhouravg_hour=Avg('data_value'))
+                dph = DataPH(data_query["data_perhouravg_hour"],device_obj,date_to)
+                data_list.insert(0,dph.serialize())
+                date_from = date_from + timedelta(hours=1)
+                date_to = date_to + timedelta(hours=1)
+                print(dph.serialize())
+
+            print(data_list)
+
+            data_list = remove_data_nulls(data_list)
+            return JsonResponse({'data': data_list})
+
+        except Exception as e:
+            print "Some error ocurred getting Between Days Per Day Device Data"
+            print "Exception: " + str(e)
+            return HttpResponse(status=500)
 
 class DeviceDataHourView(generic.DetailView):
     model = Device
@@ -794,27 +844,35 @@ class DeviceDataBetweenHoursPerHourView(generic.DetailView):
             days, seconds = diff.days, diff.seconds
             hours = days * 24 + seconds // 3600
 
-            data_sum_period = 0
+            data_avg_period = 0
             device_obj = Device.objects.get(pk=device)
             date_to = date_from + timedelta(hours=1)
 
-
             for hours_to in range(0,hours + 1):
-                data_query = Data.objects.all().filter(device=device, date__gte=date_from, date__lte=date_to).aggregate(data_perhoursum_hour=Sum('data_value'))
-                dph = DataPH(data_query["data_perhoursum_hour"],device_obj,date_to)
-                data_list.insert(0,dph.serialize())
-                dph_value = dph.serialize()['data_value']
+                data_query = Data.objects.all().filter(device=device, date__gte=date_from, date__lte=date_to).aggregate(data_perhouravg_hour=Avg('data_value'))
+                dph = DataPH(data_query["data_perhouravg_hour"],device_obj,date_to)
+                serialized_dph = dph.serialize()
+
+                if serialized_dph['data_value'] == None:
+                    serialized_dph['data_value'] = 0
+                else:
+                    serialized_dph['data_value'] = float("{:.2f}".format(float(serialized_dph['data_value'])))
+
+                data_list.insert(0,serialized_dph)
+                dph_value = serialized_dph['data_value']
+
                 if dph_value:
-                    data_sum_period += dph_value
+                    data_avg_period += dph_value
                 date_from = date_from + timedelta(hours=1)
                 date_to = date_to + timedelta(hours=1)
 
             data_list = remove_data_nulls(data_list)
+            data_avg_period = float("{:.2f}".format(float(data_avg_period)))
 
             total_data = len(data_list)
             data_list = data_list[offset:limit]
 
-            return JsonResponse({'data': data_list, 'total_data': total_data, 'data_sum_period': data_sum_period, 'pages': total_data / (limit - offset) + 1})
+            return JsonResponse({'data': data_list, 'total_data': total_data, 'data_sum_period': data_avg_period, 'pages': total_data / (limit - offset) + 1})
 
         except Exception as e:
             print "Some error ocurred getting Between Hours Device Data"
@@ -822,12 +880,12 @@ class DeviceDataBetweenHoursPerHourView(generic.DetailView):
             raise
             return HttpResponse(status=500)
 
-
-
+# Este si se usa
 class DeviceDataBetweenHoursPerDayView(generic.DetailView):
     DEFAULT_LIMIT = 20
     DEFAULT_ORDER = 1
     DEFAULT_OFFSET = 1
+    print("DeviceDataBetweenHoursPerDayView")
 
     def get(self, request, *args, **kwargs):
 
@@ -865,31 +923,62 @@ class DeviceDataBetweenHoursPerDayView(generic.DetailView):
 
             diff = date2 - date1
 
-            days = diff.days
+            days, seconds = diff.days, diff.seconds
+            hours = days * 24 + seconds // 3600
 
+            data_avg_period = 0
             device_obj = Device.objects.get(pk=device)
-            date_to = date_from + timedelta(days=1)
+            date_to = date_from + timedelta(hours=1)
 
-            data_sum_period = 0
-            for hours_to in range(0,days):
-                data_query = Data.objects.all().filter(device=device, date__gte=date_from, date__lte=date_to).aggregate(data_perdaysum_day=Sum('data_value'))
-                dph = DataPH(data_query["data_perdaysum_day"],device_obj,date_to)
-                data_list.insert(0,dph.serialize())
-                dph_value = dph.serialize()['data_value']
+            for hours_to in range(0,hours + 1):
+                data_query = Data.objects.all().filter(device=device, date__gte=date_from, date__lte=date_to).aggregate(data_perhouravg_hour=Avg('data_value'))
+                dph = DataPH(data_query["data_perhouravg_hour"],device_obj,date_to)
+                serialized_dph = dph.serialize()
+
+                if serialized_dph['data_value'] == None:
+                    serialized_dph['data_value'] = 0
+                else:
+                    serialized_dph['data_value'] = float("{:.2f}".format(float(serialized_dph['data_value'])))
+
+                data_list.insert(0,serialized_dph)
+                dph_value = serialized_dph['data_value']
+
                 if dph_value:
-                    data_sum_period += dph_value
-                date_from = date_from + timedelta(hours=24)
-                date_to = date_to + timedelta(hours=24)
+                    data_avg_period += dph_value
+                date_from = date_from + timedelta(hours=1)
+                date_to = date_to + timedelta(hours=1)
 
+            preday = 0
+            data_per_day = 0
+            data_per_day_json = {}
+            data_per_day_list = []
 
-            #print data_list
-            data_list = remove_data_nulls(data_list)
+            for data in data_list:
+                day = data['date'].day
 
-            total_data = len(data_list)
+                if data["data_value"] == None:
+                    data["data_value"] = 0
 
-            data_list = data_list[offset:limit]
+                if preday == 0:
+                    preday = day
 
-            return JsonResponse({'data': data_list, 'total_data': total_data, 'data_sum_period': data_sum_period, 'pages': total_data / (limit - offset) + 1})
+                if preday == day:
+                    data_per_day += data['data_value']
+                else:
+                    data_per_day_json = {}
+                    data_per_day = float("{:.2f}".format(float(data_per_day)))
+                    data_per_day_json["data_value"] = data_per_day
+                    data_per_day_json["date"] = data["date"].date().strftime('%Y-%m-%d')
+                    data_per_day_json["device"] = data["device"]
+                    data_per_day_list.append(data_per_day_json)
+
+                preday = day
+
+            data_per_day_list = data_per_day_list[offset:limit]
+            total_data = len(data_per_day_list)
+            data_avg_period = float("{:.2f}".format(float(data_avg_period)))
+
+            return JsonResponse({'data': data_per_day_list, 'total_data': total_data, 'data_avg_period': data_avg_period, 'pages': total_data / (limit - offset) + 1})
 
         except Exception as e:
             print "Some error ocurred getting Between Hours Device Data"
@@ -970,8 +1059,8 @@ class DeviceDataDayPerHourView(generic.DetailView):
             device_obj = Device.objects.get(pk=device)
             date_to = date_from + timedelta(hours=1)
             for hours_to in range(1,24):
-                data_query = Data.objects.all().filter(device=device, date__gte=date_from, date__lte=date_to).aggregate(data_perhoursum_hour=Sum('data_value'))
-                dph = DataPH(data_query["data_perhoursum_hour"],device_obj,date_to)
+                data_query = Data.objects.all().filter(device=device, date__gte=date_from, date__lte=date_to).aggregate(data_perhouravg_hour=Avg('data_value'))
+                dph = DataPH(data_query["data_perhouravg_hour"],device_obj,date_to)
                 data_list.insert(0,dph.serialize())
                 date_from = date_from + timedelta(hours=1)
                 date_to = date_to + timedelta(hours=1)
@@ -984,7 +1073,7 @@ class DeviceDataDayPerHourView(generic.DetailView):
             print "Exception: " + str(e)
             return HttpResponse(status=500)
 
-
+# No se usa
 class DeviceDataMonthPerHourView(generic.DetailView):
     model = Device
 
@@ -1015,8 +1104,8 @@ class DeviceDataMonthPerHourView(generic.DetailView):
             device_obj = Device.objects.get(pk=device)
             date_to = date_from + timedelta(hours=1)
             for hours_to in range(1,hours):
-                data_query = Data.objects.all().filter(device=device, date__gte=date_from, date__lte=date_to).aggregate(data_perhoursum_hour=Sum('data_value'))
-                dph = DataPH(data_query["data_perhoursum_hour"],device_obj,date_to)
+                data_query = Data.objects.all().filter(device=device, date__gte=date_from, date__lte=date_to).aggregate(data_perhouravg_hour=Avg('data_value'))
+                dph = DataPH(data_query["data_perhouravg_hour"],device_obj,date_to)
                 data_list.insert(0,dph.serialize())
                 date_from = date_from + timedelta(hours=1)
                 date_to = date_to + timedelta(hours=1)
@@ -1029,7 +1118,7 @@ class DeviceDataMonthPerHourView(generic.DetailView):
             print "Exception: " + str(e)
             return HttpResponse(status=500)
 
-
+# No se usa
 class DeviceDataPerHourView(generic.DetailView):
     model = Device
 
@@ -1063,8 +1152,8 @@ class DeviceDataPerHourView(generic.DetailView):
 
             date_to = date_from + timedelta(hours=1)
             for hours_to in range(1,hours):
-                data_query = Data.objects.all().filter(device=device, date__gte=date_from, date__lte=date_to).aggregate(data_perhoursum_hour=Sum('data_value'))
-                dph = DataPH(data_query["data_perhoursum_hour"],device_obj,date_to)
+                data_query = Data.objects.all().filter(device=device, date__gte=date_from, date__lte=date_to).aggregate(data_perhouravg_hour=Avg('data_value'))
+                dph = DataPH(data_query["data_perhouravg_hour"],device_obj,date_to)
                 data_list.insert(0,dph.serialize())
                 date_from = date_from + timedelta(hours=1)
                 date_to = date_to + timedelta(hours=1)
@@ -1077,7 +1166,7 @@ class DeviceDataPerHourView(generic.DetailView):
             print "Exception: " + str(e)
             return HttpResponse(status=500)
 
-
+# NO SE USA
 class DeviceDataMonthPerDayView(generic.DetailView):
     model = Device
 
@@ -1113,7 +1202,7 @@ class DeviceDataMonthPerDayView(generic.DetailView):
             print "Exception: " + str(e)
             return HttpResponse(status=500)
 
-
+# NO SE USA
 class DeviceDataPerDayView(generic.DetailView):
     model = Device
 
@@ -1381,15 +1470,7 @@ class UpdateLabelView(generic.View):
             device_pk = kwargs["pk"]
             new_label = request.POST['label']
             device = Device.objects.get(pk=device_pk)
-            #mini_mac = device.device_mac[-5:]
-
-            #topic = "elektron/"+str(mini_mac)+"/new_order"
-            #new_label = str(request["label"])
             device.label = new_label
-            #mqtt = MqttClient()
-            #mqtt.publish(new_label, topic)
-            #print "device.label"
-            #print device.label
 
         except Device.DoesNotExist:
             print "Some error ocurred shutting downd Single Device with id: " + str(kwargs["pk"])
@@ -1432,7 +1513,6 @@ class UpdateStateView(generic.View):
             device_mac = request.POST["mac"]
             new_state = request.POST['state']
 
-            print new_state
             if int(str(new_state)) == 0:
                 print("Changing device state to on")
                 new_state = DeviceState.objects.get(name="on")
@@ -1442,7 +1522,6 @@ class UpdateStateView(generic.View):
 
             device = Device.objects.get(device_mac=device_mac)
             device.devicestate = new_state
-            print device.devicestate
 
         except Device.DoesNotExist:
             print "Some error ocurred Change Device State with id: " + str(kwargs["pk"])
@@ -1493,6 +1572,47 @@ def percent(num1, num2):
     percentage = '{0:.2f}'.format((num1 / num2 * 100))
     return percentage
 
+
+def get_avg_hour_list(data_list):
+    preday = 0
+    data_per_day = 0
+    data_per_day_json = {}
+    data_per_day_list = []
+    only_data_list = []
+    data_sum = 0
+
+    for data in data_list:
+        #print(data)
+        try:
+            day = data['date'].day
+        except Exception as e:
+            data = data.serialize()
+            day = data['date'].day
+
+        if data["data_value"] == None:
+            data["data_value"] = 0
+
+        if preday == 0:
+            preday = day
+
+        if preday == day:
+            data_per_day += data['data_value']
+        else:
+            data_per_day_json = {}
+            data_per_day = float("{:.2f}".format(float(data_per_day)))
+            data_per_day_json["data_value"] = data_per_day
+            data_sum += data_per_day
+            data_per_day_json["date"] = data["date"].date().strftime('%Y-%m-%d')
+            data_per_day_json["device"] = data["device"]
+            data_per_day_list.append(data_per_day_json)
+            only_data_list.append(data_per_day)
+
+        preday = day
+
+    data = {"data_per_day_list": data_per_day_list, "data_sum": data_sum, "only_data_list": only_data_list}
+    return data
+
+
 class DeviceStatisticsView(generic.DetailView):
     model = Device
     """
@@ -1511,6 +1631,7 @@ class DeviceStatisticsView(generic.DetailView):
     - Consumo promedio del último periodo de actividad
     - Cantidad de encendidos y apagados históricos
     """
+
     def get(self, request, *args, **kwargs):
 
         try:
@@ -1541,17 +1662,26 @@ class DeviceStatisticsView(generic.DetailView):
 
             date_from = device['last_state_date_on']
             date_to = device['last_state_date_off']
+
             if date_to < date_from:
                 date_to = datetime.datetime.now()
 
             data_list_period = []
             for data in list(data_query):
-                data_list.append(float(data.data_value))
+                data_list.append(data.serialize())
                 if (data.date >= date_from) and (data.date < date_to):
-                    data_list_period.append(float(data.data_value))
+                    data_list_period.append(data.serialize())
 
-            data_sum = sum(data_list)
-            data_avg = reduce(lambda x, y: x + y, data_list) / len(data_list)
+            data_list_period = get_avg_hour_list(data_list_period)
+            data_list_period_sum = data_list_period["data_sum"]
+            data_list_period = data_list_period["data_per_day_list"]
+
+            data_list = get_avg_hour_list(data_list)
+            only_data_list = data_list["only_data_list"]
+
+            data_sum = data_list["data_sum"]
+            data_list = data_list["data_per_day_list"]
+            data_avg = reduce(lambda x, y: x + y, only_data_list) / len(only_data_list)
 
             date_from = device["created"]
             date_to = datetime.datetime.now()
@@ -1569,7 +1699,7 @@ class DeviceStatisticsView(generic.DetailView):
             if days < 1:
                 days =1
 
-            data_sum_states = sum(data_list_period)
+            data_sum_states = data_list_period_sum
             if len(data_list_period) > 0:
                 data_avg_states = reduce(lambda x, y: x + y, data_list_period) / len(data_list_period)
             else:
@@ -1582,9 +1712,15 @@ class DeviceStatisticsView(generic.DetailView):
                 prom_hours = data_sum / hours
                 prom_days = data_sum / days
 
-            all_devices_sum = Data.objects.all().aggregate(all_devices_sum=Sum('data_value'))
+            device_total_data_avg = Data.objects.all().filter(device=device['id']).aggregate(total_data_avg=Avg('data_value'))['total_data_avg']
+            all_device_data_list = Data.objects.all()
+            all_device_data_list = get_avg_hour_list(all_device_data_list)
 
-            all_devices_sum = all_devices_sum["all_devices_sum"]
+            all_device_data_list_sum = all_device_data_list["data_sum"]
+            all_device_data_list = all_device_data_list["data_per_day_list"]
+
+            all_devices_sum = all_device_data_list_sum
+
             device_percent = (data_sum * 100) /  all_devices_sum
 
             co2_porcent = 35
@@ -1592,12 +1728,22 @@ class DeviceStatisticsView(generic.DetailView):
 
             total_co2 = ((all_devices_sum / 1000) * co2_porcent) / 100
 
-            edelap_marzo18 = 0.002779432624113475
+            edelap_marzo18 = 0.0017944
             device_tarifa = data_sum * edelap_marzo18
             total_tarifa = all_devices_sum * edelap_marzo18
 
+            device_tarifa = float("{:.2f}".format(float(device_tarifa)))
+
+            json_data_result = {'device': device, 'device_total_data_avg': device_total_data_avg, 'device_tarifa':device_tarifa, 'total_tarifa':total_tarifa,  'device_co2': device_co2, 'total_co2': total_co2, 'device_percent':device_percent ,'device_data_sum': data_sum, 'all_data_sum': all_devices_sum, 'days_created': days, 'hours_created':hours, 'prom_total': data_avg, 'last_data': { 'value': last_data, 'date':last_data_date}, 'data_list_avg_states': data_avg_states, 'data_list_sum_states': data_sum_states, 'state_period_from':state_period_from, 'state_period_to':state_period_to }
+
+            for key, value in json_data_result.items():
+                if isinstance(value, float):
+                    value = float("{:.2f}".format(float(value)))
+                    json_data_result[key] = value
+
             #return JsonResponse({'device': device, 'data_sum': data_sum, 'days_created': days, 'hours_created':hours, 'prom_days': prom_days, 'prom_hours':prom_hours, 'prom_total': data_avg })
-            return JsonResponse({'device': device, 'device_tarifa':device_tarifa, 'total_tarifa':total_tarifa,  'device_co2': device_co2, 'total_co2': total_co2, 'device_percent':device_percent ,'device_data_sum': data_sum, 'all_data_sum': all_devices_sum, 'days_created': days, 'hours_created':hours, 'prom_total': data_avg, 'last_data': { 'value': last_data, 'date':last_data_date}, 'data_list_avg_states': data_avg_states, 'data_list_sum_states': data_sum_states, 'state_period_from':state_period_from, 'state_period_to':state_period_to })
+            #return JsonResponse({'device': device, 'device_tarifa':device_tarifa, 'total_tarifa':total_tarifa,  'device_co2': device_co2, 'total_co2': total_co2, 'device_percent':device_percent ,'device_data_sum': data_sum, 'all_data_sum': all_devices_sum, 'days_created': days, 'hours_created':hours, 'prom_total': data_avg, 'last_data': { 'value': last_data, 'date':last_data_date}, 'data_list_avg_states': data_avg_states, 'data_list_sum_states': data_sum_states, 'state_period_from':state_period_from, 'state_period_to':state_period_to })
+            return JsonResponse(json_data_result)
 
 
         except Exception as e:

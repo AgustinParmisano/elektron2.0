@@ -149,11 +149,21 @@ dm = DeviceManager(topic, host_ip)
 while True:
     time.sleep(5)
     dm.run_devices()
-    with open(devicesfile) as df:
-        for line in df:
-            if line != "":
-                if line not in dm.get_devicesq():
+    try:
+        with open(devicesfile) as df:
+            for line in df:
+                if line != "":
+                    if line not in dm.get_devicesq():
+                       print "New Device Found!"
+                       print line
+                       dm.add_device(line)
+            df.close()
+    except Exception as e:
+        devices = [{'data_value': 0, 'device_ip': '192.168.0.40', 'device_mac': '40:50:60:70', 'devicestate': '1', 'label': 'BOTdevicito'}
+        {'data_value': 0, 'device_ip': '192.168.0.56', 'device_mac': '12:09:21:BF:FE', 'devicestate': '1', 'label': 'BOT1'}]
+        for device in devices:
+            if device != "":
+                if device not in dm.get_devicesq():
                    print "New Device Found!"
-                   print line
-                   dm.add_device(line)
-        df.close()
+                   print device
+                   dm.add_device(device)
