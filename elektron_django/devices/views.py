@@ -1301,6 +1301,8 @@ class CreateView(generic.View):
             devicestate = DeviceState.objects.get(name="off")
 
         try:
+            print "request"
+            print request
             device_mac = str(request["mac"]).encode("utf-8")
             print device_mac
             #device = Device.objects.get(device_mac=device_mac)

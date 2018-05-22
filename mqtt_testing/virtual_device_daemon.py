@@ -1,4 +1,3 @@
-import tornado
 import tornado.websocket
 from tornado import gen
 from datetime import timedelta
@@ -117,7 +116,7 @@ class DeviceManager(object):
         print "run_devices"
         for device in self.devicesq:
             device = ast.literal_eval(str(device))
-            device = Device(device["device_ip"],device["device_mac"],device["label"],device["devicestate"])
+            device = Device(device["ip"],device["mac"],device["label"],device["state"])
             self.run_device(device)
 
     def run_device(self, device):
@@ -126,7 +125,7 @@ class DeviceManager(object):
         device.set_data_value(randata)
         print "\n Sending Device Data via MQTT: "
         print str(device)
-        mac_topic = str(device.device_mac)[-5:]
+        mac_topic = str(device.mac)[-5:]
         #self.topic = "sensors/"+ str(mac_topic) + "/new_data"
 
         device = encrypt_aes256(str(device))
@@ -159,8 +158,7 @@ while True:
                        dm.add_device(line)
             df.close()
     except Exception as e:
-        devices = [{'data_value': 0, 'device_ip': '192.168.0.40', 'device_mac': '40:50:60:70', 'devicestate': '1', 'label': 'BOTdevicito'}
-        {'data_value': 0, 'device_ip': '192.168.0.56', 'device_mac': '12:09:21:BF:FE', 'devicestate': '1', 'label': 'BOT1'}]
+        devices = [{'data_value': 0, 'ip': '192.168.0.40', 'mac': '40:50:60:70', 'state': '0', 'label': 'BOT2'},{'data_value': 0, 'ip': '192.168.0.56', 'mac': '12:09:21:BF:FE', 'state': '0', 'label': 'BOT1'}]
         for device in devices:
             if device != "":
                 if device not in dm.get_devicesq():

@@ -16,12 +16,12 @@ q = Queue.Queue()
 
 class Device(object):
     """docstring for Device."""
-    def __init__(self, device_ip="", device_mac="", label="", devicestate=""):
+    def __init__(self, ip="", mac="", label="", state=""):
         super(Device, self).__init__()
-        self.device_ip = device_ip
-        self.device_mac = device_mac
+        self.ip = ip
+        self.mac = mac
         self.label = label
-        self.devicestate = devicestate
+        self.state = state
         self.data_range_min = 0
         self.data_range_max = 100
         if self.data_range_min > self.data_range_max:
@@ -34,10 +34,10 @@ class Device(object):
 
     def __str__(self):
         return str({
-            'device_ip': self.device_ip,
-            'device_mac': self.device_mac,
+            'ip': self.ip,
+            'mac': self.mac,
             'label': self.label,
-            'devicestate': self.devicestate,
+            'state': self.state,
             'data_value': self.data_value,
         })
 
@@ -47,17 +47,17 @@ class Device(object):
     def get_data_range(self):
         return self.data_range
 
-    def device_constructor(self):
+    def constructor(self):
         ip = raw_input("Device ip (f.e: 10.0.0.2): ") or "10.0.0.99"
         mac = raw_input("Device mac (f.e: 12:34:56:78): ") or "99:99:99:99"
         label = raw_input("Device label (f.e: device1): ") or "device99"
-        devicestate = raw_input("Device State (f.e: 1): ") or "1"
+        state = raw_input("Device State (f.e: 1): ") or "1"
         value_range_max = input("Device max value (f.e: 100): ") or 100
         value_range_min = input("Device min value (f.e: 0): ") or 0
-        self.device_ip = ip
-        self.device_mac = mac
+        self.ip = ip
+        self.mac = mac
         self.label = label
-        self.devicestate = devicestate
+        self.state = state
         self.data_range_min = value_range_min
         self.data_range_max = value_range_max
         return self
@@ -75,7 +75,7 @@ file = open("devices.txt","a")
 
 while opt != 0:
     device = Device()
-    device.device_constructor()
+    device.constructor()
     #q.put(device)
     print "New Device created: "
     print str(device)

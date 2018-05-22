@@ -78,16 +78,26 @@ class LoginView(FormView):
 class LoginView(FormView):
 
     def post(self, request, *args, **kwargs):
-        print request.body
-        print type(request.body)
+        try:
+            print request.body
+            print type(request.body)
 
-        if not request.body:
-            return HttpResponse({'Error': "Please provide username/password"}, status="400")
+            if not request.body:
+                return HttpResponse({'Error': "Please provide username/password"}, status="400")
 
-        data = ast.literal_eval(request.body)
-        print(data)
-        username = data['email']
-        password = data['password']
+            data = ast.literal_eval(request.body)
+            print(data)
+            username = data['email']
+            password = data['password']
+        except Exception as e:
+            print("Login as Daemon")
+            data = request.body.split("&")
+
+            print(data)
+            username = data[0].split("=")[1]
+            password = data[1].split("=")[1]
+            print(username)
+            print(password)
 
         try:
             #user = ElektronUser.objects.get(username=username, password=password)

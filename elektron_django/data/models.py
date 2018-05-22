@@ -46,3 +46,26 @@ class Data(models.Model):
             'date': to_UTC(self.date),
             'device': self.device.serialize()
         }
+
+class DataPerHour(models.Model):
+    data_value = models.CharField(max_length=100, blank=True, default='0')
+    date = models.DateTimeField(auto_now_add=False)
+    device = models.ForeignKey(Device)
+
+    class Meta:
+        ordering = ('date',)
+
+    def __unicode__(self):
+        name = self.data_value
+        return name
+
+    def save(self, *args, **kwargs):
+        super(DataPerHour, self).save(*args, **kwargs)
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'data_value': remove_null_data(self.data_value),
+            'date': to_UTC(self.date),
+            'device': self.device.serialize()
+        }
