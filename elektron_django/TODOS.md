@@ -9,6 +9,56 @@
 	- Crear un modelo nuevo que guarde como LOGS las tareas ejecutados y su información.
 	- Hacer un configurador automático de las redes para mejor testeo
 
+## URLS AUTH:
+
+// URLS Que necesitan AUTH
+
+Login:
+-------------------
+http://158.69.223.78:8000/elektronusers/login
+
+
+Dashboard y monitor
+-------------------
+http://158.69.223.78:8000/devices/
+http://158.69.223.78:8000/data/totalwattstaxco2
+http://158.69.223.78:8000//devices/id/lastdata/10/ o /20
+ws://158.69.223.78:8888/websocket
+
+
+Datatask, Datetimetask y Task Ctrl:
+-------------------
+http://158.69.223.78:8000/tasks/datatasks/create
+http://158.69.223.78:8000/tasks/datatasks/id/updated
+
+http://158.69.223.78:8000/tasks/datetimetasks/create
+http://158.69.223.78:8000/tasks/datetimetasks/id/updated
+
+http://158.69.223.78:8000/tasks/datatasks
+http://158.69.223.78:8000/tasks/datetimetasks
+
+http://158.69.223.78:8000/tasks/type/id/remove
+
+
+Components y component Ctrl:
+------------------
+http://158.69.223.78:8000/devices/id/
+
+http://158.69.223.78:8000/devices/id/turnon
+http://158.69.223.78:8000/devices/id/shutdown
+
+http://158.69.223.78:8000/devices/id/enable
+http://158.69.223.78:8000/devices/id/disable
+
+http://158.69.223.78:8000/devices/id/updatelabel
+
+
+StatisticsCtrl y HistoryCtrl
+------------------
+http://158.69.223.78:8000/devices/statistics
+http://158.69.223.78:8000/devices/31/data/21/05/2018/18/22/05/2018/14/perday/1/5/1/ (por dia)
+http://158.69.223.78:8000/devices/31/data/21/05/2018/18/22/05/2018/14/perhour/1/5/1/ (por hora)
+
 ## Nodemcus:
 	- Armar 3 nuevos lo mas chicos posibles con el código viejo a ver si andan
 	### Envio y recepción de datos:

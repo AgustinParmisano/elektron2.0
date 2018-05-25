@@ -8,6 +8,8 @@ from datetime import datetime
 import sys
 from crontasks import DataTask
 from crontasks import DateTimeTask
+from datetime import timedelta
+
 
 class TaskHandler(object):
     """docstring for TaskHandler."""
@@ -17,6 +19,69 @@ class TaskHandler(object):
         self.server_port = server_port
         self.session = ""
         self.tasks_q = Queue()
+
+
+    def data_formater(self):
+        try:
+            print " "
+            print "Running Data Formater . . . "
+            print " "
+
+            all_data_get = self.session.get("http://" + self.server_ip + ":" + self.server_port + "/data/")
+            all_data = json.loads(all_data_get.text)['data']
+
+            prehour = 0
+            data_per_hour_list = []
+            data_per_hour = 0
+
+            for data in all_data:
+                data_date_complete = data['date'].split(":")[0]
+                data_date = data['date'].split(":")[0].split("T")[0]
+                data_hour = data['date'].split(":")[0].split("T")[1]
+                data_persisted = data['persisted']
+                #print(data_date)
+                #print(data_hour)
+                now = datetime.now()
+                earlier = now - timedelta(hours=1)
+
+                if data_persisted:
+                    print("Data persisted, need to delete it")
+
+                if int(data_hour) <= int(earlier.hour):
+
+                    if data["data_value"] == None:
+                        data["data_value"] = 0
+
+                    if prehour == 0:
+                        prehour = data_hour
+
+
+                    if int(prehour) == int(data_hour):
+                        data_per_hour = data['data_value']
+                        data_per_hour_list.append(data_per_hour)
+                        print("Persist this data")
+                    else:
+                        print(data_per_hour_list)
+                        print(len(data_per_hour_list))
+                        #time.sleep(5)
+                        data_per_hour_json = {}
+                        data_per_hour_json["data_value"] = reduce(lambda x, y: x + y, data_per_hour_list) / len(data_per_hour_list)
+                        data_per_hour_json["device_mac"] = data["device"]['device_mac']
+                        data_per_hour = data['data_value']
+                        data_per_hour_json["data_value"] = float("{:.2f}".format(float(data_per_hour_json["data_value"])))
+                        data_per_hour_list.append(data_per_hour)
+                        print("data_per_hour_json")
+                        print(data_per_hour_json)
+                        #time.sleep(5)
+                        r = requests.post("http://localhost:8000/data/createdataperhour", data=data_per_hour_json)
+                        print(r)
+                    prehour = data_hour
+
+
+        except Exception as e:
+            print("Excpetion in data_formater: {}".format(str(e)))
+            time.sleep(5)
+
 
     def run_handler(self):
         try:
@@ -29,6 +94,7 @@ class TaskHandler(object):
             while True:
                 time.sleep(1)
                 self.get_tasks_from_server()
+                self.data_formater()
                 if not self.tasks_q.empty():
                     self.execute_tasks()
                 else:
@@ -158,6 +224,7 @@ class TaskHandler(object):
     def update_task_state(self, task):
         task.update()
         update_task_state = self.session.post("http://" + self.server_ip + ":" + self.server_port + task.url + str(task.id) + "/updatestate", data=task.task_data)
+
 
 
 #remote_ip = "158.69.223.78"

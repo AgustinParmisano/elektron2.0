@@ -28,6 +28,7 @@ class Data(models.Model):
     data_value = models.CharField(max_length=100, blank=True, default='0')
     date = models.DateTimeField(auto_now_add=False)
     device = models.ForeignKey(Device)
+    persisted = models.BooleanField(default=False)
 
     class Meta:
         ordering = ('date',)

@@ -1322,6 +1322,7 @@ class CreateView(generic.View):
             raise
             return HttpResponse(status=500)
 
+
 class UpdateView(generic.View):
 
     @method_decorator(login_required)
