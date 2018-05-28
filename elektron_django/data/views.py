@@ -16,6 +16,12 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from django.db.models import Sum, Avg
 from django.core import serializers
+from influxdb import InfluxDBClient
+import netifaces as ni
+
+ip = ni.ifaddresses('wlp2s0')[ni.AF_INET][0]['addr']
+
+influx = InfluxDBClient(str(ip),8086, '', '', "elektron")
 
 def watts_tax_co2_converter(watts):
     co2_porcent = 35
@@ -700,7 +706,18 @@ class DataBetweenHoursPostView(generic.DetailView):
             print "Exception: " + str(e)
             return HttpResponse(status=500)
 
-
+def mk_json(data):
+    data = data.serialize()
+    #print("Making Json for InfluxDB for data: {}".format(data["device"]["device_mac"]))
+    return [
+        {
+            "measurement":"data",
+            "fields": {
+               "value": float(data["data_value"]),
+               "device": data["device"]["device_mac"]
+            }
+        }
+    ]
 
 class CreateView(generic.View):
 
@@ -737,13 +754,36 @@ class CreateView(generic.View):
                 device.save()
 
             device_enabled = device.enabled
+
             if device_enabled:
                 result = check_data(**request.POST)
                 if result:
                     data.data_value = result["data_value"]
                     data.device = device
                     data.date = datetime.datetime.now() #TODO: Device sends real datetime
-                    data.save()
+                    #print("Data Time: {}".format(data.date))
+                    data.save() #saving data per 5 sec to mysql
+
+                    influx.write_points(mk_json(data)) #saving data per 5 sec to mysql
+
+                    query = 'select mean(value) from data group by time(1h)' # query per hour average data tz 00
+
+                    result = influx.query(query)
+                    #print("Query Result: ")
+
+                    data_list = list(result)[0] # list to convert to tz -03
+                    zoned_data_list = []
+
+                    for data in data_list:
+                        data_time = data["time"].split("Z")[0]
+                        data_time = datetime.datetime.strptime(data_time, '%Y-%m-%dT%H:%M:%S')
+                        data["time"] = data_time - timedelta(hours=3) #  converting to tz -03
+                        #print(data["time"])
+                        zoned_data_list.append(data)
+
+                    #print("Zoned data list: ")
+                    #print(zoned_data_list)
+
 
         return JsonResponse({'status':True})
 

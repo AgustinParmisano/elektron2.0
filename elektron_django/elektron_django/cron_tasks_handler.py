@@ -94,7 +94,7 @@ class TaskHandler(object):
             while True:
                 time.sleep(1)
                 self.get_tasks_from_server()
-                self.data_formater()
+                #self.data_formater()
                 if not self.tasks_q.empty():
                     self.execute_tasks()
                 else:

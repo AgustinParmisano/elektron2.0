@@ -26,6 +26,8 @@ from django.db.models import Sum, Avg
 from django.core import serializers
 import time
 import json
+from influxdb import InfluxDBClient
+import netifaces as ni
 
 q = Queue.Queue()
 
@@ -1756,6 +1758,10 @@ class DeviceStatisticsView(generic.DetailView):
             return HttpResponse(status=500)
 
 
+ip = ni.ifaddresses('wlp2s0')[ni.AF_INET][0]['addr']
+
+influx = InfluxDBClient(str(ip),8086, '', '', "elektron")
+
 class StatisticsView(generic.DetailView):
     model = Device
     """
@@ -1782,8 +1788,11 @@ class StatisticsView(generic.DetailView):
 
             devices = Device.objects.all()
 
-            all_devices_sum = Data.objects.all().aggregate(all_devices_sum=Sum('data_value'))
-            all_devices_sum = all_devices_sum["all_devices_sum"]
+            query_sum = 'select sum(v1), mean(v1) from (select mean(value) as v1 from data group by time(1h))'
+            result_sum = influx.query(query_sum)
+            data_list_sum = list(result_sum)[0]
+            all_devices_sum = data_list_sum[0]["sum"]
+            data_avg = data_list_sum[0]["mean"]
 
             for device in devices:
 
@@ -1803,6 +1812,20 @@ class StatisticsView(generic.DetailView):
                     last_data = float(last_data.serialize()['data_value'])
                 else:
                     last_data_date = ""
+
+                query_device = "select sum(v1), mean(v1) from (select mean(value) as v1 from data where device = '" + device['device_mac'] + "' group by time(1h))"
+                result_query_device = influx.query(query_device)
+                data_list_device = list(result_query_device)[0]
+
+                print "data_list_device"
+                print data_list_device
+
+                if len(data_list_device) > 0:
+                    data_device_sum = data_list_device[0]["sum"]
+                    data_device_avg = data_list_device[0]["mean"]
+                else:
+                    data_device_sum = 0
+                    data_device_avg = 0
 
                 date_from = device["created"]
                 date_to = datetime.datetime.now()
@@ -1834,46 +1857,44 @@ class StatisticsView(generic.DetailView):
                 if date_to < date_from:
                     date_to = datetime.datetime.now()
 
-                data_list_period = []
-                for data in list(data_query):
-                    data_list.append(float(data.data_value))
-                    if (data.date >= date_from) and (data.date < date_to):
-                        data_list_period.append(float(data.data_value))
+                #datetime format needed by influxdb: 2018-05-28T22:00:00Z
+                date_from_str = str(date_from).split(".")[0].replace(" ", "T") + "Z"
+                date_to_str = str(date_to).split(".")[0].replace(" ", "T") + "Z"
+                query_period_sum = "select sum(v1), mean(v1) from (select mean(value) as v1 from data where time >= '" + str(date_from_str) + "' AND time <= '" + str(date_to_str) + "' AND device = '" + device['device_mac'] + "' group by time(1h))"
+                result_period_sum = influx.query(query_period_sum)
+                data_list_period_sum = list(result_period_sum)
 
-                data_sum = sum(data_list)
-                if len(data_list) > 0:
-                    data_avg = reduce(lambda x, y: x + y, data_list) / len(data_list)
+                if len(data_list_period_sum) > 0:
+                    data_period_sum = data_list_period_sum[0]["sum"]
+                    data_period_avg = data_list_period_sum[0]["mean"]
                 else:
-                    data_avg = 0
+                    data_period_sum = 0
+                    data_period_avg = 0
 
-                data_sum_states = sum(data_list_period)
-                if len(data_list_period) > 0:
-                    data_avg_states = reduce(lambda x, y: x + y, data_list_period) / len(data_list_period)
-                else:
-                    data_query_avg_states = Data.objects.all().filter(device=device['id'], date__gte=date_from, date__lte=date_to).aggregate(data_avg_states=Avg('data_value'))
-                    data_avg_states = data_query_avg_states['data_avg_states']
-
-                if data_sum == None or data_sum == 0:
-                    data_sum = 0
-                else:
-                    prom_hours = data_sum / hours
-                    prom_days = data_sum / days
+                data_sum_states = data_period_sum
+                data_avg_states = data_period_avg
 
                 co2_porcent = 35
-                device_co2 = ((data_sum / 1000) * co2_porcent) / 100
+                device_co2 = ((data_device_sum / 1000) * co2_porcent) / 100
                 total_co2 = ((all_devices_sum / 1000) * co2_porcent) / 100
 
                 edelap_marzo18 = 0.002779432624113475
-                device_tarifa = data_sum * edelap_marzo18
+                device_tarifa = data_device_sum * edelap_marzo18
                 total_tarifa = all_devices_sum * edelap_marzo18
 
-                device_percent = (data_sum * 100) /  all_devices_sum
+                device_percent = (data_device_sum * 100) /  all_devices_sum
 
-                device_data = {'device': device, 'device_percent':device_percent, 'device_data_sum': data_sum, 'device_tarifa':device_tarifa, 'total_tarifa':total_tarifa,  'device_co2': device_co2, 'total_co2': total_co2, 'days_created': days, 'hours_created':hours, 'prom_total': data_avg, 'last_data': { 'value': last_data, 'date':last_data_date}, 'data_list_avg_states': data_avg_states, 'data_list_sum_states': data_sum_states, 'state_period_from':state_period_from, 'state_period_to':state_period_to, 'all_data_sum':all_devices_sum }
+                device_data = {'device': device, 'device_percent':device_percent, 'device_data_sum': data_device_sum, 'device_tarifa':device_tarifa, 'total_tarifa':total_tarifa,  'device_co2': device_co2, 'total_co2': total_co2, 'days_created': days, 'hours_created':hours, 'prom_total': data_avg, 'last_data': { 'value': last_data, 'date':last_data_date}, 'data_list_avg_states': data_avg_states, 'data_list_sum_states': data_sum_states, 'state_period_from':state_period_from, 'state_period_to':state_period_to, 'all_data_sum':all_devices_sum }
+
+                for key, value in device_data.items():
+                    if isinstance(value, float):
+                        value = float("{:.2f}".format(float(value)))
+                        device_data[key] = value
 
                 device_list.append(device_data)
                 #elapsed_time_device = time.time() - start_time_device
                 #print("ELAPSED TIME {} FOR DEVICE {}".format(str(elapsed_time_device), device["label"]))
+
 
             elapsed_time = time.time() - start_time
             print("ELAPSED TIME {} ALL DEVICES ".format(str(elapsed_time)))

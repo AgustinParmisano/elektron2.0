@@ -1,2 +1,2 @@
-{'data_value': 0, 'ip': '192.168.0.40', 'mac': '40:50:60:70', 'state': '1', 'label': 'BOTdevicito'}
-{'data_value': 0, 'ip': '192.168.0.56', 'mac': '12:09:21:BF:FE', 'state': '1', 'label': 'BOT1'}
+{'data_value': 0, 'ip': '192.168.0.40', 'mac': '40:50:60:70', 'state': '0', 'label': 'BOTdevicito'}
+{'data_value': 0, 'ip': '192.168.0.56', 'mac': '12:09:21:BF:FE', 'state': '0', 'label': 'BOT1'}
