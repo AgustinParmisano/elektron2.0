@@ -10,7 +10,7 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.template import loader
 from devices.models import Device, DeviceState
-from .models import Data, DataPerHour
+from .models import Data
 from django.views import generic
 from django.contrib.auth.models import User
 from django.conf import settings
@@ -784,53 +784,6 @@ class CreateView(generic.View):
                     #print("Zoned data list: ")
                     #print(zoned_data_list)
 
-
-        return JsonResponse({'status':True})
-
-
-class CreateDataPerHourView(generic.View):
-
-    def post(self, request, *args, **kwargs):
-        data = DataPerHour()
-
-        result = request.POST
-
-        if result:
-            print("CREATING DATA PER HOUR")
-            try:
-                print(result["device_mac"])
-                device = Device.objects.get(device_mac=result["device_mac"])
-            except Device.DoesNotExist:
-                new_device = {}
-                new_device["device_ip"] = result["ip"]
-                new_device["device_mac"] = result["mac"]
-                new_device["label"] = result["label"]
-                new_device["date"] = request["datetime"]
-                try:
-                    new_device['devicestate'] = DeviceState.objects.get(id=result['devicestate'])
-                except Exception as e:
-                    #TODO: create default devicestates in settings.py
-                    new_device['devicestate'] = DeviceState.objects.get(name="off")
-
-                try:
-                    new_device['owner'] = User.objects.get(username=result['owner'])
-                except Exception as e:
-                    #TODO: create default user in settings.py
-                    new_device['owner'] = User.objects.get(username="root")
-                new_device["enabled"] = False
-                print "NEW DEVICE:"
-                print new_device
-                device = Device(**new_device)
-                device.save()
-
-            device_enabled = device.enabled
-            if device_enabled:
-                result = check_data(**request.POST)
-                if result:
-                    data.data_value = result["data_value"]
-                    data.device = device
-                    data.date = datetime.datetime.now() #TODO: Device sends real datetime
-                    data.save()
 
         return JsonResponse({'status':True})
 

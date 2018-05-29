@@ -10,7 +10,6 @@ urlpatterns = [
     url(r'^perday$', views.DataPerDayView.as_view(), name='perday'),
     url(r'^(?P<pk>[0-9]+)/$', views.DetailView.as_view(), name='detail'),
     url(r'^create$', csrf_exempt(views.CreateView.as_view()), name='create'),
-    url(r'^createdataperhour$', csrf_exempt(views.CreateDataPerHourView.as_view()), name='createdataperhour'),
     url(r'^(?P<day>\d{2})/(?P<month>\d{2})/(?P<year>\d{4})/$', csrf_exempt(views.DataDayView.as_view()), name='data_day'),
     url(r'^(?P<month>\d{2})/(?P<year>\d{4})/$', csrf_exempt(views.DataMonthView.as_view()), name='data_month'),
     url(r'^(?P<day1>\d{2})/(?P<month1>\d{2})/(?P<year1>\d{4})/(?P<day2>\d{2})/(?P<month2>\d{2})/(?P<year2>\d{4})/$', csrf_exempt(views.DataBetweenDaysView.as_view()), name='data_between_days'),
