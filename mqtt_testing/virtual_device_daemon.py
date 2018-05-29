@@ -116,13 +116,12 @@ class DeviceManager(object):
         print "run_devices"
         for device in self.devicesq:
             device = ast.literal_eval(str(device))
-            device = Device(device["ip"],device["mac"],device["label"],device["state"])
+            device = Device(device["ip"],device["mac"],device["label"],device["state"],device["data_range_min"],device["data_range_max"])
             self.run_device(device)
 
     def run_device(self, device):
         print "run_device"
-        randata = device.data_generator()
-        device.set_data_value(randata)
+        print(float(device.data_value))
         print "\n Sending Device Data via MQTT: "
         print str(device)
         mac_topic = str(device.mac)[-5:]
@@ -149,6 +148,7 @@ while True:
     time.sleep(5)
     dm.run_devices()
     try:
+        print("<<<<<1111>>>>>>")
         with open(devicesfile) as df:
             for line in df:
                 if line != "":
@@ -158,7 +158,8 @@ while True:
                        dm.add_device(line)
             df.close()
     except Exception as e:
-        devices = [{'data_value': 0, 'ip': '192.168.0.40', 'mac': '40:50:60:70', 'state': '0', 'label': 'BOT2'},{'data_value': 0, 'ip': '192.168.0.56', 'mac': '12:09:21:BF:FE', 'state': '0', 'label': 'BOT1'}]
+        print("<<<<<2222>>>>>>")
+        devices = [{'data_value': 30, 'ip': '192.168.0.45', 'mac': '22:00:BB:77:FF:EE', 'state': '0', 'label': 'lampara incandescente bot', 'data_range_min': 32, 'data_range_max': 45},{'data_value': 20, 'ip': '192.168.0.105', 'mac': '11:AA:CC:99:DD:11', 'state': '0', 'label': 'lampara baja consumo bot', 'data_range_min': 20, 'data_range_max': 35}]
         for device in devices:
             if device != "":
                 if device not in dm.get_devicesq():

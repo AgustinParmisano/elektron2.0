@@ -1817,9 +1817,6 @@ class StatisticsView(generic.DetailView):
                 result_query_device = influx.query(query_device)
                 data_list_device = list(result_query_device)[0]
 
-                print "data_list_device"
-                print data_list_device
-
                 if len(data_list_device) > 0:
                     data_device_sum = data_list_device[0]["sum"]
                     data_device_avg = data_list_device[0]["mean"]
@@ -1862,8 +1859,10 @@ class StatisticsView(generic.DetailView):
                 date_to_str = str(date_to).split(".")[0].replace(" ", "T") + "Z"
                 query_period_sum = "select sum(v1), mean(v1) from (select mean(value) as v1 from data where time >= '" + str(date_from_str) + "' AND time <= '" + str(date_to_str) + "' AND device = '" + device['device_mac'] + "' group by time(1h))"
                 result_period_sum = influx.query(query_period_sum)
-                data_list_period_sum = list(result_period_sum)
+                data_list_period_sum = list(result_period_sum)[0]
 
+                print("data_list_period_sum")
+                print(data_list_period_sum)
                 if len(data_list_period_sum) > 0:
                     data_period_sum = data_list_period_sum[0]["sum"]
                     data_period_avg = data_list_period_sum[0]["mean"]

@@ -16,21 +16,21 @@ q = Queue.Queue()
 
 class Device(object):
     """docstring for Device."""
-    def __init__(self, ip="", mac="", label="", state=""):
+    def __init__(self, ip="", mac="", label="", state="", data_range_min=0, data_range_max=100):
         super(Device, self).__init__()
         self.ip = ip
         self.mac = mac
         self.label = label
         self.state = state
-        self.data_range_min = 0
-        self.data_range_max = 100
+        self.data_range_min = data_range_min or 0
+        self.data_range_max = data_range_max or 100
         if self.data_range_min > self.data_range_max:
             print("min > max, setting defaults min: 0; max: 100")
             self.data_range_max = 0
             self.data_range_min = 100
 
         self.data_range = (self.data_range_min, self.data_range_max)
-        self.data_value = 0
+        self.data_value = round(random.uniform(float(self.data_range_min) + 0.5, float(self.data_range_max) + 0.5),2) 
 
     def __str__(self):
         return str({
@@ -65,9 +65,10 @@ class Device(object):
     def data_generator(self):
         randata = random.randint(self.data_range_min,self.data_range_max)
         if randata == 0:
-            randata = random.randint(0,100)
+            randata = random.randint(30,50)
         self.set_data_value(randata)
         return self.data_value
+
 """
 opt = 0 #input("1 For New Device, 0 to exit: ")
 
