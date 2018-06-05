@@ -353,12 +353,13 @@ class DataTaskCreateView(generic.View):
             try:
 
                 result = check_device_mac(**request.POST)
+                print result
 
                 if result:
                     device = Device.objects.get(device_mac=result["device_mac"])
                     task = request.POST#check_task(**request.POST)
                     taskstate = TaskState.objects.get(pk=task["taskstate"])
-                    taskfunction = TaskFunction.objects.get(pk=task["taskfunction"])
+                    taskfunction = TaskFunction.objects.get(name=task["taskfunction"])
                     owner = User.objects.get(username=task["owner"]) #User editions of tasks need to be revised
 
                     task = request.POST#check_task(**request.POST)
@@ -408,7 +409,7 @@ class DataTaskUpdateView(generic.View):
                 device = Device.objects.get(device_mac=result["device_mac"])
                 task = request.POST#check_task(**request.POST)
                 taskstate = TaskState.objects.get(pk=task["taskstate"])
-                taskfunction = TaskFunction.objects.get(pk=task["taskfunction"])
+                taskfunction = TaskFunction.objects.get(name=task["taskfunction"])
                 owner = User.objects.get(username=task["owner"]) #User editions of tasks need to be revised
 
                 if task:
@@ -454,7 +455,10 @@ class DateTimeTaskCreateView(generic.View):
             if result:
                 device = Device.objects.get(device_mac=result["device_mac"])
                 task = request.POST#check_task(**request.POST)
-                taskfunction = TaskFunction.objects.get(pk=task["taskfunction"])
+                print "+++++++++TASK+++++++++"
+                print task
+
+                taskfunction = TaskFunction.objects.get(name=task["taskfunction"])
                 owner = User.objects.get(username=task["owner"]) #User editions of tasks need to be revised
                 print("+++++++++DATETIME++++++++")
                 print(str(task["datetime"]))
@@ -545,7 +549,7 @@ class DateTimeTaskUpdateView(generic.View):
             if result:
                 device = Device.objects.get(device_mac=result["device_mac"])
                 task = request.POST#check_task(**request.POST)
-                taskfunction = TaskFunction.objects.get(pk=task["taskfunction"])
+                taskfunction = TaskFunction.objects.get(name=task["taskfunction"])
                 owner = User.objects.get(username=task["owner"]) #User editions of tasks need to be revised
                 print("+++++++++DATETIME++++++++")
                 print(str(task["datetime"]))

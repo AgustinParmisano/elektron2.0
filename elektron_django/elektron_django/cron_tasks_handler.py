@@ -154,9 +154,6 @@ class TaskHandler(object):
             return False
 
     def get_task_device_data(self,task):
-        print " "
-        print "Getting Task " + task.name + " Device Data . . . "
-        print " "
         try:
             task_creation_date = task.creation #passes from date format to /dd/mm/yyyy/hh format
             if task.last_run == "":
@@ -169,12 +166,22 @@ class TaskHandler(object):
             for i in tlrs.split("-"):
                 task_creation_date = str(i) + "/" + task_creation_date
 
+            print " "
+            print "Getting Task " + task.name + " Device Data . . . "
+            print " . . . "
             device_data_get = self.session.get("http://" + self.server_ip + ":" + self.server_port + "/devices/"+ str(task.device["id"]) +"/data/"+str(task_creation_date))
+            print " . . . "
+            print "Getting Task " + task.name + " Device Data . . . DONE! "
+            print " "
+
 
             if device_data_get.status_code == 200:
                 device_data = json.loads(device_data_get.text)
                 if len(device_data["data"]) != 0:
                     device_data_list = device_data["data"][0]#["data_value"]
+                    print "  "
+                    print " " + task.name + " Device Data retrieved:  " + str(len(device_data_list)) + " total data since " + str(task_creation_date)
+                    print " "
                     task.devicedata = device_data_list
                 else:
                     pass

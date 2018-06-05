@@ -466,14 +466,14 @@ class DeviceDataDayView(generic.DetailView):
             date_from = to_UTC(date_from) #TODO: Get timezone from country configured by user
             date_to = date_from + timedelta(hours=24)
             data_query = Data.objects.all().filter(device=device, date__gte=date_from, date__lte=date_to)
-            data_query = list(data_query)
+            data_query = list(data_query)[-20:-1] #FORZANDO QUE RESPONDA RAPIDO LOS ULTIMOS 20 DATOS
 
             for data in data_query:
                 data_list.insert(0,data.serialize())
 
-
             #print data_list
             data_list = remove_data_nulls(data_list)
+
             return JsonResponse({'data': data_list})
 
         except Exception as e:
@@ -1758,7 +1758,7 @@ class DeviceStatisticsView(generic.DetailView):
             return HttpResponse(status=500)
 
 
-ip = ni.ifaddresses('wlp2s0')[ni.AF_INET][0]['addr']
+ip = ni.ifaddresses('ens3')[ni.AF_INET][0]['addr']
 
 influx = InfluxDBClient(str(ip),8086, '', '', "elektron")
 
@@ -1788,11 +1788,33 @@ class StatisticsView(generic.DetailView):
 
             devices = Device.objects.all()
 
+
             query_sum = 'select sum(v1), mean(v1) from (select mean(value) as v1 from data group by time(1h))'
             result_sum = influx.query(query_sum)
             data_list_sum = list(result_sum)[0]
-            all_devices_sum = data_list_sum[0]["sum"]
             data_avg = data_list_sum[0]["mean"]
+
+            all_devices_sum = 0
+
+            for device in devices:
+                device = device.serialize()
+                query_device = "select sum(v1), mean(v1) from (select mean(value) as v1 from data where device = '" + device['device_mac'] + "' group by time(1h))"
+                result_query_device = influx.query(query_device)
+
+                if len(list(result_query_device)) > 0:
+                    data_list_device = list(result_query_device)[0]
+                else:
+                    data_list_device = []
+
+                if len(data_list_device) > 0:
+                    data_device_sum = data_list_device[0]["sum"]
+                    data_device_avg = data_list_device[0]["mean"]
+                else:
+                    data_device_sum = 0
+                    data_device_avg = 0
+
+                all_devices_sum += data_device_sum
+
 
             for device in devices:
 
@@ -1815,7 +1837,11 @@ class StatisticsView(generic.DetailView):
 
                 query_device = "select sum(v1), mean(v1) from (select mean(value) as v1 from data where device = '" + device['device_mac'] + "' group by time(1h))"
                 result_query_device = influx.query(query_device)
-                data_list_device = list(result_query_device)[0]
+
+                if len(list(result_query_device)) > 0:
+                    data_list_device = list(result_query_device)[0]
+                else:
+                    data_list_device = []
 
                 if len(data_list_device) > 0:
                     data_device_sum = data_list_device[0]["sum"]
@@ -1843,7 +1869,7 @@ class StatisticsView(generic.DetailView):
                 state_period_from = device['last_state_date_on']
                 state_period_to = device['last_state_date_off']
 
-                if state_period_to < state_period_from:
+                if state_period_to <= state_period_from:
                     state_period_to = datetime.datetime.now()
 
                 state_counter_on = device['state_counter_on']
@@ -1859,16 +1885,20 @@ class StatisticsView(generic.DetailView):
                 date_to_str = str(date_to).split(".")[0].replace(" ", "T") + "Z"
                 query_period_sum = "select sum(v1), mean(v1) from (select mean(value) as v1 from data where time >= '" + str(date_from_str) + "' AND time <= '" + str(date_to_str) + "' AND device = '" + device['device_mac'] + "' group by time(1h))"
                 result_period_sum = influx.query(query_period_sum)
-                data_list_period_sum = list(result_period_sum)[0]
+                data_list_period_sum = list(result_period_sum)
 
-                print("data_list_period_sum")
-                print(data_list_period_sum)
-                if len(data_list_period_sum) > 0:
-                    data_period_sum = data_list_period_sum[0]["sum"]
-                    data_period_avg = data_list_period_sum[0]["mean"]
-                else:
-                    data_period_sum = 0
-                    data_period_avg = 0
+                try:
+                    print "data_list_period_sum"
+                    print data_list_period_sum
+                    if len(data_list_period_sum) > 0:
+                        data_period_sum = data_list_period_sum[0]["sum"]
+                        data_period_avg = data_list_period_sum[0]["mean"]
+                    else:
+                        data_period_sum = 0
+                        data_period_avg = 0
+                except Exception as e:
+                    data_period_sum = data_list_period_sum[0][0]["sum"]
+                    data_period_avg = data_list_period_sum[0][0]["mean"]
 
                 data_sum_states = data_period_sum
                 data_avg_states = data_period_avg
@@ -1880,6 +1910,12 @@ class StatisticsView(generic.DetailView):
                 edelap_marzo18 = 0.002779432624113475
                 device_tarifa = data_device_sum * edelap_marzo18
                 total_tarifa = all_devices_sum * edelap_marzo18
+
+                print "data_device_sum"
+                print data_device_sum
+
+                print "all_devices_sum"
+                print all_devices_sum
 
                 device_percent = (data_device_sum * 100) /  all_devices_sum
 
