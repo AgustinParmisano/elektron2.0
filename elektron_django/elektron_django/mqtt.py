@@ -178,20 +178,24 @@ def on_message_device(client, userdata, msg):
         #mqtt_data # = remove_duplicated_msg(mqtt_data)
         #print "--------------mqtt_data--------------"
         #print mqtt_data
-        device_ok = check_device(mqtt_data)
+        time_sleep = 1
+        try:
+            device_ok = check_device(mqtt_data)
+            if device_ok[0] == 0:
+                mqtt_data = ast.literal_eval(json.dumps(mqtt_data))
+                #mqtt_data["date"] = datetime.datetime.now()
+                mqtt_data["label"] = device_ok[1]
+                message = str(mqtt_data)
 
-        #print "device_ok"
-        #print device_ok
-
-        if device_ok[0] == 0:
-            mqtt_data = ast.literal_eval(json.dumps(mqtt_data))
-            #mqtt_data["date"] = datetime.datetime.now()
-            mqtt_data["label"] = device_ok[1]
-            message = str(mqtt_data)
-            #print "--------------message--------------"
-            #print message
-            msg_ws(message)
-            result = save_data_block(mqtt_data)
+                #print "--------------message--------------"
+                #print message
+                msg_ws(message)
+                result = save_data_block(mqtt_data)
+        except Exception as e:
+            print "Server is down, waiting for " + str(time_sleep) + " seconds to reconnect . . ."
+            if time_sleep < 5:
+                time_sleep += 1
+            time.sleep(time_sleep)
 
     except Exception as e:
         print "Exception in on_message_device : " + str(e)
@@ -228,7 +232,17 @@ class MqttClient(object):
          return "Sending msg: %d " % (message)
 
 if __name__ == "__main__":
-    #print "Starting MQTT"
-    mqtt = MqttClient()
-    #mqtt.client.loop_start()
-    mqtt.client.loop_forever()
+    while True:
+        time_sleep = 0
+        try:
+            #print "Starting MQTT"
+            mqtt = MqttClient()
+            #mqtt.client.loop_start()
+            mqtt.client.loop_forever()
+            time_sleep = 0
+        except Exception as e:
+            print "Server is down, waiting for " + str(time_sleep) + " seconds to reconnect . . . \n"
+            if time_sleep < 5:
+                time_sleep += 1
+            time.sleep(time_sleep)
+            pass

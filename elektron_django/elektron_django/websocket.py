@@ -124,11 +124,11 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         try:
            msg = json.loads(message.payload)
            data_json = {}
-           #print "MESSAGE FROM WEB SOCKET"
-           #print "MSG TYPE"
-           #print type(msg)
-           #print "MSG DATA"
-           #print  msg
+           print "MESSAGE FROM WEB SOCKET"
+           print "MSG TYPE"
+           print type(msg)
+           print "MSG DATA"
+           print  msg
 
         except Exception as e:
             #print ("Exception in on_message:")

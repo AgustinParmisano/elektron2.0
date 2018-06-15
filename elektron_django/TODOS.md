@@ -2,8 +2,8 @@
 
 ## Recent:
 	- Ver cuanto consume bien y cuanto es de CO2 y de guita de la lampara sola: Statistics (Setotal_data_avg puede sacar el avg de tods los datos y multiplicar la tarifa y co2 por el avg)
-	- Login: investigar bien cómo es con REST y AngularJS (tal vez es mandar un token o cookie)
-	- Cuando se edita una task pierde la cantidad de repeticiones realizadas
+	- Login: poner el chequeo de tokens en todas las views que se usen desde las Interfaces
+	- WebSocket tiene que destrabar la queue
 	- Ver lo de Seguridad en los Nodemcus: Cifrado con AES256
 	- Hay un error en obtener los datos del día: si estamos a menos de 1 hora del siguiente día no obtiene bien los datos del día.
 	- Crear un modelo nuevo que guarde como LOGS las tareas ejecutados y su información.

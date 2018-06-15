@@ -359,6 +359,8 @@ class DataTaskCreateView(generic.View):
                     device = Device.objects.get(device_mac=result["device_mac"])
                     task = request.POST#check_task(**request.POST)
                     taskstate = TaskState.objects.get(pk=task["taskstate"])
+                    print("TASKSTATE")
+                    print taskstate
                     taskfunction = TaskFunction.objects.get(name=task["taskfunction"])
                     owner = User.objects.get(username=task["owner"]) #User editions of tasks need to be revised
 
@@ -409,6 +411,8 @@ class DataTaskUpdateView(generic.View):
                 device = Device.objects.get(device_mac=result["device_mac"])
                 task = request.POST#check_task(**request.POST)
                 taskstate = TaskState.objects.get(pk=task["taskstate"])
+                print("TASKSTATE")
+                print taskstate
                 taskfunction = TaskFunction.objects.get(name=task["taskfunction"])
                 owner = User.objects.get(username=task["owner"]) #User editions of tasks need to be revised
 
@@ -768,6 +772,8 @@ class DateTimeTaskUpdateStateView(generic.View):
                 datetimetask = DateTimeTask.objects.all().filter(pk=task['id'])
                 datetimetask = datetimetask[0]
                 datetimetask.taskstate = TaskState.objects.get(id=task['taskstate'])
+                print("TASKSTATE")
+                print datetimetask.taskstate
                 datetimetask.last_run = datetime.datetime.now()
                 datetimetask.set_repeats = datetimetask.set_repeats
                 datetimetask.repeats = task["repeats"]
@@ -802,6 +808,8 @@ class DataTaskUpdateStateView(generic.View):
                 datatask = DataTask.objects.all().filter(pk=task['id'])
                 datatask = datatask[0]
                 datatask.taskstate = TaskState.objects.get(id=task['taskstate'])
+                print("TASKSTATE")
+                print datatask.taskstate
                 datatask.last_run = datetime.datetime.now()
                 datatask.set_repeats = datatask.set_repeats
                 datatask.repeats = task["repeats"]
