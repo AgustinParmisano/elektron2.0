@@ -19,7 +19,8 @@ from django.core import serializers
 from influxdb import InfluxDBClient
 import netifaces as ni
 
-ip = ni.ifaddresses('wlp2s0')[ni.AF_INET][0]['addr']
+#ip = ni.ifaddresses('wlp2s0')[ni.AF_INET][0]['addr']
+ip = ni.ifaddresses('ens3')[ni.AF_INET][0]['addr']
 
 influx = InfluxDBClient(str(ip),8086, '', '', "elektron")
 
@@ -110,8 +111,16 @@ class GetDataWattsTaxCo2(generic.DetailView):
 
     def get(self, request, *args, **kwargs):
         try:
-            total_data =  Data.objects.all().aggregate(all_devices_sum=Sum('data_value'))
-            data = watts_tax_co2_converter(total_data["all_devices_sum"])
+
+            query_device = "select sum(v1), mean(v1) from (select mean(value) as v1 from data group by time(1h))"
+            result_query_device = influx.query(query_device)
+
+            if len(list(result_query_device)) > 0:
+                all_devices_sum = list(result_query_device)[0][0]['sum']
+            else:
+                all_devices_sum = 0
+
+            data = watts_tax_co2_converter(all_devices_sum)
 
             return JsonResponse({'total_watts': data["total_watts"],'total_tax': data["total_tax"],'total_co2': data["total_co2"]})
 

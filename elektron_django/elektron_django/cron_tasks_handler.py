@@ -27,6 +27,7 @@ class TaskHandler(object):
             print "Running Data Formater . . . "
             print " "
 
+            time.sleep(5)
             all_data_get = self.session.get("http://" + self.server_ip + ":" + self.server_port + "/data/")
             all_data = json.loads(all_data_get.text)['data']
 

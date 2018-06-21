@@ -74,6 +74,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
                 clients.append(self)
                 print "Clients: " + str(len(clients))
                 tornado.ioloop.IOLoop.instance().add_timeout(timedelta(seconds=1), self.ws_msg_loop)
+
         except Exception as e:
             print("Exception in open: {}".format(str(e)))
             raise
