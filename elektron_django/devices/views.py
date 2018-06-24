@@ -800,6 +800,9 @@ class DeviceDataBetweenHoursPerHourView(generic.DetailView):
             avg_hour_query = "select mean(value) as data_value from data where device = '" + str(device_obj.device_mac) + "' and time > '" + str(datefrom) + "' and time <= '" + str(dateto) + "' group by time(1h)"
             sum_avg_period_query = "select sum(v1), mean(v1) from (select mean(value) as v1 from data where device = '" + str(device_obj.device_mac) + "' and time > '" + str(datefrom) + "' and time <= '" + str(dateto) + "' group by time(1h))"
 
+            print("avg_hour_query")
+            print(avg_hour_query)
+
             days, seconds = diff.days, diff.seconds
             hours = days * 24 + seconds // 3600
 
@@ -808,6 +811,9 @@ class DeviceDataBetweenHoursPerHourView(generic.DetailView):
 
             result_query_device = influx.query(avg_hour_query)
             result_query_period_sum_device = influx.query(sum_avg_period_query)
+
+            print("result_query_device")
+            print(result_query_device)
 
             if len(list(result_query_period_sum_device)) > 0:
                 data_list_device_sum = list(result_query_period_sum_device)[0]

@@ -121,8 +121,6 @@ class GetDataWattsTaxCo2(generic.DetailView):
 
                 query_device = "select sum(v1), mean(v1) from (select mean(value) as v1 from data where device = '" + device['device_mac'] + "' group by time(1h))"
                 result_query_device = influx.query(query_device)
-                print('query_device')
-                print(query_device)
 
                 if len(list(result_query_device)) > 0:
                     data_list_device = list(result_query_device)[0]
@@ -131,16 +129,11 @@ class GetDataWattsTaxCo2(generic.DetailView):
 
                 if len(data_list_device) > 0:
                     data_device_sum = data_list_device[0]["sum"]
-                    print("---------------data_device_sum---------------")
-                    print(data_device_sum)
                     all_devices_sum += float(data_device_sum)
                 else:
                     data_device_sum = 0
 
             data = watts_tax_co2_converter(all_devices_sum)
-
-            print ("all_devices_sum")
-            print all_devices_sum
 
             return JsonResponse({'total_watts': data["total_watts"],'total_tax': data["total_tax"],'total_co2': data["total_co2"]})
 
@@ -789,7 +782,9 @@ class CreateView(generic.View):
                 if result:
                     data.data_value = result["data_value"]
                     data.device = device
-                    data.date = datetime.datetime.now() #TODO: Device sends real datetime
+                    data.date = datetime.datetime.now() #- timedelta(hours=3) #TODO: Device sends real datetime
+                    print('data.date')
+                    print(data.date)
                     #print("Data Time: {}".format(data.date))
                     data.save() #saving data per 5 sec to mysql
 
@@ -807,7 +802,6 @@ class CreateView(generic.View):
                         data_time = data["time"].split("Z")[0]
                         data_time = datetime.datetime.strptime(data_time, '%Y-%m-%dT%H:%M:%S')
                         data["time"] = data_time - timedelta(hours=3) #  converting to tz -03
-                        #print(data["time"])
                         zoned_data_list.append(data)
 
                     #print("Zoned data list: ")
