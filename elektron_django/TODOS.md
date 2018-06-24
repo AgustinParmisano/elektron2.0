@@ -1,7 +1,7 @@
 # TODOS Django Elektron:
 
 ## Recent:
-	- La tabla comparativa no anda per day
+	- Las Tasks no andan: La data task no actualiza la fecha de ejecución y ambas no ejecutan la acción
 	- Ver cuanto consume bien y cuanto es de CO2 y de guita de la lampara sola: Statistics (Setotal_data_avg puede sacar el avg de tods los datos y multiplicar la tarifa y co2 por el avg)
 	- Login: poner el chequeo de tokens en todas las views que se usen desde las Interfaces
 	- WebSocket tiene que destrabar la queue

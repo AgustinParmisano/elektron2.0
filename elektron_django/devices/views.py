@@ -829,6 +829,7 @@ class DeviceDataBetweenHoursPerHourView(generic.DetailView):
             #print data_device_sum
 
             total_data = len(data_list_device)
+            data_list_device = data_list_device[::-1]
             data_list = data_list_device[offset:limit]
             data_list_precision = []
 
@@ -843,7 +844,9 @@ class DeviceDataBetweenHoursPerHourView(generic.DetailView):
                     data["data_value"] = 0
                 data_list_precision.append(data)
 
-            #data_list_precision = data_list_precision[::-1]
+            print("------------------")
+            data_list_precision = data_list_precision[::-1]
+            print(data_list_precision)
 
             return JsonResponse({'device': device_obj.serialize() ,'data': data_list_precision, 'total_data': total_data, 'data_sum_period': data_device_sum, 'pages': total_data / (limit - offset) + 1})
 
@@ -939,6 +942,7 @@ class DeviceDataBetweenHoursPerDayView(generic.DetailView):
                 data_list_device = []
 
             total_data = len(data_list_device)
+            data_list_device = data_list_device[::-1]
             data_list = data_list_device[offset:limit]
             data_list_precision = []
 
@@ -953,7 +957,9 @@ class DeviceDataBetweenHoursPerDayView(generic.DetailView):
                     data["data_value"] = 0
                 data_list_precision.append(data)
 
-
+            print("------------------")
+            data_list_precision = data_list_precision[::-1]
+            print(data_list_precision)
             #data_list_precision = data_list_precision[::-1]
 
             return JsonResponse({'device': device_obj.serialize() ,'data': data_list_precision, 'total_data': total_data, 'data_sum_period': data_device_sum, 'pages': total_data / (limit - offset) + 1})
@@ -1765,17 +1771,13 @@ class StatisticsView(generic.DetailView):
             start_time = time.time()
 
             devices = Device.objects.all()
-
-            query_sum = 'select sum(v1), mean(v1) from (select mean(value) as v1 from data group by time(1h))'
-            result_sum = influx.query(query_sum)
-            data_list_sum = list(result_sum)[0]
-            data_avg = data_list_sum[0]["mean"]
+            all_devices_sum = 0
 
             query_device = "select sum(v1), mean(v1) from (select mean(value) as v1 from data group by time(1h))"
             result_query_device = influx.query(query_device)
 
             if len(list(result_query_device)) > 0:
-                all_devices_sum = list(result_query_device)[0][0]['sum']
+                data_avg = list(result_query_device)[0][0]["mean"]
             else:
                 all_devices_sum = 0
 
@@ -1784,24 +1786,22 @@ class StatisticsView(generic.DetailView):
                 data_list = []
 
 
+                data_query = Data.objects.filter(device=device).order_by('-date')[0]
                 device = device.serialize()
-
-                #start_time_device = time.time()
-
-                data_query = "select * from data where device = '11:AA:CC:99:DD:11' order by time limit 1" #Data.objects.all().filter(device=device)
-                result_data_query = influx.query(data_query)
-                data_query = list(result_data_query)
-                last_data = None
-
-                if len(data_query) > 0:
-                    last_data = list(data_query)[0][0]
-                    last_data_date = last_data['time']
-                    last_data = float(last_data['value'])
-                else:
-                    last_data_date = ""
 
                 query_device = "select sum(v1), mean(v1) from (select mean(value) as v1 from data where device = '" + device['device_mac'] + "' group by time(1h))"
                 result_query_device = influx.query(query_device)
+
+                data_query = data_query.serialize()
+
+                last_data = 0
+
+                if len(list(data_query)) > 0:
+                    last_data_date = data_query['date']
+                    last_data = data_query['data_value']
+                else:
+                    last_data = 0
+                    last_data_date = ""
 
                 if len(list(result_query_device)) > 0:
                     data_list_device = list(result_query_device)[0]
@@ -1810,6 +1810,7 @@ class StatisticsView(generic.DetailView):
 
                 if len(data_list_device) > 0:
                     data_device_sum = data_list_device[0]["sum"]
+                    all_devices_sum += data_device_sum
                     data_device_avg = data_list_device[0]["mean"]
                 else:
                     data_device_sum = 0
@@ -1869,15 +1870,11 @@ class StatisticsView(generic.DetailView):
 
                 co2_porcent = 35
                 device_co2 = ((data_device_sum / 1000) * co2_porcent) / 100
-                total_co2 = ((all_devices_sum / 1000) * co2_porcent) / 100
 
                 edelap_marzo18 = 0.002779432624113475
                 device_tarifa = data_device_sum * edelap_marzo18
-                total_tarifa = all_devices_sum * edelap_marzo18
 
-                device_percent = (data_device_sum * 100) /  all_devices_sum
-
-                device_data = {'device': device, 'device_percent':device_percent, 'device_data_sum': data_device_sum, 'device_tarifa':device_tarifa, 'total_tarifa':total_tarifa,  'device_co2': device_co2, 'total_co2': total_co2, 'days_created': days, 'hours_created':hours, 'prom_total': data_avg, 'last_data': { 'value': last_data, 'date':last_data_date}, 'data_list_avg_states': data_avg_states, 'data_list_sum_states': data_sum_states, 'state_period_from':state_period_from, 'state_period_to':state_period_to, 'all_data_sum':all_devices_sum }
+                device_data = {'device': device, 'device_data_sum': data_device_sum, 'device_tarifa':device_tarifa, 'device_co2': device_co2, 'days_created': days, 'hours_created':hours, 'prom_total': data_avg, 'last_data': { 'value': last_data, 'date':last_data_date}, 'data_list_avg_states': data_avg_states, 'data_list_sum_states': data_sum_states, 'state_period_from':state_period_from, 'state_period_to':state_period_to }
 
                 for key, value in device_data.items():
                     if isinstance(value, float):
@@ -1888,9 +1885,16 @@ class StatisticsView(generic.DetailView):
                 #elapsed_time_device = time.time() - start_time_device
                 #print("ELAPSED TIME {} FOR DEVICE {}".format(str(elapsed_time_device), device["label"]))
 
+            for device in device_list:
+                device_percent = (device['device_data_sum'] * 100) /  all_devices_sum
+                device_percent = float("{:.2f}".format(float(device_percent)))
+                device['device_percent'] = device_percent
+
+            total_tarifa = all_devices_sum * edelap_marzo18
+            total_co2 = ((all_devices_sum / 1000) * co2_porcent) / 100
 
             elapsed_time = time.time() - start_time
-            return JsonResponse({"devices": device_list})
+            return JsonResponse({"devices": device_list, 'total_co2': total_co2, 'total_tarifa':total_tarifa, 'all_data_sum':all_devices_sum })
 
         except Exception as e:
             print "Some error ocurred getting Device Data"

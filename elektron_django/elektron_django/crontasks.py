@@ -66,6 +66,8 @@ class DataTask(CronTask):
         self.url = "/tasks/datatask/"
 
     def execute(self, taskhandler):
+        print("DATA TASK:")
+        print(self)
         if self.repeats > 0 and self.state == "1":
             if len(self.devicedata) != 0:
                 if self.last_run < self.devicedata["date"]:

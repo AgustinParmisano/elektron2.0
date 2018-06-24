@@ -112,15 +112,35 @@ class GetDataWattsTaxCo2(generic.DetailView):
     def get(self, request, *args, **kwargs):
         try:
 
-            query_device = "select sum(v1), mean(v1) from (select mean(value) as v1 from data group by time(1h))"
-            result_query_device = influx.query(query_device)
+            devices = Device.objects.all()
+            all_devices_sum = 0
 
-            if len(list(result_query_device)) > 0:
-                all_devices_sum = list(result_query_device)[0][0]['sum']
-            else:
-                all_devices_sum = 0
+            for device in devices:
+
+                device = device.serialize()
+
+                query_device = "select sum(v1), mean(v1) from (select mean(value) as v1 from data where device = '" + device['device_mac'] + "' group by time(1h))"
+                result_query_device = influx.query(query_device)
+                print('query_device')
+                print(query_device)
+
+                if len(list(result_query_device)) > 0:
+                    data_list_device = list(result_query_device)[0]
+                else:
+                    data_list_device = []
+
+                if len(data_list_device) > 0:
+                    data_device_sum = data_list_device[0]["sum"]
+                    print("---------------data_device_sum---------------")
+                    print(data_device_sum)
+                    all_devices_sum += float(data_device_sum)
+                else:
+                    data_device_sum = 0
 
             data = watts_tax_co2_converter(all_devices_sum)
+
+            print ("all_devices_sum")
+            print all_devices_sum
 
             return JsonResponse({'total_watts': data["total_watts"],'total_tax': data["total_tax"],'total_co2': data["total_co2"]})
 
