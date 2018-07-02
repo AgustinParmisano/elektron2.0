@@ -28,6 +28,7 @@ import time
 import json
 from influxdb import InfluxDBClient
 import netifaces as ni
+from django.db import connection
 
 q = Queue.Queue()
 
@@ -703,7 +704,7 @@ class DeviceDataBetweenHoursView(generic.DetailView):
 
         try:
             data_list = []
-            offset = int(kwargs['offset'] if 'offset' in kwargs else self.DEFAULT_OFFSET) -1
+            offset = int(kwargs['offset'] if 'offset' in kwargs else self.DEFAULT_OFFSET)
             limit = int(kwargs['limit'] if 'limit' in kwargs else self.DEFAULT_LIMIT)
             order = kwargs['order'] if 'order' in kwargs else self.DEFAULT_ORDER
 
@@ -756,7 +757,7 @@ class DeviceDataBetweenHoursPerHourView(generic.DetailView):
 
         try:
             data_list = []
-            offset = int(kwargs['offset'] if 'offset' in kwargs else self.DEFAULT_OFFSET) -1
+            offset = int(kwargs['offset'] if 'offset' in kwargs else self.DEFAULT_OFFSET)
             limit = int(kwargs['limit'] if 'limit' in kwargs else self.DEFAULT_LIMIT)
             order = kwargs['order'] if 'order' in kwargs else self.DEFAULT_ORDER
 
@@ -766,6 +767,7 @@ class DeviceDataBetweenHoursPerHourView(generic.DetailView):
             month1 = kwargs["month1"]
             year1 = kwargs["year1"]
             hour1 = kwargs["hour1"]
+
 
             day2 = kwargs["day2"]
             month2 = kwargs["month2"]
@@ -778,8 +780,15 @@ class DeviceDataBetweenHoursPerHourView(generic.DetailView):
             date_from = datetime.datetime.strptime(datetime_string1, "%d-%m-%Y %H:%M")
             date_to = datetime.datetime.strptime(datetime_string2, "%d-%m-%Y %H:%M")
 
+            date_from = date_from + timedelta(hours=3) #infrluxdb query needs +3
+            date_to = date_to + timedelta(hours=3)
+            print(date_from)
+            print(date_to)
+
+            '''
             if date_to > datetime.datetime.now():
                 date_to = datetime.datetime.now()
+            '''
 
             date_from = to_localtime(date_from)
             date_to = to_localtime(date_to)
@@ -836,14 +845,19 @@ class DeviceDataBetweenHoursPerHourView(generic.DetailView):
 
             total_data = len(data_list_device)
             data_list_device = data_list_device[::-1]
-            data_list = data_list_device[offset:limit]
+            data_list = data_list_device[offset:limit + 1]
             data_list_precision = []
 
             data_device_sum = float("{:.2f}".format(float(data_device_sum)))
 
             for data in data_list:
-                data["date"] = data["time"]
+                t = data["time"]
+                t2 = (t.split('T')[0] + " " + t.split('T')[1]).split('Z')[0]
+                data["date"] = datetime.datetime.strptime(t2, "%Y-%m-%d %H:%M:%S") - timedelta(hours=3)
+                print("DATA DATE:")
+                print(data["date"])
                 data.pop('time', None)
+                data.pop('mean', None)
                 if data["data_value"]:
                     data["data_value"] = float("{:.2f}".format(float(data["data_value"])))
                 else:
@@ -854,7 +868,13 @@ class DeviceDataBetweenHoursPerHourView(generic.DetailView):
             data_list_precision = data_list_precision[::-1]
             print(data_list_precision)
 
-            return JsonResponse({'device': device_obj.serialize() ,'data': data_list_precision, 'total_data': total_data, 'data_sum_period': data_device_sum, 'pages': total_data / (limit - offset) + 1})
+            pages = total_data / ((limit - offset) + 1)
+            print(total_data)
+            print(limit)
+            print(offset)
+            print(pages)
+
+            return JsonResponse({'device': device_obj.serialize() ,'data': data_list_precision, 'total_data': total_data, 'data_sum_period': data_device_sum, 'pages':  pages})
 
         except Exception as e:
             print "Some error ocurred getting Between Hours Device Data"
@@ -871,7 +891,6 @@ class DeviceDataBetweenHoursPerDayView(generic.DetailView):
     def get(self, request, *args, **kwargs):
 
         try:
-            print("DeviceDataBetweenHoursPerDayView")
 
             data_list = []
             offset = int(kwargs['offset'] if 'offset' in kwargs else self.DEFAULT_OFFSET) -1
@@ -896,8 +915,8 @@ class DeviceDataBetweenHoursPerDayView(generic.DetailView):
             date_from = datetime.datetime.strptime(datetime_string1, "%d-%m-%Y %H:%M")
             date_to = datetime.datetime.strptime(datetime_string2, "%d-%m-%Y %H:%M")
 
-            if date_to > datetime.datetime.now():
-                date_to = datetime.datetime.now()
+            date_from = date_from + timedelta(hours=3) #infrluxdb query needs +3
+            date_to = date_to + timedelta(hours=3)
 
             date_from = to_localtime(date_from)
             date_to = to_localtime(date_to)
@@ -921,54 +940,53 @@ class DeviceDataBetweenHoursPerDayView(generic.DetailView):
             data_avg_period = 0
             date_to = date_from + timedelta(hours=1)
 
-            avg_hour_query = "select sum(data) as data_value, mean(data) from (select mean(value) as data from data where device = '" + str(device_obj.device_mac) + "' group by time(1h)) where time > '" + str(datefrom) + "' and time <= '" + str(dateto) + "' group by time(1d)"
-            sum_avg_period_query = "select sum(data_value), mean(data_value) from (select sum(data) as data_value, mean(data) from (select mean(value) as data from data where device = '" + str(device_obj.device_mac) + "' group by time(1h)) where time > '" + str(datefrom) + "' and time <= '" + str(dateto) + "' group by time(1d))"
+            avg_hour_query = "select id, date, SUM(T.data_hour) from ( select d.id, d.date, AVG(d.data_value) as data_hour from data_data d where device_id = '" + str(device_obj.id) + "' and date > '" + str(datefrom) + '" and date < "' + str(dateto) + "' GROUP BY HOUR(date)) as T group by day(date);"
 
-            #print("-------------------------------")
-            #print("QUERY 1 FOR DEVICE : " + str(device_obj))
-            result_query_device = influx.query(avg_hour_query)
+            cursor = connection.cursor()
+            cursor.execute(avg_hour_query)
+            result_query_device = cursor.fetchall()
 
-            #print("QUERY 2 FOR DEVICE : " + str(device_obj))
-            result_query_period_sum_device = influx.query(sum_avg_period_query)
+            data_device_sum_total = 0
+            data_list_device_sum = []
+            if len(list(result_query_device)) > 0:
+                data_list = list(result_query_device)
 
-            if len(list(result_query_period_sum_device)) > 0:
-                data_list_device_sum = list(result_query_period_sum_device)[0]
+                for data in data_list:
+                    data_device_sum = {}
+                    data_device_sum['data_value'] = data[2]
+                    data_device_sum_total += data_device_sum['data_value']
+                    data_device_sum['time'] = data[1]
+                    data_list_device_sum.append(data_device_sum)
             else:
                 data_list_device_sum = []
 
-            if len(data_list_device_sum) > 0:
-                data_device_sum = data_list_device_sum[0]["sum"]
-            else:
-                data_device_sum = 0
-                data_device_avg = 0
-
-            if len(list(result_query_device)) > 0:
-                data_list_device = list(result_query_device)[0]
-            else:
-                data_list_device = []
+            data_list_device = data_list_device_sum
 
             total_data = len(data_list_device)
             data_list_device = data_list_device[::-1]
-            data_list = data_list_device[offset:limit]
+            data_list = data_list_device[offset:limit + 1]
             data_list_precision = []
 
-            data_device_sum = float("{:.2f}".format(float(data_device_sum)))
+            data_device_sum = float("{:.2f}".format(float(data_device_sum_total)))
 
             for data in data_list:
-                data["date"] = data["time"]
+                t = data["time"]
+                #t2 = (t.split('T')[0] + " " + t.split('T')[1]).split('Z')[0]
+                data["date"] = t #datetime.datetime.strptime(t2, "%Y-%m-%d %H:%M:%S") #- timedelta(hours=3)
                 data.pop('time', None)
+                data.pop('mean', None)
                 if data["data_value"]:
                     data["data_value"] = float("{:.2f}".format(float(data["data_value"])))
                 else:
                     data["data_value"] = 0
                 data_list_precision.append(data)
 
-            print("------------------")
             data_list_precision = data_list_precision[::-1]
-            print(data_list_precision)
             #data_list_precision = data_list_precision[::-1]
 
-            return JsonResponse({'device': device_obj.serialize() ,'data': data_list_precision, 'total_data': total_data, 'data_sum_period': data_device_sum, 'pages': total_data / (limit - offset) + 1})
+            pages = total_data / ((limit - offset) + 1)
+
+            return JsonResponse({'device': device_obj.serialize() ,'data': data_list_precision, 'total_data': total_data, 'data_sum_period': data_device_sum, 'pages': pages})
 
 
         except Exception as e:

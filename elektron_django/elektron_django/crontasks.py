@@ -91,3 +91,5 @@ class DataTask(CronTask):
         print "Updating " + self.name
         self.last_run = datetime.now()
         self.task_data = {'id':self.id,'taskstate':self.state, 'repeats':self.repeats, 'last_run':self.last_run}
+        print "TASK DATA: "
+        print(self.task_data)

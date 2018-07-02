@@ -361,7 +361,10 @@ class DataTaskCreateView(generic.View):
                     taskstate = TaskState.objects.get(pk=task["taskstate"])
                     print("TASKSTATE")
                     print taskstate
-                    taskfunction = TaskFunction.objects.get(name=task["taskfunction"])
+                    taskfunction = TaskFunction.objects.get(name=request.POST["taskfunction"])
+                    print("TASKFUNCTION")
+                    print taskfunction
+                    print request.POST["taskfunction"]
                     owner = User.objects.get(username=task["owner"]) #User editions of tasks need to be revised
 
                     task = request.POST#check_task(**request.POST)
@@ -802,7 +805,7 @@ class DataTaskUpdateStateView(generic.View):
     #@method_decorator(login_required)
     def post(self, request, *args, **kwargs):
         task = request.POST
-
+        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
         if task:
             try:
                 datatask = DataTask.objects.all().filter(pk=task['id'])
@@ -811,6 +814,8 @@ class DataTaskUpdateStateView(generic.View):
                 print("TASKSTATE")
                 print datatask.taskstate
                 datatask.last_run = datetime.datetime.now()
+                print ("datatask.last_run")
+                print (datatask.last_run)
                 datatask.set_repeats = datatask.set_repeats
                 datatask.repeats = task["repeats"]
                 datatask.comparator = datatask.comparator

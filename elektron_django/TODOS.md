@@ -1,6 +1,15 @@
 # TODOS Django Elektron:
 
 ## Recent:
+	- Arreglar el data history de PERDAY que como influx agrega con fechas adelantadas saca mal los promedios:
+	Opción 1:
+	Resolverlo con mysql
+
+	select SUM(data_hour) from ( select AVG(data_data.data_value) as data_hour from data_data where device_id = 1 GROUP BY HOUR(date)) where date > '2018-06-24 17:06:57' GROUP BY MONTH(date), DAY(date);
+
+	Opción 2:
+	Resolverlo con influx agregando bien los datos
+
 	- Las Tasks no andan: La data task no actualiza la fecha de ejecución y ambas no ejecutan la acción
 	- Ver cuanto consume bien y cuanto es de CO2 y de guita de la lampara sola: Statistics (Setotal_data_avg puede sacar el avg de tods los datos y multiplicar la tarifa y co2 por el avg)
 	- Login: poner el chequeo de tokens en todas las views que se usen desde las Interfaces

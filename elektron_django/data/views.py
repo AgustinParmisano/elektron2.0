@@ -783,12 +783,14 @@ class CreateView(generic.View):
                     data.data_value = result["data_value"]
                     data.device = device
                     data.date = datetime.datetime.now() #- timedelta(hours=3) #TODO: Device sends real datetime
+                    data.save() #saving data per 5 sec to mysql
+
+                    data.date = str(datetime.datetime.now()) #- timedelta(hours=3) #TODO: Device sends real datetime
                     print('data.date')
                     print(data.date)
                     #print("Data Time: {}".format(data.date))
-                    data.save() #saving data per 5 sec to mysql
 
-                    influx.write_points(mk_json(data)) #saving data per 5 sec to mysql
+                    influx.write_points(mk_json(data)) #saving data per 5 sec to influxdb
 
                     query = 'select mean(value) from data group by time(1h)' # query per hour average data tz 00
 

@@ -232,6 +232,7 @@ class TaskHandler(object):
     def update_task_state(self, task):
         task.update()
         update_task_state = self.session.post("http://" + self.server_ip + ":" + self.server_port + task.url + str(task.id) + "/updatestate", data=task.task_data)
+        
 
 
 
