@@ -28,11 +28,10 @@ float func_read_current_sensor() {
 }
 
 void loop(){
-  //Se divide la sumatoria de los valores de corriente obtenidos en todas las muestras y se divide por la cantidad de muestras, ese valor se multiplica por el factorA
   float Ip = func_read_current_sensor(); 
   float Irms = Ip*0.707 // multiplicamos la corriente obtenida por 0.707 que es el RMS o valor cuadratico medio
 
-  //Calculo de la Irms por el voltaje fio en 217
+  //Calculo de la Irms por el voltaje fijo en 217
   apparentPower = Irms * SetV;
   Serial.print(" Watios: ");
   Serial.print(apparentPower);
