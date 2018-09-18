@@ -14,10 +14,9 @@ float func_read_current_sensor() {
   i = 0; //Contador de muestras
   for (int x = 0; x < samplenumber + 1; x++) {
     sensor_read = analogRead(C_SENSOR1); //lee el valor del sensor crudo
-    medicionSensorMapeado = map(sensor_read, 0, 1024, 0, 512); //mapea los valores de analog to Digital Converter de Arduino (0-1024) a los valores ADC del ESP8266/Nodemcu (0-512)
-
+    
     //Voltage en ADC
-    Vadc = medicionSensorMapeado * ADCvoltsperdiv;
+    Vadc = sensor_read * ADCvoltsperdiv;
 
     //Remueve el offset del voltaje (para elminiar ruidos del ADC, varía por plaqueta)
     Vsens = Vadc - VDoffset;
