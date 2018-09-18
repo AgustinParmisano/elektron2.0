@@ -1,42 +1,36 @@
 double medicionSensorMapeado, sensor_read;
-double ADCvoltsperdiv = 0.0048;
 double VDoffset = 2.4476; //Initial value (corrected as program runs)
-double factorA = 35.8; //factorA = CT reduction factor / rsens
-double SetV = 220.0;
+double SetV = 217.0;
 int samplenumber = 4000;
 double sumI = 0.0;
-double Vadc, Vsens, Isens, Imains, sqI, Irms;
+double Imains, Irms;
 double apparentPower;
 float intensidadMinima=512;
 float intensidadMaxima=0;
 
 float func_read_current_sensor() {
-  i = 0; //Contador de muestras
-  for (int x = 0; x < samplenumber + 1; x++) {
-    sensor_read = analogRead(C_SENSOR1); //lee el valor del sensor crudo
+  long tiempo=millis();
+  
+  while(millis()-tiempo<500) { //realizamos mediciones durante 0.5 segundos lo que serían 30 ciclos de corriente
+    sensor_read = analogRead(C_SENSOR1) * (5.0 / 1023.0); //lee el valor del sensor crudo
+
+    //Obtiene los picos de la curva senoidal
+    if (sensor_read>intensidadMaxima) intensidadMaxima=sensor_read;
+    if (sensor_read<intensidadMinima) intensidadMinima=sensor_read;
     
-    //Voltage en ADC
-    Vadc = sensor_read * ADCvoltsperdiv;
-
     //Remueve el offset del voltaje (para elminiar ruidos del ADC, varía por plaqueta)
-    Vsens = Vadc - VDoffset;
+    Imains = ((intensidadMaxima - intensidadMinima) / 2) - VDoffset;
 
-    //Va rectificando los picos para eliminar errores de medición aleatorios
-    if (Vsens>intensidadMaxima) intensidadMaxima=Vsens;
-    if (Vsens<intensidadMinima) intensidadMinima=Vsens;
-    Imains = (intensidadMaxima - intensidadMinima) / 2;
-
-    //Corriente al cuadrado
-    sqI = Imains * Imains;
-    //Se van acumulando las muestras de los valores de corriente instantánea obtenidos
-    sumI = sumI + sqI;
 
   }
+}
 
+void loop(){
   //Se divide la sumatoria de los valores de corriente obtenidos en todas las muestras y se divide por la cantidad de muestras, ese valor se multiplica por el factorA
-  Irms = factorA * sqrt(sumI / samplenumber); // sqrt(sumI / samplenumber) = 0,707 que es el RMS o valor cuadratico medio
+  float Ip = func_read_current_sensor(); 
+  float Irms = Ip*0.707 // multiplicamos la corriente obtenida por 0.707 que es el RMS o valor cuadratico medio
 
-  //Calculo de la Irms por el voltaje
+  //Calculo de la Irms por el voltaje fio en 217
   apparentPower = Irms * SetV;
   Serial.print(" Watios: ");
   Serial.print(apparentPower);
