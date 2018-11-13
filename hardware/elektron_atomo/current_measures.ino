@@ -1,43 +1,51 @@
-double medicionSensorMapeado, sensor_read;
-double sensi = 0.66 // sensibilidad del sensor de +-30A = 0.66 
-double VDoffset = 0.13; // ruido obtenido de mediciones con 0A
-double SetV = 217.0; // voltaje fijo a falta de voltímetro, alrededor de 220 y 210 para Argentina, valor configurable a futuro.
-double Imains, Irms;
-double apparentPower;
-float intensidadMinima=0;
-float intensidadMaxima=0;
+const int sensorIn = A0;
+int mVperAmp = 66; //66 para el sensor de 30A
 
-float func_read_current_sensor() {
-  long tiempo=millis();
-  
-  while(millis()-tiempo<500) { //realizamos mediciones durante 0.5 segundos lo que serían 30 ciclos de corriente
-    sensor_read = analogRead(C_SENSOR1) * (5.0 / 1023.0); //lee el valor del sensor crudo y lo mapea con los valores de voltaje entregados a la plaqueta
-
-    //divide el valor obtenido por la sensibilidad del sensor 0.66 para +-30A
-    sensor_read = sensor_read / sensi;
-    
-    //Obtiene los picos de la curva senoidal
-    if (sensor_read>intensidadMaxima) intensidadMaxima=sensor_read;
-    if (sensor_read<intensidadMinima) intensidadMinima=sensor_read;
-    
-    //Remueve el offset del voltaje (para elminiar ruidos del ADC, varía por plaqueta y por fabricación del sensor)
-    Imains = ((intensidadMaxima - intensidadMinima) / 2) - VDoffset;
-    return Imains;
-
-  }
+double Voltage = 0;
+double VRMS = 0;
+double AmpsRMS = 0;
+void setup(){
+    Serial.begin(9600);
 }
 
-void loop(){
-  float Ip = func_read_current_sensor(); 
-  float Irms = Ip*0.707 // multiplicamos la corriente obtenida por 0.707 que es el RMS o valor cuadratico medio
-
-  //Calculo de la Irms por el voltaje fijo en 217
-  apparentPower = Irms * SetV;
-  Serial.print(" Watios: ");
-  Serial.print(apparentPower);
-  Serial.print(" Voltaje: ");
-  Serial.print(SetV);
-  Serial.print(" Amperios: ");
-  Serial.print(Irms, 4 );
-  Serial.println();
+void setup(){
+    Voltage = getVPP();
+    VRMS = (Voltage / 2.0) * 0.707;
+    AmpsRMS = (VRMS * 1000) / mVperAmp;
+    Serial.print(AmpsRMS);
+    Serial.print(“ Amps RMS”);
 }
+
+float getVPP()
+{
+    float result;
+
+    int readValue;     //valor obtenido del sensor
+    int maxValue = 0;     //pico positivo
+    int minValue = 1024;     //pico negativo
+
+    uint32_t start_time = millis();
+
+    while((millis()-start_time) < 1000) //muestra de 1 segundo
+    {
+       readValue = analogRead(sensorIn);
+       // se actualizan los valores pico con cada muestra
+       if (readValue > maxValue) 
+       {
+           /*guardo el máximo valor*/
+           maxValue = readValue;
+       }
+       if (readValue < minValue) 
+       {
+           /*guardo el mínimo valor*/
+           minValue = readValue;
+       }
+
+    }
+
+   // Obtengo el valor medio de los picos y los mapeo a los valores del ADC que son 1024
+   result = ((maxValue - minValue) * 5.0)/1024.0;
+      
+   return result;
+}
+
