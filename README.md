@@ -17,6 +17,6 @@ pip freeze > pip_reqs.txt
 
 # ARQ
 
-[![arquitechture](https://i.imgur.com/0PtnzFP.png)]
+[![arquitechture](https://i.imgur.com/0PtnzFP.png)
 
 
