@@ -14,23 +14,9 @@ Integrating postgre.
 pip install -r pip_reqs.txt
 pip freeze > pip_reqs.txt
 
-# To restart model
 
->rm -rf "*00*"
->rm -rf "*.pyc"
+# ARQ
 
->su postgres
-
-postgres> psql
-psql> DROP DATABASE elektron;
-psql> CREATE DATABASE elektron;
-psql> CREATE USER elektron;
-psql> CREATE USER elekron WITH PASSWORD 'elektron';
+[![arquitechture](https://i.imgur.com/0PtnzFP.png)]
 
 
-exit pqsl (ctrl + D)
-exit user postgres (ctrl + D)
-
->python manage.py makemigrations
->python manage.py migrate
->python manage.py createsuperuser
