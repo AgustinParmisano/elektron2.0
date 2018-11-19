@@ -8,7 +8,7 @@ void setup(){
     Serial.begin(9600);
 }
 
-void setup(){
+void loop(){
     Voltage = getVPP();
     VRMS = (Voltage / 2.0) * 0.707;
     AmpsRMS = (VRMS * 1000) / mVperAmp;
