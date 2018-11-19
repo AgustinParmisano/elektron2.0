@@ -1,7 +1,7 @@
 float func_read_current_sensor() {
   const int sensorIn = A0;
   int mVperAmp = 66; //66 para el sensor de 30A
-  int samplenumber = 4000;
+  
   double voltage = 0;
   double VRMS = 0;
   double AmpsRMS = 0;
@@ -31,15 +31,13 @@ float func_read_current_sensor() {
 float getVPP()
 {
     float result;
-
     int readValue;     //valor obtenido del sensor
     int maxValue = 0;     //pico positivo
     int minValue = 1024;     //pico negativo
 
     uint32_t start_time = millis();
 
-    //while((millis()-start_time) < 1000) //muestra de 1 segundo
-    for (int x = 0; x < samplenumber + 1; x++)
+    while((millis()-start_time) < 20) //muestra de 0.02 segundos que es 1 ciclo de 50Hz (ciclo de onda sinusoidal)
     {
        readValue = analogRead(C_SENSOR1);
        // se actualizan los valores pico con cada muestra
@@ -53,7 +51,6 @@ float getVPP()
            /*guardo el mínimo valor*/
            minValue = readValue;
        }
-
     }
 
    // Obtengo el valor medio de los picos y los mapeo a los valores del ADC del Nodemcu (que entrega y recibe 3.3v) a valores 1024 digitales.
