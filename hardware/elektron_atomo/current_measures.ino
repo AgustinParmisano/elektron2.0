@@ -38,7 +38,8 @@ float getVPP()
 
     uint32_t start_time = millis();
 
-    while((millis()-start_time) < 1000) //muestra de 1 segundo
+    //while((millis()-start_time) < 1000) //muestra de 1 segundo
+    for (int x = 0; x < samplenumber + 1; x++)
     {
        readValue = analogRead(C_SENSOR1);
        // se actualizan los valores pico con cada muestra
