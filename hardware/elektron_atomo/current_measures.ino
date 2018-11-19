@@ -1,7 +1,7 @@
 float func_read_current_sensor() {
   const int sensorIn = A0;
   int mVperAmp = 66; //66 para el sensor de 30A
-  
+  int samplenumber = 4000;
   double voltage = 0;
   double VRMS = 0;
   double AmpsRMS = 0;
