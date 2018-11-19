@@ -1,20 +1,32 @@
-const int sensorIn = A0;
-int mVperAmp = 66; //66 para el sensor de 30A
+float func_read_current_sensor() {
+  const int sensorIn = A0;
+  int mVperAmp = 66; //66 para el sensor de 30A
+  
+  double voltage = 0;
+  double VRMS = 0;
+  double AmpsRMS = 0;
+  float inputV = 220.0; // es la tensión que entrega la empresa distribuidora y se puede medir con otro medidor y configurarlo como parametro en el sistema por hora o por día
+  unsigned int pF = 99; //como se obtiene? es el cosphi y tiene que ser por parámetro porque no podemos sacarlo para cada aparato
+  float WH = 0;
 
-double Voltage = 0;
-double VRMS = 0;
-double AmpsRMS = 0;
-void setup(){
-    Serial.begin(9600);
+  voltage = getVPP();
+  VRMS = (voltage / 2.0) * 0.707;
+  AmpsRMS = (VRMS * 1000) / mVperAmp;
+  
+  if((AmpsRMS > -0.015) && (AmpsRMS < 0.008)){  // remove low end chatter
+    AmpsRMS = 0.0;
+  }
+
+  WH = (inputV * AmpsRMS) * (pF / 100.0); 
+  
+  Serial.print(String(WH, 3)); 
+  Serial.print(" WH "); 
+  Serial.print(AmpsRMS);
+  Serial.print(" Amps RMS");
+  
+  return (WH);
 }
 
-void loop(){
-    Voltage = getVPP();
-    VRMS = (Voltage / 2.0) * 0.707;
-    AmpsRMS = (VRMS * 1000) / mVperAmp;
-    Serial.print(AmpsRMS);
-    Serial.print(“ Amps RMS”);
-}
 
 float getVPP()
 {
@@ -28,7 +40,7 @@ float getVPP()
 
     while((millis()-start_time) < 1000) //muestra de 1 segundo
     {
-       readValue = analogRead(sensorIn);
+       readValue = analogRead(C_SENSOR1);
        // se actualizan los valores pico con cada muestra
        if (readValue > maxValue) 
        {
@@ -43,9 +55,9 @@ float getVPP()
 
     }
 
-   // Obtengo el valor medio de los picos y los mapeo a los valores del ADC que son 1024
-   result = ((maxValue - minValue) * 5.0)/1024.0;
-      
+   // Obtengo el valor medio de los picos y los mapeo a los valores del ADC del Nodemcu (que entrega y recibe 3.3v) a valores 1024 digitales.
+   result = ((maxValue - minValue) * 3.3)/1024.0;
+   Serial.println();
+
    return result;
 }
-
