@@ -38,10 +38,10 @@ float getVPP()
   float resultMax = 0;
   float resultMin = 0;
   
-  
+  int maxValue = 0;     //pico positivo
+  int minValue = 1024;     //pico negativo  
   for  (int i = 0; i < 50; ++i) {
-    int maxValue = 0;     //pico positivo
-    int minValue = 1024;     //pico negativo
+
     
     while((millis()-start_time) < 20) //muestra de 0.02 segundos que es 1 ciclo de 50Hz (ciclo de onda sinusoidal)
     {
@@ -67,11 +67,25 @@ float getVPP()
    int promMax = 0;
    int promMin = 0;
    for (int i = 0; i < 50; ++i) {
-       promMax = promMax + maximos[i]
-       pronMin = promMin + minimos[i]
+       promMax = promMax + maximos[i];
+       promMin = promMin + minimos[i];
    }
+   Serial.println("-----");
+   Serial.println("PromMax");
+   Serial.println(promMax);
+   Serial.println("-----");
+   Serial.println("PromMin");
+   Serial.println(promMin);
    resultMax = promMax / 50; 
    resultMin = promMin / 50;
+   Serial.println("-----");
+   Serial.println("resultMax");
+   Serial.println(resultMax);
+   Serial.println("-----");
+   Serial.println("resultMin");
+   Serial.println(resultMin);
+   Serial.println("-----");
+   Serial.println("******");
   
    // Obtengo el valor medio de los picos y los mapeo a los valores del ADC del Nodemcu (que entrega y recibe 3.3v) a valores 1024 digitales.
    result = ((resultMax - resultMin) * 3.3)/1024.0;
