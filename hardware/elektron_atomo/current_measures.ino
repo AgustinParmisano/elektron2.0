@@ -13,9 +13,6 @@ float func_read_current_sensor() {
   VRMS = (voltage / 2.0) * 0.707;
   AmpsRMS = (VRMS * 1000) / mVperAmp;
   
-  if((AmpsRMS > -0.015) && (AmpsRMS < 0.008)){  // remove low end chatter
-    AmpsRMS = 0.0;
-  }
 
   WH = (inputV * AmpsRMS) * (pF / 100.0); 
   
