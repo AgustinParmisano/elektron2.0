@@ -31,7 +31,6 @@ float getVPP()
     int readValue;     //valor obtenido del sensor
 
 
-    uint32_t start_time = millis();
 
   int maximos[50];
   int minimos[50];
@@ -42,7 +41,8 @@ float getVPP()
   int minValue = 1024;     //pico negativo  
   for  (int i = 0; i < 50; ++i) {
 
-    
+    uint32_t start_time = millis();
+
     while((millis()-start_time) < 20) //muestra de 0.02 segundos que es 1 ciclo de 50Hz (ciclo de onda sinusoidal)
     {
        readValue = analogRead(C_SENSOR1);
