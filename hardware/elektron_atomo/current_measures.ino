@@ -6,7 +6,7 @@ float func_read_current_sensor() {
   double VRMS = 0;
   double AmpsRMS = 0;
   float inputV = 220.0; // es la tensión que entrega la empresa distribuidora y se puede medir con otro medidor y configurarlo como parametro en el sistema por hora o por día
-  unsigned int pF = 99; //como se obtiene? es el cosphi y tiene que ser por parámetro porque no podemos sacarlo para cada aparato
+  unsigned int pF = 100; //como se obtiene? es el cosphi y tiene que ser por parámetro porque no podemos sacarlo para cada aparat
   float WH = 0;
 
   voltage = getVPP();
