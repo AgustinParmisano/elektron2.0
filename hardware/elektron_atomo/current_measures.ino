@@ -11,7 +11,7 @@ float func_read_current_sensor() {
 
   voltage = getVPP();
   VRMS = voltage  * 0.707;
-  AmpsRMS = (VRMS * 1000) / mVperAmp;
+  AmpsRMS = (VRMS * 1000) / mVperAmp; //pasamos los milivolts a votls multiplicando por 1000 y divimos el resultado por la sensibilidad propia del sensor según tabla del fabricante 30A = 0.66
   
 
   WH = (inputV * AmpsRMS) * (pF / 100.0); 
