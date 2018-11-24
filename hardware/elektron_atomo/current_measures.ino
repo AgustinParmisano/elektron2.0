@@ -10,8 +10,8 @@ float func_read_current_sensor() {
   float WH = 0;
 
   voltage = getVPP();
-  VRMS = voltage  * 0.707;
-  AmpsRMS = (VRMS * 1000) / mVperAmp; //pasamos los milivolts a votls multiplicando por 1000 y divimos el resultado por la sensibilidad propia del sensor según tabla del fabricante 30A = 0.66
+  VRMS = voltage * 0.707;
+  AmpsRMS = (VRMS * 1000) / mVperAmp;
   
 
   WH = (inputV * AmpsRMS) * (pF / 100.0); 
@@ -27,38 +27,40 @@ float func_read_current_sensor() {
 
 float getVPP()
 {
-    float result;
-    int readValue;     //valor obtenido del sensor
-
-
+  float result;
+  int readValue;     //valor obtenido del sensor
 
   int maximos[50];
   int minimos[50];
   float resultMax = 0;
   float resultMin = 0;
-  
-  int maxValue = 0;     //pico positivo
-  int minValue = 1024;     //pico negativo  
+  Metro sensor_metro = Metro(1000);
+
+
   for  (int i = 0; i < 50; ++i) {
-
-    uint32_t start_time = millis();
-
-    while((millis()-start_time) < 20) //muestra de 0.02 segundos que es 1 ciclo de 50Hz (ciclo de onda sinusoidal)
-    {
-       readValue = analogRead(C_SENSOR1);
-       // se actualizan los valores pico con cada muestra
-       if (readValue > maxValue) 
-       {
-           /*guardo el máximo valor*/
-           maxValue = readValue;
-       }
-       if (readValue < minValue) 
-       {
-           /*guardo el mínimo valor*/
-           minValue = readValue;
-       }
-    }
     
+    int maxValue = 0;     //pico positivo
+    int minValue = 1024;     //pico negativo  
+    uint32_t start_time = millis();
+    
+    if(sensor_metro.check()) {
+      while((millis()-start_time) < 20) //muestra de 0.02 segundos que es 1 ciclo de 50Hz (ciclo de onda sinusoidal)
+      {
+         
+         readValue = analogRead(C_SENSOR1);
+         // se actualizan los valores pico con cada muestra
+         if (readValue > maxValue) 
+         {
+             /*guardo el máximo valor*/
+             maxValue = readValue;
+         }
+         if (readValue < minValue) 
+         {
+             /*guardo el mínimo valor*/
+             minValue = readValue;
+         }
+      }
+    }
     maximos[i] = maxValue; //guardo los maximos de cada ciclo
     minimos[i] = minValue; //guardo los minimos de cada ciclo
     
@@ -70,25 +72,12 @@ float getVPP()
        promMax = promMax + maximos[i];
        promMin = promMin + minimos[i];
    }
-   Serial.println("-----");
-   Serial.println("PromMax");
-   Serial.println(promMax);
-   Serial.println("-----");
-   Serial.println("PromMin");
-   Serial.println(promMin);
+   
    resultMax = promMax / 50; 
    resultMin = promMin / 50;
-   Serial.println("-----");
-   Serial.println("resultMax");
-   Serial.println(resultMax);
-   Serial.println("-----");
-   Serial.println("resultMin");
-   Serial.println(resultMin);
-   Serial.println("-----");
-   Serial.println("******");
   
    // Obtengo el valor medio de los picos y los mapeo a los valores del ADC del Nodemcu (que entrega y recibe 3.3v) a valores 1024 digitales.
-   result = (((resultMax - resultMin) * 3.3)/1024.0) / 2.0);
+   result = ((((resultMax - resultMin) * 3.3)/1024.0) / 2.0);
    
    Serial.println();
 
