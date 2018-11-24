@@ -10,7 +10,7 @@ float func_read_current_sensor() {
   float WH = 0;
 
   voltage = getVPP();
-  VRMS = (voltage / 2.0) * 0.707;
+  VRMS = voltage  * 0.707;
   AmpsRMS = (VRMS * 1000) / mVperAmp;
   
 
@@ -88,7 +88,7 @@ float getVPP()
    Serial.println("******");
   
    // Obtengo el valor medio de los picos y los mapeo a los valores del ADC del Nodemcu (que entrega y recibe 3.3v) a valores 1024 digitales.
-   result = ((resultMax - resultMin) * 3.3)/1024.0;
+   result = (((resultMax - resultMin) * 3.3)/1024.0) / 2.0);
    
    Serial.println();
 
