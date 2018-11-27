@@ -34,7 +34,7 @@ float getVPP()
   int minimos[50];
   float resultMax = 0;
   float resultMin = 0;
-  Metro sensor_metro = Metro(0,02);
+  Metro sensor_metro = Metro(0.02);
 
 
   for  (int i = 0; i < 50; ++i) {
