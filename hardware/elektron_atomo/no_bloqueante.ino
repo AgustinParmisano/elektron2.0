@@ -610,14 +610,15 @@ float getVPP()
                         minValue = readValue; //pico mínimo (negativo) de la onda actual.
                     }
            }
+           maximos[i] = maxValue; //se guardan los picos en sus arreglos.
+           minimos[i] = minValue;
            if (i < 50){
             i = i +1;
            }else{
             i = 0;
            }
     }
-    maximos[i] = maxValue; //se guardan los picos en sus arreglos.
-    minimos[i] = minValue;
+
     
   }
 
